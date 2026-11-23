@@ -382,3 +382,52 @@ export const tromboneRosna = (S, nome, o = {}) =>
         o,
         { pk: 0.45, solta: 0.08 },
     );
+
+// ---------- rodada 6 (23/11/2026): o violoncelo da "A última partida" e a costura das suítes ----------
+
+/** Violoncelo: arco (dente de serra suave, harmônicos caindo), ataque lento, o chiado do arco e o vibrato que chega. */
+export const violoncelo = (S, nome, o = {}) =>
+    voz(
+        S,
+        nome,
+        (f, _s, r) => {
+            let ph = 0;
+            let n = 0;
+            const nh = Math.max(1, Math.min(24, Math.floor(5000 / f)));
+            return (t) => {
+                const vib = 1 + 0.006 * Math.sin(TAU * 5.3 * t) * Math.min(1, Math.max(0, (t - 0.3) / 0.4));
+                ph += (TAU * f * vib) / SR;
+                let y = 0;
+                for (let k = 1; k <= nh; k++) y += (Math.sin(k * ph) / k) * Math.exp(-(k - 1) * 0.18);
+                n += 0.1 * (r() * 2 - 1 - n);
+                return (0.55 * y + 0.08 * n) * Math.min(1, t / 0.14);
+            };
+        },
+        o,
+        { pk: 0.45, solta: 0.25 },
+    );
+
+/** RMS de um par [L, R]. */
+export function rms([L, R]) {
+    let e = 0;
+    for (let i = 0; i < L.length; i++) e += L[i] * L[i] + R[i] * R[i];
+    return Math.sqrt(e / (2 * L.length));
+}
+
+/**
+ * Costura de uma suíte: cada parte ([L, R] já renderizado) entra no segundo `em`, com `ganho`. O rabo de uma soa por
+ * cima da entrada da próxima.
+ */
+export function emendar(partes) {
+    const fim = Math.max(...partes.map(({ som, em }) => Math.round(em * SR) + som[0].length));
+    const L = new Float32Array(fim);
+    const R = new Float32Array(fim);
+    for (const { som, em, ganho = 1 } of partes) {
+        const o = Math.round(em * SR);
+        for (let i = 0; i < som[0].length; i++) {
+            L[o + i] += som[0][i] * ganho;
+            R[o + i] += som[1][i] * ganho;
+        }
+    }
+    return [L, R];
+}

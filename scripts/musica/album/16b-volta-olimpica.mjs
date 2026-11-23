@@ -15,6 +15,11 @@
 // último clap molhado com o último flash.
 // Assinatura: os flashes dos fotógrafos, tocados no tempo (no contratempo das pausas), e o hino da torcida.
 // Forma: intro 4 | A 8 | A2 8 | lembrança 8 | solo 8 | respiro 2 | A' Ré maior 8 | final 4 = 50 compassos (~2:47).
+// Rodada 6 (23/11/2026): "ótima, dá orgulho, mas pode ser mais criativa". O toque a mais: O ESTÁDIO CANTA SOZINHO.
+// No lugar do respiro, a banda some e a arquibancada (o coro de três vozes do álbum, em duas vozes) canta o tema que
+// o trompete cantou, a capela, só com as palmas da torcida e os flashes; no meio da 2ª frase o órgão volta por baixo
+// no Lá7 e a banda inteira explode no Ré maior. No A' o estádio continua cantando junto com o trompete, e no final o
+// coro segura o "amém". O resto (o tema, o iv menor, a lembrança, o solo) fica igual. 52 compassos (~2:54).
 import { MOTIVO as GIOVANNI } from '../pecas/lider-giovanni.mjs';
 import { torcida } from '../pecas/livre-ginasio.mjs';
 import { MOTIVO as ROCKET } from '../pecas/tema-rocket.mjs';
@@ -46,7 +51,7 @@ import {
     trompete,
     tuba,
 } from './kit.mjs';
-import { flash } from './kit-novas.mjs';
+import { coro, flash } from './kit-novas.mjs';
 
 export const meta = { titulo: 'Volta olímpica', faixa: '16b' };
 
@@ -107,7 +112,9 @@ const COMP = [
 ];
 
 export default function voltaOlimpica() {
-    const S = new Song({ bpm: 72, bars: 50, swing: 0.1, tail: 7, barramentos: { bateria: BATERIA } });
+    const S = new Song({ bpm: 72, bars: 52, swing: 0.1, tail: 7, barramentos: { bateria: BATERIA } });
+    const co = coro(S, 'estadio1', { pan: -0.15, gain: 0.9, rev: 0.45 });
+    const co2 = coro(S, 'estadio2', { pan: 0.25, gain: 0.6, rev: 0.45 });
     const k = S.part('bumbo', bumbo, { drum: true, bus: 'bateria', gain: 0.95 });
     const duck = bombeio(S, k, { prof: 0.2, solta: 0.25 });
     const sn = S.part('caixa', caixa, { drum: true, bus: 'bateria', gain: 0.8, rev: 0.15 });
@@ -229,59 +236,75 @@ export default function voltaOlimpica() {
     drum(cr, 28, 1, 'X...............');
     drum(cr, 32, 1, 'X...............');
 
-    // ---------- o respiro (36-37): só a torcida no 3-3-2, os flashes, o órgão subindo; Lá7 pro Ré ----------
-    padChord(og, 36, 'Gbmaj7', 16, { low: 53, n: 4, vel: 0.6 });
-    padChord(og, 37, 'A7', 16, { low: 55, n: 4, vel: 0.75 });
-    padChord(str, 36, 'Gbmaj7', 16, { low: 58, n: 4, vel: 0.45 });
-    padChord(str, 37, 'A7', 16, { low: 61, n: 4, vel: 0.6 });
-    for (const b of [36, 37]) {
-        drum(pl, b, 1, 'X..X..X.....x.x.');
-        drum(k, b, 1, 'X..X..X.........', { vel: 0.6 });
-    }
+    // ---------- o estádio canta sozinho (36-39): a capela, as palmas da torcida e os flashes ----------
+    const CANTO = [TP[0], TP[1], TP[4], 'Db5:6 Eb5:2 Gb5:8'];
+    // a 2ª voz, nas notas do acorde (Ré♭maj7, Fá m7, Sol♭maj7, e o Fá# que vira a 13ª do Lá7)
+    const CANTO2 = [
+        'F4:3 Ab4:3 Db5:6 C5:2 Ab4:2',
+        'Ab4:6 C5:2 Eb5:8',
+        'Eb4:3 Gb4:3 Bb4:6 Ab4:2 Gb4:2',
+        'Bb4:6 Bb4:2 C#5:8',
+    ];
+    mel(co, 36, CANTO);
+    mel(co2, 36, CANTO2, { vel: 0.85 });
+    longe.note(36 * 16, -2, 0, 1);
+    for (let b = 36; b < 40; b++) drum(pl, b, 1, '....X.......X...', { vel: 0.7 + 0.08 * (b - 36) });
     drum(fl, 36, 1, '.....x.....x....', { pitch: 2 });
-    drum(fl, 37, 1, '........x.......', { pitch: -2 });
-    bs.note(36 * 16, midi('Gb1'), 16, 0.8);
-    bs.note(37 * 16, midi('A1'), 12, 0.9);
-    mel(tb, 37, ['r:8 E3:4 G3:4']);
-    drum(ti, 37, 1, '........x.x.xxXX', { pitch: -6, vel: 0.6 });
+    drum(fl, 37, 1, '..x.......x.....', { pitch: -1 });
+    drum(fl, 38, 1, '........x.....x.', { pitch: 3 });
+    // no meio da 2ª frase o órgão volta por baixo, e o Lá7 chama a banda
+    padChord(og, 38, 'Gbmaj7', 16, { low: 53, n: 4, vel: 0.4 });
+    padChord(og, 39, 'A7', 16, { low: 55, n: 4, vel: 0.75 });
+    padChord(str, 39, 'A7', 16, { low: 61, n: 4, vel: 0.55 });
+    bs.note(39 * 16, midi('A1'), 12, 0.9);
+    mel(tb, 39, ['r:8 E3:4 G3:4']);
+    drum(ti, 39, 1, '........x.x.xxXX', { pitch: -6, vel: 0.6 });
+    drum(k, 39, 1, '........X..X..X.', { vel: 0.7 });
 
-    // ---------- A' em Ré maior (38-45): tudo, o coro nas cordas e a torcida respondendo ----------
-    blocoA(38, 1, { dois: true });
-    for (const i of [1, 5]) drum(pl, 38 + i, 1, '............X.X.', { vel: 0.9 });
+    // ---------- A' em Ré maior (40-47): tudo, e o estádio canta junto com o trompete ----------
+    blocoA(40, 1, { dois: true });
+    mel(co, 40, TP, { shift: 1, vel: 0.55 });
+    mel(co2, 40, TP, { shift: -11, vel: 0.6 });
+    for (const i of [1, 5]) drum(pl, 40 + i, 1, '............X.X.', { vel: 0.9 });
 
-    // ---------- final (46-49): o SOC-CER-MON em câmera lenta, a última lágrima, o amém ----------
+    // ---------- final (48-51): o SOC-CER-MON em câmera lenta, a última lágrima, o amém ----------
+    const f = 48;
     const g = GANCHO.em({ tom: 2, oitava: -1, ritmo: [6, 6, 4, 0] });
-    mel(tp, 46, [g]);
-    mel(tb, 46, [g], { shift: -12 });
-    mel(tu, 46, [g], { shift: -24, vel: 0.6 });
-    padChord(og, 46, 'Gmaj7', 16, { low: 55, n: 4, vel: 0.6 });
-    padChord(str, 46, 'Gmaj7', 16, { low: 55, n: 4, vel: 0.6 });
-    bass(bs, 46, 'Gmaj7', BAIXO);
-    groove(46);
-    drum(pl, 46, 1, '............X.X.', { vel: 0.9 });
+    mel(tp, f, [g]);
+    mel(tb, f, [g], { shift: -12 });
+    mel(tu, f, [g], { shift: -24, vel: 0.6 });
+    mel(co, f, [g], { vel: 0.8 });
+    padChord(og, f, 'Gmaj7', 16, { low: 55, n: 4, vel: 0.6 });
+    padChord(str, f, 'Gmaj7', 16, { low: 55, n: 4, vel: 0.6 });
+    bass(bs, f, 'Gmaj7', BAIXO);
+    groove(f);
+    drum(pl, f, 1, '............X.X.', { vel: 0.9 });
     // Sol menor com sexta: a última lágrima
-    mel(tp, 47, ['Bb4:8 A4:8']);
-    padChord(og, 47, 'Gm6', 16, { low: 55, n: 4, vel: 0.65 });
-    padChord(str, 47, 'Gm6', 16, { low: 55, n: 4, vel: 0.6 });
-    mel(bs, 47, ['G1:12 A1:4'], { vel: 0.9 });
-    drum(k, 47, 1, 'X...............', { vel: 0.7 });
-    drum(cl, 47, 1, '....X.......X...', { vel: 0.8 });
-    drum(ti, 47, 1, '............x.xX', { pitch: -7, vel: 0.6 });
-    // o amém: Ré maior (com sétima maior e nona), tudo junto, e o rabo de sala
-    mel(tp, 48, ['F#5:16']);
-    for (const n of ['D3', 'A3', 'F#4']) tb.note(48 * 16, midi(n), 14, 0.9);
-    for (const n of ['D3', 'F#3', 'A3', 'C#4', 'E4']) og.note(48 * 16, midi(n), 16, 0.8);
-    padChord(str, 48, 'Dmaj7', 16, { low: 50, n: 5, vel: 0.75 });
-    padChord(rh, 48, 'Dmaj7', 12, { low: 57, n: 4, vel: 0.6 });
-    tu.note(48 * 16, midi('D2'), 14, 0.8);
-    bs.note(48 * 16, midi('D1'), 14, 1);
-    drum(k, 48, 1, 'X...............');
-    drum(cr, 48, 1, 'X...............');
-    drum(ti, 48, 1, 'X...............', { pitch: -4 });
-    drum(pl, 48, 1, 'X...............', { vel: 0.8 });
+    mel(tp, f + 1, ['Bb4:8 A4:8']);
+    mel(co, f + 1, ['G4:8 F#4:8'], { vel: 0.7 });
+    padChord(og, f + 1, 'Gm6', 16, { low: 55, n: 4, vel: 0.65 });
+    padChord(str, f + 1, 'Gm6', 16, { low: 55, n: 4, vel: 0.6 });
+    mel(bs, f + 1, ['G1:12 A1:4'], { vel: 0.9 });
+    drum(k, f + 1, 1, 'X...............', { vel: 0.7 });
+    drum(cl, f + 1, 1, '....X.......X...', { vel: 0.8 });
+    drum(ti, f + 1, 1, '............x.xX', { pitch: -7, vel: 0.6 });
+    // o amém: Ré maior (com sétima maior e nona), tudo junto, o coro segura
+    mel(tp, f + 2, ['F#5:16']);
+    for (const n of ['D3', 'A3', 'F#4']) tb.note((f + 2) * 16, midi(n), 14, 0.9);
+    for (const n of ['D3', 'F#3', 'A3', 'C#4', 'E4']) og.note((f + 2) * 16, midi(n), 16, 0.8);
+    for (const n of ['A4', 'D5']) co.note((f + 2) * 16, midi(n), 14, 0.8);
+    co2.note((f + 2) * 16, midi('F#4'), 14, 0.8);
+    padChord(str, f + 2, 'Dmaj7', 16, { low: 50, n: 5, vel: 0.75 });
+    padChord(rh, f + 2, 'Dmaj7', 12, { low: 57, n: 4, vel: 0.6 });
+    tu.note((f + 2) * 16, midi('D2'), 14, 0.8);
+    bs.note((f + 2) * 16, midi('D1'), 14, 1);
+    drum(k, f + 2, 1, 'X...............');
+    drum(cr, f + 2, 1, 'X...............');
+    drum(ti, f + 2, 1, 'X...............', { pitch: -4 });
+    drum(pl, f + 2, 1, 'X...............', { vel: 0.8 });
     // o último clap molhado, o último flash e o Rhodes lá em cima
-    drum(cl, 49, 1, '....X...........', { vel: 1.1 });
-    drum(fl, 49, 1, '..........x.....');
-    rh.note(49 * 16 + 8, midi('D6'), 8, 0.5);
+    drum(cl, f + 3, 1, '....X...........', { vel: 1.1 });
+    drum(fl, f + 3, 1, '..........x.....');
+    rh.note((f + 3) * 16 + 8, midi('D6'), 8, 0.5);
     return S;
 }
