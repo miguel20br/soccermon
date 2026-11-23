@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react';
 import { musicAudible, onGanchoHit } from '../../game/music';
+import { natalOn } from '../tema';
 import './logo-hits.css';
 
 /** Sílabas do logo (SOC, CER, MON) em % da largura; cada uma pisca na batida do gancho da faixa que toca. */
@@ -146,6 +147,8 @@ export function Logo({ className = '', alt = '', idle = false }: { className?: s
         <span className={`logo-blink logo-c ${className}`}>
             <img src="assets/ui/logo.svg" alt={alt} width="1441" height="300" draggable={false} />
             <LogoHits idle={idle} />
+            {/* Natal (ui/tema.ts): o gorrinho na carta do "O" */}
+            {natalOn && <img className="logo-gorro" src="assets/ui/gorro.png" alt="" draggable={false} />}
         </span>
     );
 }

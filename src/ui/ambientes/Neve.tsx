@@ -28,3 +28,17 @@ export function Neve() {
         </div>
     );
 }
+
+/**
+ * A capa de Natal das telas de fora dos ambientes (VERSUS, campeão, mapa da copa e da Rota, Time Ultimate, menu de
+ * modos, Perfil): o festão com o pisca-pisca no alto e a neve, por cima de tudo e sem toque. Quem chama confere
+ * `natalOn`.
+ */
+export function NatalCapa() {
+    return (
+        <div className="natal-capa" aria-hidden>
+            <Neve />
+            <div className="natal-festao" />
+        </div>
+    );
+}

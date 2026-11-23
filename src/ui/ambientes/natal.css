@@ -61,7 +61,8 @@
 :root[data-tema="natal"] :is(.rm-head, .rt-head) {
     position: relative;
 }
-:root[data-tema="natal"] :is(.rm-head, .rt-head, .es-top)::before {
+:root[data-tema="natal"] :is(.rm-head, .rt-head, .es-top)::before,
+.natal-festao::after {
     --lw: 5px;
     --lp: 16px;
     content: "";
@@ -94,7 +95,8 @@
     top: -10px;
 }
 @media (min-width: 900px) and (min-height: 700px) {
-    :root[data-tema="natal"] :is(.rm-head, .rt-head, .es-top)::before {
+    :root[data-tema="natal"] :is(.rm-head, .rt-head, .es-top)::before,
+    .natal-festao::after {
         --lw: 6px;
         --lp: 22px;
     }
@@ -124,5 +126,52 @@
         background-position:
             calc(var(--lp) * 3) 3px,
             0 1px;
+    }
+}
+
+/* ---------- a capa das outras telas (NatalCapa): neve e festão por cima, fixos na janela, sem toque ---------- */
+.natal-capa {
+    position: fixed;
+    inset: 0;
+    z-index: 300;
+    pointer-events: none;
+}
+/* o festão: galho verde em arcos de pixel (contorno escuro, borda dura) pendurado no alto; uma lâmpada no fundo de
+   cada arco, nas 4 cores correndo como as dos ambientes (o mesmo cordão, sem o fio reto) */
+.natal-festao {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 20px;
+    background:
+        radial-gradient(
+            circle at 50% -12px,
+            transparent 20px,
+            #05081a 20px 21px,
+            #1d6b36 21px 23px,
+            #2f9a50 23px 25px,
+            #05081a 25px 26px,
+            transparent 26px
+        )
+        0 0 / 40px 20px repeat-x;
+    animation: neve-in 300ms var(--ease-out) both;
+}
+:root[data-tema="natal"] .natal-festao::after {
+    --lw: 4px;
+    --lp: 40px;
+    top: 10px;
+    left: 18px;
+    right: 0;
+    background-size:
+        calc(var(--lp) * 4) 6px,
+        0 0;
+}
+:root[data-reduce-motion="true"] .natal-festao::after {
+    animation: none;
+}
+@media (prefers-reduced-motion: reduce) {
+    :root:not([data-reduce-motion="false"]) .natal-festao::after {
+        animation: none;
     }
 }

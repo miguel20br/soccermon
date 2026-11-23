@@ -1,6 +1,6 @@
 import type Phaser from 'phaser';
 import { FUTSAL_5 } from '../engine/config';
-import { neonOn } from '../ui/tema';
+import { natalOn, neonOn } from '../ui/tema';
 import { type CourtTheme, drawFloor, WOOD } from './court-themes';
 
 export const PPM = 22; // pixels por metro
@@ -65,6 +65,7 @@ export function courtGraphics(scene: Phaser.Scene, theme: CourtTheme = WOOD, neo
     }
     theme.decor?.(g, box, { w: GAME_W, h: GAME_H });
     if (neon) neonTubes(g, box);
+    if (natalOn) natalLights(g, box);
     g.fillStyle(theme.area, theme.areaAlpha);
     areaPath(g, 0, true);
     areaPath(g, 1, true);
@@ -121,6 +122,38 @@ function neonTubes(g: Phaser.GameObjects.Graphics, b: { x: number; y: number; w:
         g.lineBetween(b.x, b.y, r, b.y).lineBetween(b.x, d, r, d);
         g.lineStyle(w, core ? 0xd2f6ff : 0x3fd0ff, a);
         g.lineBetween(b.x, b.y + 6, b.x, d - 6).lineBetween(r, b.y + 6, r, d - 6);
+    }
+}
+
+/**
+ * Natal (ui/tema.ts): cordão de pisca-pisca em volta do piso, no alambrado (fio escuro e lâmpadas de pixel nas 4 cores
+ * da marca, com um halo). Assado junto com a textura da quadra: parado e sem custo por quadro.
+ */
+function natalLights(g: Phaser.GameObjects.Graphics, b: { x: number; y: number; w: number; h: number }) {
+    const COLORS = [0xe8423f, 0xffcb05, 0x58c26b, 0x3a7bd5];
+    const o = 7; // o fio passa 7 px pra fora do piso
+    const x0 = b.x - o;
+    const y0 = b.y - o;
+    const x1 = b.x + b.w + o;
+    const y1 = b.y + b.h + o;
+    g.lineStyle(2, 0x05081a, 0.9).strokeRect(x0, y0, x1 - x0, y1 - y0);
+    const step = 22;
+    const bulb = (x: number, y: number, k: number) => {
+        const c = COLORS[k % COLORS.length];
+        g.fillStyle(c, 0.3).fillRect(x - 6, y - 6, 12, 12);
+        g.fillStyle(0x05081a, 1).fillRect(x - 2, y - 5, 4, 2);
+        g.fillStyle(c, 1).fillRect(x - 3, y - 3, 6, 6);
+        g.fillStyle(0xffffff, 0.75).fillRect(x - 2, y - 2, 2, 2);
+    };
+    let k = 0;
+    for (let x = x0 + step / 2; x < x1; x += step, k++) {
+        bulb(x, y0, k);
+        bulb(x, y1, k + 2);
+    }
+    k = 0;
+    for (let y = y0 + step; y < y1 - step / 2; y += step, k++) {
+        bulb(x0, y, k + 1);
+        bulb(x1, y, k + 3);
     }
 }
 
