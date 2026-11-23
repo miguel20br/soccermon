@@ -289,11 +289,37 @@ export function comemoracaoOf(speciesId: number): Comemoracao {
  * Comemoração própria de 5 espécies (docs/planos/pesquisas/sinergias-e-animacoes.md, item 9): passa por cima do jeito
  * da forma só no gol da quadra. Vale pra shiny e edições (sai da espécie).
  */
-export type ComemoracaoEspecie = 'psyduck' | 'snorlax' | 'magikarp' | 'gengar' | 'pikachu';
+export type ComemoracaoEspecie =
+    | 'psyduck'
+    | 'snorlax'
+    | 'magikarp'
+    | 'gengar'
+    | 'pikachu'
+    | 'jigglypuff'
+    | 'slowpoke'
+    | 'meowth'
+    | 'charizard'
+    | 'squirtle'
+    | 'cubone'
+    | 'voltorb'
+    | 'kadabra';
+/** As 5 da 0.9.53.1 e as 8 da 0.9.54 (algumas valem pra família: Slowbro, Marowak, Electrode, Alakazam). */
 const DA_ESPECIE: Record<number, ComemoracaoEspecie> = {
+    6: 'charizard',
+    7: 'squirtle',
     25: 'pikachu',
+    39: 'jigglypuff',
+    52: 'meowth',
     54: 'psyduck',
+    64: 'kadabra',
+    65: 'kadabra',
+    79: 'slowpoke',
+    80: 'slowpoke',
     94: 'gengar',
+    100: 'voltorb',
+    101: 'voltorb',
+    104: 'cubone',
+    105: 'cubone',
     129: 'magikarp',
     143: 'snorlax',
 };
@@ -308,6 +334,24 @@ const MAGIKARP = { hops: 4, h: 22, air: 330 } as const;
 export const GENGAR = { sink: 760, under: 1150, rise: 1450 } as const;
 /** Pikachu: junta carga até `zap` (ms) e solta o raio pro céu (o raio é desenhado pela cena). */
 export const PIKA_ZAP = 420;
+/** Jigglypuff: canta (notas da cena) até `sing`, infla brava até `puff` e rabisca a cara de quem está perto. */
+export const JIGGLY = { sing: 1250, puff: 1600 } as const;
+/** Slowpoke: parado com "..." (um ponto em cada `dots`), só percebe o gol em `notice` e pula atrasado. */
+export const SLOWPOKE = { dots: [250, 600, 950], notice: 1500, jump: 1720 } as const;
+/** Meowth: Pay Day, joga as moedas em `toss` (as moedas são da cena). */
+export const PAYDAY = { toss: 380 } as const;
+/** Charizard: enche o peito até `from` e solta o fogo pro céu até `to`. */
+export const CHARIZARD = { from: 450, to: 1550 } as const;
+/** Squirtle: os óculos do Esquadrão descem em `drop` e encaixam no rosto em `land`; o brilho passa em `glint`. */
+export const SQUAD = { drop: 300, land: 720, glint: 1000 } as const;
+/** Cubone: arremessa o osso em `toss`, o Bonemerang dá a volta e volta pra mão em `back`. */
+export const BONE = { toss: 380, back: 1650 } as const;
+/** Voltorb: pisca e incha até `boom`, explode, fica tostado até `clean` e se sacode. */
+export const BOOM = { boom: 1050, clean: 1950 } as const;
+/** O vermelho que o Voltorb pisca antes de estourar (no Reduzir movimento a cena não pisca). */
+export const BOOM_BLINK = 0xff5040;
+/** Kadabra: a colher sobe em `rise` e entorta entre `bend` e `bent`. */
+export const SPOON = { rise: 300, bend: 950, bent: 1450 } as const;
 
 /** Quanto dura a comemoração do gol (o `Action.Celebrate` de 2,5 s do motor). */
 export const GOAL_CELEB_MS = 2500;
@@ -329,6 +373,8 @@ interface CelebBody {
     lift: number;
     /** Giro do corpo no pé (rad; só as comemorações da espécie: o Snorlax deita, o Psyduck balança). */
     rot?: number;
+    /** Tinta do corpo (o Voltorb pisca vermelho e fica tostado); a cena volta a tinta normal depois. */
+    tint?: number;
 }
 
 const bump = (u: number) => (u <= 0 || u >= 1 ? 0 : Math.sin(Math.PI * u));
@@ -420,6 +466,135 @@ export function goalCelebPose(
         if (t < PIKA_ZAP)
             return { anim: 'Charge', facing: 0, lift: 0, ...squashOf(Math.sin((Math.PI / 2) * (t / PIKA_ZAP))) };
         const body = hop(t, PIKA_ZAP, 14, 260, H.squash);
+        return { anim: 'Pose', facing: 0, ...(body ?? still) };
+    }
+    if (kind === 'jigglypuff') {
+        const J = JIGGLY;
+        // canta balançando devagar (a nota é da cena)
+        if (t < J.sing)
+            return {
+                anim: 'Idle',
+                facing: 0,
+                ...still,
+                sy: 1 + 0.04 * Math.sin(t / 130),
+                rot: 0.14 * Math.min(1, t / 300) * Math.sin(t / 260),
+            };
+        // ninguém ficou pra ouvir: infla de raiva (passa do tamanho e assenta)
+        if (t < J.puff) {
+            const u = (t - J.sing) / (J.puff - J.sing);
+            const k = easeOut(u) + 0.12 * bump(u);
+            return { anim: 'Charge', facing: 0, sx: 1 + 0.28 * k, sy: 1 + 0.22 * k, lift: 0 };
+        }
+        // rabisca: murcha devagar pulando de raiva
+        const k = 1 - easeOut((t - J.puff) / 500);
+        const body =
+            hop(t, J.puff + 80, 10, 200, H.squash2) ?? hop(t, J.puff + 80 + 200 + H.land + 40, 8, 180, H.squash2);
+        const b = body ?? still;
+        return { anim: 'Idle', facing: 0, sx: b.sx * (1 + 0.28 * k), sy: b.sy * (1 + 0.22 * k), lift: b.lift };
+    }
+    if (kind === 'slowpoke') {
+        const S = SLOWPOKE;
+        if (t < S.notice) return { anim: 'Idle', facing: 0, ...still };
+        // o susto: estica de uma vez e volta
+        if (t < S.jump - 120) {
+            const k = bump((t - S.notice) / 180);
+            return { anim: 'Idle', facing: 0, sx: 1 - 0.1 * k, sy: 1 + 0.18 * k, lift: 0 };
+        }
+        const body = crouch(t, S.jump, 120) ?? hop(t, S.jump, 22, 360, H.squash);
+        return { anim: 'Hop', facing: 0, ...(body ?? still) };
+    }
+    if (kind === 'meowth') {
+        if (t < PAYDAY.toss)
+            return { anim: 'Charge', facing: 0, lift: 0, ...squashOf(Math.sin((Math.PI / 2) * (t / PAYDAY.toss))) };
+        const body = hop(t, PAYDAY.toss, 16, 280, H.squash) ?? hop(t, PAYDAY.toss + 1100, 12, 240, H.squash2);
+        return { anim: t < PAYDAY.toss + 700 ? 'Attack' : 'Pose', facing: 0, ...(body ?? still) };
+    }
+    if (kind === 'charizard') {
+        const C = CHARIZARD;
+        // enche o peito (estica pra cima) e solta: o corpo treme leve enquanto o fogo sai
+        if (t < C.from) {
+            const k = Math.sin((Math.PI / 2) * (t / C.from));
+            return { anim: 'Charge', facing: 0, sx: 1 - 0.08 * k, sy: 1 + 0.12 * k, lift: 0 };
+        }
+        if (t < C.to) {
+            const k = 1 - easeOut((t - C.from) / 160);
+            return {
+                anim: 'Attack',
+                facing: 0,
+                sx: 1 + 0.1 * k,
+                sy: 1 - 0.1 * k,
+                lift: 0,
+                rot: 0.025 * Math.sin(t / 35),
+            };
+        }
+        const body = hop(t, C.to + 120, 18, 320, H.squash);
+        return { anim: 'Hop', facing: 0, ...(body ?? still) };
+    }
+    if (kind === 'squirtle') {
+        const Q = SQUAD;
+        if (t < Q.drop)
+            return { anim: 'Charge', facing: 0, lift: 0, ...squashOf(0.6 * Math.sin((Math.PI / 2) * (t / Q.drop))) };
+        if (t < Q.land) return { anim: 'Idle', facing: 0, ...still };
+        // os óculos encaixam: amassa um pouco e fica parado na pose de durão (um aceno de cabeça)
+        const k = bump((t - Q.land) / 200);
+        const nod = bump((t - Q.land - 700) / 260);
+        return { anim: 'Idle', facing: 0, sx: 1 + 0.12 * k, sy: 1 - 0.12 * k - 0.05 * nod, lift: 0 };
+    }
+    if (kind === 'cubone') {
+        const B = BONE;
+        if (t < B.toss)
+            return { anim: 'Charge', facing: 0, lift: 0, ...squashOf(Math.sin((Math.PI / 2) * (t / B.toss))) };
+        // arremessa de lado e acompanha o osso girando a cabeça (direções 2 → 4 → 6 → 0)
+        if (t < B.back) {
+            const u = (t - B.toss) / (B.back - B.toss);
+            return {
+                anim: u < 0.2 ? 'Attack' : 'Idle',
+                facing: u < 0.35 ? 2 : u < 0.6 ? 4 : u < 0.85 ? 6 : 0,
+                ...still,
+            };
+        }
+        // pega o osso: amassa e pula de frente
+        const body = hop(t, B.back + 60, 18, 320, H.squash);
+        const k = bump((t - B.back) / 140);
+        return { anim: 'Pose', facing: 0, ...(body ?? { lift: 0, sx: 1 + 0.15 * k, sy: 1 - 0.15 * k }) };
+    }
+    if (kind === 'voltorb') {
+        const V = BOOM;
+        if (t < V.boom) {
+            // incha piscando vermelho, cada vez mais rápido
+            const u = t / V.boom;
+            const blink = Math.sin((u * u * 9 + u) * Math.PI * 2) > 0;
+            const k = u * u;
+            return {
+                anim: 'Charge',
+                facing: 0,
+                sx: 1 + 0.22 * k,
+                sy: 1 + 0.18 * k,
+                lift: 0,
+                tint: blink ? BOOM_BLINK : undefined,
+            };
+        }
+        if (t < V.clean) {
+            // tostado e tonto (Hurt), balançando; a fumaça é da cena
+            const k = bump((t - V.boom) / 160);
+            return {
+                anim: 'Hurt',
+                facing: 0,
+                sx: 1 + 0.25 * k,
+                sy: 1 - 0.3 * k,
+                lift: 0,
+                rot: 0.12 * Math.sin((t - V.boom) / 90) * Math.min(1, (V.clean - t) / 200),
+                tint: 0x4a4a4a,
+            };
+        }
+        // se sacode (a fuligem sai) e pula de volta
+        const body = hop(t, V.clean + 60, 16, 280, H.squash);
+        return { anim: 'Hop', facing: 0, ...(body ?? still) };
+    }
+    if (kind === 'kadabra') {
+        const P = SPOON;
+        if (t < P.bent) return { anim: 'Charge', facing: 0, ...still, sy: 1 + 0.03 * Math.sin(t / 90) };
+        const body = hop(t, P.bent + 80, 16, 300, H.squash);
         return { anim: 'Pose', facing: 0, ...(body ?? still) };
     }
     if (kind === 'giro') {
