@@ -7,7 +7,7 @@ const NPX_PLAYWRIGHT = '/home/bartolomeu/.npm/_npx/9833c18b2d85bc59/node_modules
 const { chromium } = await import(process.env.PLAYWRIGHT ?? 'playwright').catch(() => import(NPX_PLAYWRIGHT));
 const [dir] = process.argv.slice(2);
 const url = (f) => pathToFileURL(new URL(f, import.meta.url).pathname).href;
-// os textos do roteiro-v4.md, um por slam (a palavra-chave em amarelo)
+// os textos do roteiro-v4.md (e os da v5), um por slam (a palavra-chave em amarelo)
 export const LEGENDAS = {
     classico: 'No Clássico, <b>acaba.</b>',
     ultimate: 'No Ultimate, <b>é seu.</b>',
@@ -27,6 +27,9 @@ export const LEGENDAS = {
     time: 'Monte seu <b>time</b>',
     mais: 'E vai ter <b>mais</b>',
     capa: 'Time Ultimate<br><b>27/11</b>',
+    // v5 (o Miguel: "frenético demais"; cartelas de 4 batidas, algumas juntas)
+    metaspasse: '<b>Metas</b> e <b>passe</b>',
+    natal: 'Evento de <b>Natal</b>',
 };
 const browser = await chromium.launch({ headless: true, args: ['--allow-file-access-from-files'] });
 const page = await browser.newPage({ viewport: { width: 360, height: 640 }, deviceScaleFactor: 3 });
