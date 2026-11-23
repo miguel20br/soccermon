@@ -25,7 +25,7 @@ mais). "Motor" = mexe no resultado das partidas (sobe `ENGINE_VERSION`, número 
 | 6 | **Sinergias secretas**: 26 combos escondidos, chip "???" na escalação, revelação em campo, Registro de Sinergias no Álbum, medalhas | M–G | pesquisas/sinergias-e-animacoes.md §3 e §5 | começar pelas que são só tela (rivalidades); as com bônus são motor |
 | 7 | **Mais animações próprias**: o catálogo tem 20; saíram as 5 comemorações e o cut-in de dupla (0.9.53.1) | M | mesma pesquisa §4 | Skylab, toca aqui, cenas de dupla |
 | 8 | **Escolher os golpes do Pokémon** | M | roadmap | motor e equilíbrio |
-| 9 | **Quadras temáticas por ginásio e treinadores com sprite na Copa** | M | roadmap | os 47 treinadores já estão em `public/assets/trainers/` |
+| 9 | **Quadras temáticas por ginásio e treinadores com sprite na Copa** | M | roadmap | as quadras dos 10 líderes já existiam (19/10); o treinador na beira da quadra foi feito e o Miguel recusou em 23/11 ("não curti") |
 
 ## Time Ultimate (depois da estreia de 27/11)
 
