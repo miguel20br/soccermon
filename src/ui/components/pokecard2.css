@@ -3609,9 +3609,49 @@ button.pc2.pc2-fx:hover {
 .m-stats .m-mod.down {
     background: #c9302c;
 }
-/* Eviolite valendo: o ▲ na cor da pedra */
+/* Eviolite valendo: o ▲ na cor da pedra e a nota e os atributos com o brilho dela (Miguel, 23/11: glow, não cor chapada) */
 .m-stats .m-mod.evio {
     background: #8a4fd0;
+}
+.m-ovr.evio,
+.m-stats.evio b {
+    position: relative;
+    color: #2b1745;
+    filter: drop-shadow(0 0 0.12em rgb(160 90 255 / 45%));
+}
+/* a faixa de luz numa cópia do número por cima (`data-v`): o número de baixo fica com a fonte e a espessura de sempre */
+.m-ovr.evio::after,
+.m-stats.evio b::after {
+    content: attr(data-v);
+    position: absolute;
+    inset: 0;
+    text-align: inherit;
+    color: transparent;
+    text-shadow: none;
+    background: linear-gradient(105deg, transparent 40%, #b98cff 46%, #f6efff 50%, #b98cff 54%, transparent 60%)
+        no-repeat;
+    background-size: 300% 100%;
+    -webkit-background-clip: text;
+    background-clip: text;
+    animation: evio-luz 4.5s ease-in-out infinite;
+    pointer-events: none;
+}
+@keyframes evio-luz {
+    0%,
+    30% {
+        background-position: 100% 0;
+    }
+    70%,
+    100% {
+        background-position: 0 0;
+    }
+}
+@media (prefers-reduced-motion: reduce) {
+    .m-ovr.evio::after,
+    .m-stats.evio b::after {
+        animation: none;
+        background: none;
+    }
 }
 
 /* galeria: proposta do selo de carreira na carta (só aqui; nada liga fora da ?cards=1) */

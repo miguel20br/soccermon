@@ -205,7 +205,7 @@ const ARROW_CARDS: Step[] = [
     { label: 'Gyarados que evoluiu (Swift Swim)', inst: evolveInstance(karp, 130) },
     { label: 'Gyarados do pacote', inst: sample(130) },
     { label: 'Mewtwo Shiny Ícone', inst: card(150, true, ico(150)) },
-    { label: 'Machoke com Eviolite (▲ roxo)', inst: sample(67, { item: 'eviolite' }) },
+    { label: 'Machoke com Eviolite (nota e atributos roxos)', inst: sample(67, { item: 'eviolite' }) },
     { label: 'Machoke sem item', inst: sample(67) },
 ];
 
@@ -509,7 +509,8 @@ function CurrentCards({ onExit }: { onExit: () => void }) {
                     <h2>O ▲ da carta</h2>
                     <p className="muted cb-intro">
                         O número é sempre o que vale em campo (evolução, edição, habilidade, item e Fada). O ▲ diz
-                        quanto desse número é bônus. A nota grande não muda.
+                        quanto desse número é bônus. A nota grande não muda, menos com a Eviolite: aí nota e atributos
+                        ficam roxos, já com a pedra.
                     </p>
                     <Ladder steps={ARROW_CARDS} />
                 </section>

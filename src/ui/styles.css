@@ -1196,12 +1196,14 @@ button,
 .slot-rating.off {
     color: #ff9b7a;
 }
-.slot .slot-item {
+/* `img.` pra vencer o `.formation-board .slot img { height }` do sprite, que esticava o item (11/2026) */
+.slot img.slot-item {
     position: absolute;
     left: 4px;
     bottom: 4px;
     width: 20px;
     height: 20px;
+    object-fit: contain;
     image-rendering: auto;
 }
 @keyframes pulse {
