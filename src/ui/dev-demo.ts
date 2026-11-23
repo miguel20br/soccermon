@@ -723,7 +723,7 @@ export function runDevDemo() {
             const lineup = (lose ? [129, 10, 13, 16, 19] : [143, 68, 151, 142, 150]).map((id) =>
                 createInstance(id, rng),
             );
-            const bench = (lose ? [11, 14] : [149, 25]).map((id) => createInstance(id, rng));
+            const bench = (lose ? [135, 14] : [149, 25]).map((id) => createInstance(id, rng));
             useGame.setState({
                 run: {
                     ...run,

@@ -13,6 +13,12 @@ export const result = {
         one: 'Caiu por 1 gol. Faltou pouco!',
         more: 'Caiu por {n} gols. Na próxima vai!',
     },
+    /** Eliminado: um fato da escalação (nota na vaga). Só texto; a troca é sua. */
+    lineupFact: {
+        bench: 'Seu {role} tinha {rating}; no banco tinha {bench} {benchRating}.',
+        off: '{name} jogou fora de posição ({role}: {rating}; de {best} seria {bestRating}).',
+    },
+    rematch: 'Jogar de novo com este time',
     chooseReward: 'Escolher recompensa',
     feedback: 'Dar feedback',
     /** Ponte da Copa (ultimate-fc.md): o título pagou 1 pacote no Time Ultimate. */

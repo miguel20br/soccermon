@@ -325,6 +325,8 @@ export interface RunState extends LongRunFields {
     champ?: ChampMemo;
     /** Pokédex (vistos) e golpes descobertos quando a copa começou: o fim da copa mostra quanto cresceu. */
     startCounts?: { seen: number; moves: number };
+    /** Revanche: copa começada com o time de uma copa que caiu (sem draft). */
+    rematch?: boolean;
     /** Rodada do draft em que o jogador tocou em "Monta pra mim" (sem = montou tudo na mão). */
     autoFrom?: number;
     /** Copa do Dia: o dia ('2026-10-19'). Sem = copa normal. */
@@ -540,7 +542,9 @@ export interface GameStore {
     /** O aviso do primeiro da fila já passou. */
     shiftUnlock(): void;
     go(screen: Screen): void;
-    newRun(teamName?: string, seed?: string, daily?: string, mode?: CupMode): void;
+    newRun(teamName?: string, seed?: string, daily?: string, mode?: CupMode, rematchOf?: RunState): void;
+    /** Revanche: copa Relâmpago nova (chave e seed novas) com o elenco, a formação e o capitão da que caiu, sem draft. */
+    rematch(): void;
     /** Copa longa: entra numa casa do mapa (partida, Mercado, Baú, Treino ou Evento). */
     enterNode(id: string): void;
     /** Treino da Rota: meia barra de evolução, Folga (`rest`: +₽5 e quem está fora volta) ou, se ninguém evolui, 1 de 2 itens. */
@@ -1508,7 +1512,7 @@ export const useGame = create<GameStore>()(
 
                 go: (screen) => setState({ screen }),
 
-                newRun: (teamName = getState().profile.clubName || 'Pallet FC', seed, daily, mode) => {
+                newRun: (teamName = getState().profile.clubName || 'Pallet FC', seed, daily, mode, rematchOf) => {
                     const lockOn = mode === 'longa' && !seed && !daily;
                     const lock = getState().records.routeLock ?? {
                         salt: Math.floor(Math.random() * 1e9).toString(36),
@@ -1546,13 +1550,31 @@ export const useGame = create<GameStore>()(
                             moves: movesFound(getState().moves, getState().dex),
                         },
                     };
+                    // revanche: o draft já estava feito, vai direto pra escalação da 1ª partida com o time de antes
+                    if (rematchOf) {
+                        const { formation, picks, lineup, bench, captainUid, tactic, cornerPlan, cornerTakerUid } =
+                            rematchOf;
+                        Object.assign(run, {
+                            status: 'lineup',
+                            formation,
+                            picks,
+                            lineup,
+                            bench,
+                            captainUid,
+                            tactic,
+                            cornerPlan,
+                            cornerTakerUid,
+                            draftRound: rematchOf.draftRound,
+                            rematch: true,
+                        });
+                    }
                     // começar outra por cima de uma copa em jogo é abandonar a atual: a sequência de títulos zera;
                     // trocar uma Copa do Dia no meio por outra copa encerra a tentativa do dia
                     const { records } = getState();
                     setState({
                         run,
                         match: null,
-                        screen: 'draft',
+                        screen: rematchOf ? 'lineup' : 'draft',
                         // a 1ª copa é a entrada no jogo (era o fim do passo a passo de boas-vindas)
                         onboarded: true,
                         daily: closeDaily(getState()),
@@ -1564,6 +1586,12 @@ export const useGame = create<GameStore>()(
                             },
                         }),
                     });
+                },
+
+                rematch: () => {
+                    const old = getState().run;
+                    if (old?.status !== 'eliminated' || old.daily || old.mode) return;
+                    getState().newRun(old.teamName, undefined, undefined, undefined, old);
                 },
 
                 abandonRun: () =>

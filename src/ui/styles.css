@@ -7927,6 +7927,17 @@ body {
     color: var(--muted);
 }
 
+/* revanche: link pequeno entre a dica e o "Nova copa", entra junto com a frase (nada teleporta) */
+.near-miss-actions {
+    display: flex;
+    justify-content: center;
+    margin: 4px 0 8px;
+    animation: tb-hint-in 240ms var(--ease-out) both;
+}
+.near-miss {
+    animation: tb-hint-in 240ms var(--ease-out) both;
+}
+
 /* ícone de menu (MonIcon): pixel art em escala inteira, sem suavizar */
 .mon-icon {
     display: inline-block;

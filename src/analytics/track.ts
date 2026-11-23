@@ -273,6 +273,8 @@ function onChange(s: GameState, prev: GameState) {
             from: run.daily ? dailyFrom : null,
             // Rota Índigo ('longa'): 8 partidas, então `stage` não é a fase da Relâmpago
             mode: run.mode ?? null,
+            // revanche: o botão "Jogar de novo com este time" (mede o uso)
+            rematch: !!run.rematch,
         });
     if (run && old && run.seed === old.seed) {
         if (old.status === 'formation' && run.status === 'captain') track('formation', { formation: run.formation });
