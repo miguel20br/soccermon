@@ -92,6 +92,12 @@ export const match: typeof pt = {
         tipPossession: 'Lots of possession, few shots: Attacking takes more risks.',
         tipAhead: "You're ahead: hold on or push for more?",
         tipEven: 'The whole 2nd half is still to play.',
+        coach: {
+            behind: 'Behind? The Attacking tactic puts more players forward. Tap Tactic.',
+            ahead: 'Ahead? The Defensive tactic holds the result. Tap Tactic.',
+            fixos: 'Two strong Defenders in your squad: the 2-2 formation uses both. You can change it in the lineup of the next match.',
+            tactic: 'Level on Balanced? Counter keeps the Pivot waiting up front. Tap Tactic.',
+        },
         rivalEvo: 'Rival evolved',
         mySubs: 'Your subs for the 2nd half',
         subRow: '{in} comes on for {out}',

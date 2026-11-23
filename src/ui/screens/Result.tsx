@@ -1,5 +1,6 @@
 import { type ReactNode, useEffect, useState } from 'react';
 import { track } from '../../analytics/track';
+import type { Position } from '../../engine/attributes';
 import { relampagoBracket } from '../../engine/bracket';
 import { species } from '../../engine/data';
 import {
@@ -19,6 +20,7 @@ import { dailyNumber } from '../../store/daily';
 import { lineupPosition, useGame } from '../../store/game-store';
 import { cupLength, foulOf, isLong, nextCupMode } from '../../store/long-cup';
 import { rivalColor } from '../../store/profile';
+import { lineupFact } from '../coach-tips';
 import { Bracket, bracketRivals, bracketYou } from '../components/Bracket';
 import { ChampionView } from '../components/ChampionView';
 import { CupGains } from '../components/CupGains';
@@ -435,18 +437,51 @@ function GoalsExtra({
 
 /** Eliminado: uma linha do quanto faltou (pênaltis, 1 gol, mais), antes do "Nova copa". */
 function NearMiss({ run }: { run: NonNullable<ReturnType<typeof useGame.getState>['run']> }) {
-    const { t } = useT();
+    const { t, d } = useT();
+    const rematch = useGame((g) => g.rematch);
     const last = run.results.at(-1);
     if (!last || last.won) return null;
     const n = last.score[1] - last.score[0];
+    const byId = new Map(run.picks.map((p) => [p.uid, p]));
+    const squad = (uids: string[]) => uids.flatMap((u) => byId.get(u) ?? []);
+    const f = lineupFact(squad(run.lineup), squad(run.bench), run.formation);
+    const pos = (r: Position) => d.common.pos[r];
     return (
-        <p className="near-miss">
-            {last.shootout
-                ? t('result.nearMiss.pens')
-                : n <= 1
-                  ? t('result.nearMiss.one')
-                  : t('result.nearMiss.more', { n })}
-        </p>
+        <>
+            <p className="near-miss">
+                {last.shootout
+                    ? t('result.nearMiss.pens')
+                    : n <= 1
+                      ? t('result.nearMiss.one')
+                      : t('result.nearMiss.more', { n })}
+            </p>
+            {f && (
+                <p className="near-miss lineup-fact" data-testid="lineup-fact">
+                    {f.kind === 'bench'
+                        ? t('result.lineupFact.bench', {
+                              role: pos(f.role),
+                              rating: f.rating,
+                              bench: f.bench,
+                              benchRating: f.benchRating,
+                          })
+                        : t('result.lineupFact.off', {
+                              name: f.name,
+                              role: pos(f.role),
+                              rating: f.rating,
+                              best: pos(f.best),
+                              bestRating: f.bestRating,
+                          })}
+                </p>
+            )}
+            {/* revanche: botão secundário, só na Copa normal (Copa do Dia e Rota não têm) */}
+            {!run.daily && !run.mode && (
+                <div className="near-miss-actions">
+                    <button type="button" className="link-btn" data-testid="rematch" onClick={() => rematch()}>
+                        {t('result.rematch')}
+                    </button>
+                </div>
+            )}
+        </>
     );
 }
 

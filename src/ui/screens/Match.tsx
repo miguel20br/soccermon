@@ -34,6 +34,7 @@ import { isFinalStage, isLong, titleCeremony } from '../../store/long-cup';
 import { rivalColor, tagFromName } from '../../store/profile';
 import { ultimateRun } from '../../store/ultimate/ultimate';
 import { Coach } from '../coach/Coach';
+import { countStrongFixos, pickHalftimeCoach } from '../coach-tips';
 import { Commentator, type CommentLine } from '../commentary';
 import { BattleText } from '../components/BattleText';
 import { EvolutionOverlay } from '../components/EvolutionOverlay';
@@ -676,6 +677,19 @@ export function Match({ liga = false, ultimate = false }: { liga?: boolean; ulti
     // quem está mais cansado em quadra: o botão Substituir avisa (só avisa; a troca é sempre do técnico)
     const tiredSlot = onField.map((uid, i) => ({ uid, energy: energyNow(i) })).sort((a, b) => a.energy - b.energy)[0];
     // intervalo: sugere trocar o mais cansado (só abre o Substituir com ele marcado)
+    // dica de formação e tática (uma por intervalo, nenhuma repete na copa; só na Copa, e só texto)
+    const htCoach = (() => {
+        if (!halftime || ultimate || !cupRun) return null;
+        const ht = match.events.find((e) => e.type === 'halftime');
+        if (ht?.type !== 'halftime') return null;
+        const id = pickHalftimeCoach(cupRun.seed, String(cupRun.stage), {
+            formation: lockedSetup.formation,
+            tactic: currentTactic,
+            diff: ht.score[0] - ht.score[1],
+            strongFixos: countStrongFixos([...lockedSetup.lineup, ...lockedSetup.bench]),
+        });
+        return id && t(`match.ht.coach.${id}`);
+    })();
     const htSuggest = halftime
         ? subSuggestion(
               onField.map((uid, i) => ({ uid, energy: energyNow(i) })),
@@ -930,6 +944,7 @@ export function Match({ liga = false, ultimate = false }: { liga?: boolean; ulti
                                         .at(-1);
                                     return sub && sub.type === 'sub' ? sub.in : match.roster[idx].name;
                                 }}
+                                coachTip={htCoach}
                                 canSub={canSub}
                                 onSub={() => openBoard()}
                                 suggest={

@@ -103,6 +103,13 @@ export const match = {
         tipPossession: 'Muita posse e pouco chute: o Ofensivo arrisca mais.',
         tipAhead: 'Você está na frente: segurar ou ampliar?',
         tipEven: 'Ainda tem o 2º tempo inteiro.',
+        /** Dica do técnico no intervalo (uma por intervalo, nenhuma repete na copa). */
+        coach: {
+            behind: 'Perdendo? A tática Ofensivo põe mais gente no ataque. Toque em Tática.',
+            ahead: 'Na frente? A tática Retranca segura o resultado. Toque em Tática.',
+            fixos: 'Dois Fixos fortes no elenco: a formação 2-2 usa os dois. Dá pra trocar na escalação da próxima partida.',
+            tactic: 'Empatado de Equilibrado? O Contra-ataque deixa o Pivô esperando na frente. Toque em Tática.',
+        },
         /** Lembrete da evolução do rival no 1º tempo. */
         rivalEvo: 'Rival evoluiu',
         mySubs: 'Suas trocas pro 2º tempo',

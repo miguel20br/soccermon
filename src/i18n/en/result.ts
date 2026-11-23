@@ -13,6 +13,12 @@ export const result: typeof pt = {
         one: 'Out by 1 goal. So close!',
         more: 'Out by {n} goals. Next time!',
     },
+    /** Eliminated: one lineup fact (rating in the slot). Text only; the swap is yours. */
+    lineupFact: {
+        bench: 'Your {role} had {rating}; on the bench you had {bench} {benchRating}.',
+        off: '{name} played out of position ({role}: {rating}; as {best} it would be {bestRating}).',
+    },
+    rematch: 'Play again with this team',
     chooseReward: 'Choose a reward',
     feedback: 'Send feedback',
     utBridge: '+1 Mini Pack in Team Ultimate',

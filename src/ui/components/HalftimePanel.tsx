@@ -99,7 +99,10 @@ export function HalftimePanel({
     suggest,
     ready,
     colors,
+    coachTip,
 }: {
+    /** Dica do técnico (formação e tática): no lugar da dica de sempre. */
+    coachTip?: string | null;
     /** Cores dos dois times (a barra de dois lados); sem elas, amarelo contra cinza. */
     colors?: [string, string];
     /** Suas trocas pro 2º tempo (ainda não aconteceram: dá pra desfazer). */
@@ -149,10 +152,12 @@ export function HalftimePanel({
         .map((idx) => ({ idx, energy: snap.p[idx * SNAP_STRIDE + 6] ?? 1 }))
         .sort((a, b) => a.energy - b.energy)[0];
 
-    const tip = t(`match.ht.${htTip(shots[side], shots[rival], poss, ht.score[side] > ht.score[rival])}`, {
-        a: shots[rival],
-        b: shots[side],
-    });
+    const tip =
+        coachTip ??
+        t(`match.ht.${htTip(shots[side], shots[rival], poss, ht.score[side] > ht.score[rival])}`, {
+            a: shots[rival],
+            b: shots[side],
+        });
     const sides = colors ? ({ '--ht-a': colors[side], '--ht-b': colors[rival] } as CSSProperties) : undefined;
     const bar = (v: number) => ({ '--v': v }) as CSSProperties;
 
