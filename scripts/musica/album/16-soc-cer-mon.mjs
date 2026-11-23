@@ -22,7 +22,8 @@
 //     trombone, coro), e as quatro se juntam em uníssono com a bateria batendo junto.
 //   O HINO (40-47, Ré♭) e, depois da virada em Lá7, O HINO MEIO TOM ACIMA (49-56, Ré) com tudo e as cordas.
 //   FINAL ESCRITO (57-61): o grito em câmera lenta (Ré, depois o ♭VI Si♭), "SOC"… "CER"… a pausa… "MON!" no
-//     Ré com nona, o "hey hey" da torcida e o apito final do juiz (curto, curto, longo).
+//     Ré com nona, o "hey hey" da torcida e UM apito longo, o de saída de bola (rodada 6: a faixa fica entre "O
+//     túnel" e "A final" e chama o jogo; o 1º tempo começa logo depois).
 // Forma: 4 | 8 | 8 | 8 | 8 | 4 + 8 | 1 + 8 | 5. ~2:35.
 import { apito, torcida } from '../pecas/livre-ginasio.mjs';
 import { bass, drum, I, mel, padChord, Song, stabs, transpose } from '../synth.mjs';
@@ -377,9 +378,7 @@ export default function socCerMon() {
     drum(ti, 60, 1, 'X...............', { pitch: 2 });
     heyHey(60, 1.1);
     tc.note(60 * 16, 2, 0, 1.2);
-    // 61: o apito final do juiz, curto, curto, longo
-    ap.note(61 * 16, 0, 0, 0.8);
-    ap.note(61 * 16 + 3, 0, 0, 0.8);
-    apL.note(61 * 16 + 6, 0, 0, 0.9);
+    // 61: o apito longo de saída de bola: o jogo vai começar
+    S.part('apitoSaida', apito(1.4), { drum: true, pan: 0.2, gain: 0.7, rev: 0.25 }).note(61 * 16 + 2, 0, 0, 0.9);
     return S;
 }
