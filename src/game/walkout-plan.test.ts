@@ -4,17 +4,21 @@ import { createInstance } from '../engine/instance';
 import { Rng } from '../engine/rng';
 import { ICONS, themeTypeOf } from '../engine/specials';
 import {
+    BONE,
+    BOOM,
     comemoracaoOf,
     dayCount,
     FX_TYPES,
     GOAL_CELEB_MS,
     goalCelebPose,
     golCelebOf,
+    JIGGLY,
     JOGADAS,
     jogadaOf,
     planBeats,
     revealOf,
     SHATTER_MS,
+    SLOWPOKE,
     upgradeOf,
     walkoutLast,
     walkoutPick,
@@ -226,5 +230,46 @@ describe('plano do walkout', () => {
             expect([end.sx, end.sy, end.lift], k).toEqual([1, 1, 0]);
             expect(Math.abs(end.rot ?? 0), k).toBeLessThan(0.2);
         }
+    });
+
+    it('as 8 da 0.9.54 (com a família) terminam em pé, sem tinta, e cada uma faz a sua parte no meio', () => {
+        const novas = { 6: 'charizard', 7: 'squirtle', 39: 'jigglypuff', 52: 'meowth', 64: 'kadabra', 65: 'kadabra' };
+        for (const [id, k] of Object.entries(novas)) expect(golCelebOf(Number(id)), id).toBe(k);
+        expect([79, 80, 100, 101, 104, 105].map(golCelebOf)).toEqual([
+            'slowpoke',
+            'slowpoke',
+            'voltorb',
+            'voltorb',
+            'cubone',
+            'cubone',
+        ]);
+        const kinds = [
+            'jigglypuff',
+            'slowpoke',
+            'meowth',
+            'charizard',
+            'squirtle',
+            'cubone',
+            'voltorb',
+            'kadabra',
+        ] as const;
+        for (const k of kinds) {
+            const end = goalCelebPose(k, GOAL_CELEB_MS - 1, 3);
+            expect([end.sx, end.sy, end.lift, end.tint], k).toEqual([1, 1, 0, undefined]);
+            expect(Math.abs(end.rot ?? 0), k).toBeLessThan(0.05);
+        }
+        // Jigglypuff infla de raiva; Slowpoke fica parado até perceber e pula atrasado
+        expect(goalCelebPose('jigglypuff', JIGGLY.puff - 10, 0).sx).toBeGreaterThan(1.2);
+        expect(goalCelebPose('slowpoke', SLOWPOKE.notice - 10, 0)).toMatchObject({ anim: 'Idle', lift: 0, sy: 1 });
+        expect(goalCelebPose('slowpoke', SLOWPOKE.jump + 180, 0).lift).toBeGreaterThan(15);
+        // Voltorb pisca vermelho antes de estourar e fica tostado depois
+        const tints = new Set(Array.from({ length: 50 }, (_, i) => goalCelebPose('voltorb', i * 20, 0).tint));
+        expect(tints).toEqual(new Set([0xff5040, undefined]));
+        expect(goalCelebPose('voltorb', BOOM.boom + 400, 0).tint).toBe(0x4a4a4a);
+        // Cubone acompanha o osso virando a cabeça
+        const dirs = new Set(
+            Array.from({ length: 20 }, (_, i) => goalCelebPose('cubone', BONE.toss + i * 60, 0).facing),
+        );
+        expect(dirs).toEqual(new Set([2, 4, 6, 0]));
     });
 });

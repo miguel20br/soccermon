@@ -112,6 +112,7 @@ import {
 import { playCrowd, playCry, playGoalCry, playMax, playSample, playSfx } from '../audio';
 import { trailParticle, typeBurst } from '../ball-trail';
 import { BattleBox } from '../battle-box';
+import { drawCeleb } from '../celeb-fx';
 import {
     type CeremonyKind,
     type CeremonyPlan,
@@ -920,6 +921,10 @@ export class MatchScene extends Phaser.Scene {
     private huh: Phaser.GameObjects.Text | null = null;
     /** Os textos da comemoração da espécie (o "?" do Psyduck, os 3 "Z" do Snorlax...): um gol por vez, reaproveitados. */
     private celebMarks: Phaser.GameObjects.Text[] = [];
+    /** As imagens da comemoração da espécie (osso do Cubone, veia da Jigglypuff...), reaproveitadas como os textos. */
+    private celebImgs: Phaser.GameObjects.Image[] = [];
+    /** Quem está com a tinta da comemoração (Voltorb): volta a tinta normal quando ela acaba. */
+    private celebTinted = new Set<PlayerView>();
     private trickTick = 0;
     /** Os squash & stretch já contados no `?squashdebug=1`. */
     private sqSeen = new Set<string>();
@@ -2330,6 +2335,7 @@ export class MatchScene extends Phaser.Scene {
         const smooth = lerpOk && prev.phase === a.phase && next.phase === b.phase;
         this.reactG.clear();
         for (const m of this.celebMarks) m.setVisible(false);
+        for (const m of this.celebImgs) m.setVisible(false);
         const trick = this.trickNow();
         for (let i = 0; i < this.players.length; i++) {
             const view = this.players[i];
@@ -2509,6 +2515,10 @@ export class MatchScene extends Phaser.Scene {
                 if (celeb.kind === 'psyduck' && !view.sprite.anims.isPlaying) view.sprite.anims.restart();
                 this.drawCelebMark(view, celeb.kind, celeb.ms);
             }
+            if (celeb?.tint !== undefined && entering === null) {
+                view.sprite.setTint(celeb.tint);
+                this.celebTinted.add(view);
+            } else if (this.celebTinted.delete(view)) this.refreshTint(view);
             const dx = (b.p[o] - a.p[o]) * PPM;
             const dy = (b.p[o + 1] - a.p[o + 1]) * PPM;
             const pxPerTick = Math.hypot(dx, dy) / Math.max(1, b.tick - a.tick);
@@ -2976,7 +2986,41 @@ export class MatchScene extends Phaser.Scene {
             const t = ms - PIKA_ZAP;
             const flash = reduce ? (t < 700 ? 0 : -1) : t < 280 ? 0 : t >= 380 && t < 640 ? 1 : -1;
             if (flash >= 0) this.drawBolt(hx, hy - 2, flash, s);
-        }
+        } else
+            drawCeleb({
+                kind,
+                ms,
+                head: { x: hx, y: hy },
+                foot: { x: sp.x, y: sp.y },
+                hh,
+                depth: sp.depth,
+                s,
+                reduce,
+                fade,
+                top: this.cameras.main.worldView.y,
+                g: this.reactG,
+                mark: (n, text, size, color) => this.celebMark(n, text, size, color),
+                img: (n, key) => {
+                    this.celebImgs[n] ??= this.add.image(0, 0, key);
+                    return this.celebImgs[n].setTexture(key).setVisible(true).setAlpha(1).setRotation(0);
+                },
+                rivals: () => this.headsNear(view, 2),
+            });
+    }
+
+    /** As cabeças dos `max` rivais mais perto de `view` (até ~4 m), a mais perto primeiro (o rabisco da Jigglypuff). */
+    private headsNear(view: PlayerView, max: number) {
+        return this.players
+            .filter((o) => o.team !== view.team && o.sprite.visible)
+            .map((o) => ({ o, d: Math.hypot(o.sprite.x - view.sprite.x, o.sprite.y - view.sprite.y) }))
+            .filter((r) => r.d < 4 * PPM)
+            .sort((a, b) => a.d - b.d)
+            .slice(0, max)
+            .map(({ o }) => {
+                const sp = o.sprite;
+                const hh = (sp.originY - headTop(o.skin)) * sp.frame.realHeight * sp.scaleY;
+                return { head: { x: sp.x, y: sp.y - hh }, hh };
+            });
     }
 
     /** Raio do Pikachu da cabeça até o alto da tela: zigue-zague fixo (sem sorteio), brilho, amarelo e miolo branco. */

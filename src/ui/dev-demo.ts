@@ -81,7 +81,9 @@ import { isTrailerScene, trailerPicks } from './trailer-scenes';
  * ela já foi descoberta (o chip com o nome e a revelação curta). `&sinergias=1`: abre no Registro de Sinergias.
  * `?demo=charanga` abre na escalação uma partida com a Charanga de Pewter em que, ao começar, o rival está a 4 s de
  * abrir o placar (o aviso "A CHARANGA ENTROU" vem logo depois do gol).
- * `?demo=comemoracao&sp=54|143|129|94|25` abre na escalação a 3 s de um gol dessa espécie (a comemoração própria).
+ * `?demo=comemoracao&sp=54|143|129|94|25` abre na escalação a 3 s de um gol dessa espécie (a comemoração própria);
+ * as da 0.9.54: `sp=39` (Jigglypuff), `79` (Slowpoke), `52` (Meowth), `6` (Charizard), `7` (Squirtle), `104` (Cubone),
+ * `100` (Voltorb), `64` (Kadabra).
  * `?demo=virada` abre na escalação uma partida que, ao começar, está a 4 s do gol que põe o seu time na frente no
  * 2º tempo. `&clube=<id>` (brock, misty, rocket…): contra o clube desse treinador (a música dele); `&pressao=1`: a
  * virada vem depois de o seu time entrar na Pressão final, e a partida abre 2 s antes dela (a música entra no trecho
@@ -1278,7 +1280,7 @@ export function runDevDemo() {
         return;
     }
     // ?demo=comemoracao&sp=54|143|129|94|25[&shiny=1]: a escalação a 3 s de um gol dessa espécie (a comemoração própria:
-    // Psyduck, Snorlax, Magikarp, Gengar, Pikachu). Ela joga nas 3 vagas de linha da frente (o Magikarp quase não marca).
+    // Psyduck, Snorlax, Magikarp, Gengar, Pikachu; e as da 0.9.54: 39, 79, 52, 6, 7, 104, 100, 64). Ela joga nas 3 vagas de linha da frente (o Magikarp quase não marca).
     if (demo === 'comemoracao') {
         const q = new URLSearchParams(window.location.search);
         const sp = Number(q.get('sp') ?? 54);
