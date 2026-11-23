@@ -158,6 +158,31 @@ function amostra(arquivo, { ganho = 1, corte = 0, sala = 0, tom = 0, atraso = 0 
     return fn;
 }
 
+/**
+ * Compressor de barramento (álbum, rodada 2: o "punch"): detector de pico estéreo ligado, ataque e soltura em
+ * segundos, `limiar` em dBFS do barramento, `ganho` de compensação em dB e `paralelo` (0 a 1: mistura o comprimido com o
+ * seco, a compressão de Nova York, que guarda o ataque). Mexe no lugar.
+ */
+export function comprimir(
+    L,
+    R,
+    { limiar = -18, razao = 4, ataque = 0.008, solta = 0.12, ganho = 0, paralelo = 0 } = {},
+) {
+    const aA = Math.exp(-1 / (ataque * SR));
+    const aR = Math.exp(-1 / (solta * SR));
+    const mk = 10 ** (ganho / 20);
+    let env = 0;
+    for (let i = 0; i < L.length; i++) {
+        const x = Math.max(Math.abs(L[i]), Math.abs(R[i]));
+        env = x > env ? aA * env + (1 - aA) * x : aR * env + (1 - aR) * x;
+        const over = 20 * Math.log10(env + 1e-9) - limiar;
+        const g = (over > 0 ? 10 ** ((-over * (1 - 1 / razao)) / 20) : 1) * mk;
+        const w = paralelo ? 1 - paralelo + paralelo * g : g; // paralelo: mistura o seco com o comprimido
+        L[i] *= w;
+        R[i] *= w;
+    }
+}
+
 /** Passa-baixa de um polo (6 dB/oitava); duas passadas = 12 dB/oitava, suave. */
 function lowpass(x, f) {
     const a = 1 - Math.exp((-2 * Math.PI * f) / SR);
@@ -275,6 +300,9 @@ export class Song {
      *   (compasso de início; vai até o próximo). Cada `loop` dobra o próprio rabo no seu começo (loop sem costura);
      *   o trecho sem loop no meio é cortado no fim (introdução, virada), o último guarda o rabo. Sem `secoes`, sai do
      *   `loopFrom`: nulo = um trecho só; 0 = um loop; n = introdução + loop. O mapa (segundos, BPM) fica em `mapa`.
+     * @param {Record<string, object> | null} [o.barramentos] barramentos com compressor (álbum, rodada 2): `{ bateria:
+     *   { limiar, razao, ataque, solta, ganho, paralelo } }`; a faixa entra nele com `part(..., { bus: 'bateria' })`.
+     *   Sem barramento, a mistura sai idêntica.
      */
     constructor({
         bpm,
@@ -288,8 +316,9 @@ export class Song {
         bpmAt = null,
         swingUnit = 16,
         secoes = null,
+        barramentos = null,
     }) {
-        Object.assign(this, { bpm, bars, barLen, swing, loopFrom, masterAt, bpmAt, swingUnit });
+        Object.assign(this, { bpm, bars, barLen, swing, loopFrom, masterAt, bpmAt, swingUnit, barramentos });
         this.row = 60 / bpm / 4;
         if (bpmAt) {
             // início de cada compasso em segundos (o andamento muda na virada do compasso)
@@ -349,7 +378,12 @@ export class Song {
      * `corte` (Hz) = passa-baixa suave de 12 dB/oitava, sem ressonância (o `filter` do ZzFX ressoa no corte e soa
      * metálico perto de 2 a 5 kHz: rodada 8b).
      */
-    part(name, inst, { pan = 0, gain = 1, echo = null, rev = 0, drum = false, gainAt = null, corte = 0 } = {}) {
+    part(
+        name,
+        inst,
+        { pan = 0, gain = 1, echo = null, rev = 0, drum = false, gainAt = null, corte = 0, bus = null } = {},
+    ) {
+        if (bus && !this.barramentos?.[bus]) throw new Error(`${name}: barramento ${bus} não existe`);
         const bufs = this.secoes.map((x) => new Float32Array(x.len));
         const p = {
             name,
@@ -361,6 +395,7 @@ export class Song {
             drum,
             gainAt,
             corte,
+            bus,
             bufs,
             song: this,
             rec: Song.recording ? [] : null,
@@ -425,6 +460,7 @@ export class Song {
         const L = new Float32Array(n);
         const R = new Float32Array(n);
         const send = new Float32Array(n);
+        const buses = new Map();
         for (const p of this.parts) {
             let b = p.bufs[k];
             if (p.corte) b = lowpass(lowpass(b, p.corte), p.corte);
@@ -438,11 +474,20 @@ export class Song {
             }
             const gl = p.gain * Math.cos(((p.pan + 1) * Math.PI) / 4) * Math.SQRT2;
             const gr = p.gain * Math.sin(((p.pan + 1) * Math.PI) / 4) * Math.SQRT2;
+            if (p.bus && !buses.has(p.bus)) buses.set(p.bus, [new Float32Array(n), new Float32Array(n)]);
+            const [DL, DR] = p.bus ? buses.get(p.bus) : [L, R];
             for (let i = 0; i < b.length; i++) {
                 const g = p.gainAt ? p.gainAt(x.t0 + i / SR) : 1;
-                L[i] += b[i] * gl * g;
-                R[i] += b[i] * gr * g;
+                DL[i] += b[i] * gl * g;
+                DR[i] += b[i] * gr * g;
                 if (p.rev) send[i] += b[i] * p.gain * g * p.rev;
+            }
+        }
+        for (const [nome, [BL, BR]] of buses) {
+            comprimir(BL, BR, this.barramentos[nome]);
+            for (let i = 0; i < n; i++) {
+                L[i] += BL[i];
+                R[i] += BR[i];
             }
         }
         if (this.parts.some((p) => p.rev)) {

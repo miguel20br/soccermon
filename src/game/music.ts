@@ -12,6 +12,8 @@ export type TrackId =
     | 'menu-balanco'
     | 'menu-neon'
     | 'menu-natal'
+    | 'menu-natal-treno'
+    | 'menu-natal-arvore'
     | 'mercado-funk'
     | 'estrada-da-vitoria'
     | 'planalto-indigo'
@@ -37,7 +39,7 @@ export type TrackId =
     | 'mt-moon'
     | 'cerulean'
     | 'sala'
-    | `partida-${'' | 'brock-' | 'misty-' | 'rocket-'}${'1t' | '2t'}`;
+    | `partida-${'' | 'brock-' | 'misty-' | 'rocket-' | 'natal-'}${'1t' | '2t'}`;
 
 interface Section {
     nome: string;
@@ -145,6 +147,7 @@ export const PONTES: ReadonlySet<TrackId> = new Set<TrackId>([
     'eliminado',
     'campeao',
     'partida-1t',
+    'partida-natal-1t',
     'tema-brock',
     'tema-misty',
     'tema-rocket',
@@ -160,12 +163,15 @@ const SWING: Partial<Record<TrackId, number>> = {
     'abertura-gancho': 0.15,
     'menu-balanco': 0.1,
     'menu-neon': 0.06,
+    'menu-natal-treno': 0.1,
     draft: 0.1,
     recompensa: 0.1,
     'mercado-funk': 0.14,
     'tema-rocket': 0.12,
     'partida-1t': 0.06,
     'partida-2t': 0.06,
+    'partida-natal-1t': 0.06,
+    'partida-natal-2t': 0.06,
 };
 /** Virada e ponte em curso: até `end` (a faixa nova entra) navegar de novo cancela (regra 4). */
 interface Trans {

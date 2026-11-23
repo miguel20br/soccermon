@@ -505,6 +505,15 @@ const PONTES = {
         },
     },
 };
+// Partida de Natal (mesmo tom e andamento da padrão): a mesma ponte, com os guizos de trenó subindo até o 1
+PONTES['partida-natal-1t'] = {
+    ...PONTES['partida-1t'],
+    som: 'o apito do juiz e os guizos de trenó (com riser e prato)',
+    f(S) {
+        PONTES['partida-1t'].f(S);
+        drum(S.part('guizos', I.sleigh, { drum: true, pan: 0.4, gain: 2 }), 0, 1, 'xoxoxoxoXxXxXxXX');
+    },
+};
 
 // ---------- áudio ----------
 const decode = (file) => {
