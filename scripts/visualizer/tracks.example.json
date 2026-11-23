@@ -1,0 +1,8 @@
+{
+  "wavs": "~/Música/soccermon-ost-masters",
+  "faixas": [
+    { "arquivo": "07-fiado-so-amanha.wav", "titulo": "Fiado, só amanhã" },
+    { "arquivo": "08-o-plano-infalivel.wav", "titulo": "O plano infalível" },
+    { "arquivo": "17-sala-dos-trofeus.wav", "titulo": "Sala dos troféus" }
+  ]
+}
