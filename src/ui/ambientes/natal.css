@@ -131,6 +131,7 @@
 
 /* ---------- a capa das outras telas (NatalCapa): neve e festão por cima, fixos na janela, sem toque ---------- */
 .natal-capa {
+    --px: 3px; /* o pixel dos ambientes (ambientes.css): o tamanho do floco */
     position: fixed;
     inset: 0;
     z-index: 300;
