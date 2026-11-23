@@ -26,7 +26,7 @@ export const LEGENDAS = {
     evento: '<b>Evento.</b>',
     time: 'Monte seu <b>time</b>',
     mais: 'E vai ter <b>mais</b>',
-    capa: 'Time Ultimate · <b>27/11</b>',
+    capa: 'Time Ultimate<br><b>27/11</b>',
 };
 const browser = await chromium.launch({ headless: true, args: ['--allow-file-access-from-files'] });
 const page = await browser.newPage({ viewport: { width: 360, height: 640 }, deviceScaleFactor: 3 });
