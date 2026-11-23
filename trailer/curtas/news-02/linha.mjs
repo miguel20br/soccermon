@@ -106,7 +106,7 @@ beat('bCartas', 1.0, 'de volta ao estúdio: 3 cartas viradas caem no telão e a 
 bloco('plantao', 'PLANTÃO');
 const f4 = fala('f4', 'raichu', '26', 'Chegou um item novo: a Eviolite.', { manchete: true });
 const f5 = fala('f5', 'machoke', '67-determined', 'Quem ainda pode evoluir ganha 30% em todos os atributos.');
-const f6 = fala('f6', 'raichu', '26-joyous', ['A nota da carta não muda.', 'O bronze continua bronze, só joga mais.']);
+// v6 (23/11): a f6 ("A nota da carta não muda") saiu: com a Eviolite a nota da carta agora conta a pedra
 const f6b = fala('f6b', 'machoke', '67-surprised', 'Peraí… eu ainda posso evoluir.');
 const f6c = fala('f6c', 'raichu', '26-sigh', 'Eu não.');
 // v2 (21/11): o número da notícia, conferível na tela (as cartas da galeria: o Machoke com a Eviolite chega a 99 no gol, com o ▲ roxo; o ↑93 da carta é o selo de evolução, não a Eviolite)
@@ -146,8 +146,6 @@ M.holofote = letra(f4, 'Eviolite'); // o item cresce com o holofote
 M.trofeus = [0, 1, 2, 3].map((k) => r3(letra(f5, 'evoluir') + 0.3 * k)); // as setas de evolução piscando no Caterpie
 M.patro = letra(f5, '30%'); // o selo +30%
 M.mais4 = [0, 1, 2, 3, 4, 5].map((k) => r3(letra(f5, 'todos') + 0.2 * k)); // as 6 barras crescendo 30%
-M.nota = letra(f6, 'nota'); // o aro na nota da carta
-M.bronze = letra(f6, 'bronze'); // o selo BRONZE
 M.machoke = letra(f6b, 'evoluir'); // o Machoke estufa e brilha
 M.euNao = f6c.a; // o Raichu de perto, sem graça
 M.duelo99 = letra(f6d, '99'); // a carta do Machoke: 99 no gol, com o ▲ roxo da Eviolite

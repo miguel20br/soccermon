@@ -311,7 +311,8 @@ video.painel { position: absolute; z-index: 21; border-radius: 10px; }
 .evo-tela { display: flex !important; align-items: center !important; justify-content: center !important; background: radial-gradient(circle at 50% 50%, #6a3fb0, #1a1240 70%); }
 .evo-px { image-rendering: pixelated; width: 190px; filter: drop-shadow(0 0 22px rgb(200 140 255 / 85%)) drop-shadow(0 10px 0 rgb(0 0 0 / 40%)); }
 .evo-fundo { background: radial-gradient(circle at 50% 45%, #7d4ccc, #1a1240 72%) !important; }
-.evo-vt { position: absolute; left: 50%; top: 42%; width: 360px; margin: -180px 0 0 -180px; z-index: 3; }
+/* #m-rec: vence o `.moldura img { width/height: 100% }`, que esticava a pedra e jogava ela pro canto (até a v5) */
+#m-rec .evo-vt { position: absolute; left: 50%; top: 42%; width: 540px; height: 540px; margin: -270px 0 0 -270px; border-radius: 0; z-index: 3; }
 .evo-nome { position: absolute; left: 0; right: 0; bottom: 60px; text-align: center; z-index: 3; font-size: 92px; letter-spacing: 6px; color: #fff; -webkit-text-stroke: 16px #0e1430; paint-order: stroke fill; opacity: 0; }
 .aro-nota { position: absolute; left: 368px; top: 322px; width: 128px; height: 108px; border: 9px solid #ffcb05; border-radius: 20px; box-shadow: 0 0 30px 8px rgb(255 203 5 / 60%); opacity: 0; z-index: 3; }
 .selo-bronze { position: absolute; left: 620px; top: 300px; padding: 8px 26px; border-radius: 18px; background: #b8733a; border: 8px solid #0e1430; color: #fff; font-size: 58px; letter-spacing: 4px; -webkit-text-stroke: 10px #0e1430; paint-order: stroke fill; transform: rotate(8deg); opacity: 0; z-index: 4; }
@@ -324,8 +325,8 @@ video.painel { position: absolute; z-index: 21; border-radius: 10px; }
 </style>
 </head>
 <body>
-<div id="root" data-composition-id="root" data-width="1080" data-height="1920" data-start="0" data-duration="87.2">
-  <div id="cena" class="clip" data-start="0" data-duration="87.2">
+<div id="root" data-composition-id="root" data-width="1080" data-height="1920" data-start="0" data-duration="82.2">
+  <div id="cena" class="clip" data-start="0" data-duration="82.2">
     <!-- a vinheta de abertura (v10): 3 alternativas (A, B, C) e o logo montado, o mesmo nas 3 -->
     <div id="vin" class="cena vinheta-n"><div class="raios" id="raios-vin"></div>
       <div class="vin-alt" id="vinA"><div class="bolapx" id="bolapx"></div></div>
@@ -402,10 +403,10 @@ video.painel { position: absolute; z-index: 21; border-radius: 10px; }
 
   <!-- os clipes do jogo (0.9.53, gravados headless); os tempos saem do linha.mjs (CLIPES) -->
   <div class="painel-n" id="p-emais"><div class="emais-cx"><div class="emais-l">Drible com nome em câmera lenta até no 8x</div><div class="emais-l">Cut-in de dupla nos combos</div><div class="emais-l">Reforço no lugar do titular</div><div class="emais-l">Capitão novo no Duelo</div></div></div>
-  <video id="v-aovivo" class="painel" src="midia/news/ao-vivo.mp4" muted playsinline data-start="47.27" data-duration="11.98" data-media-start="0" style="left:60px;top:362px;width:420px;height:756px;object-fit:cover"></video>
+  <video id="v-aovivo" class="painel" src="midia/news/ao-vivo.mp4" muted playsinline data-start="42.27" data-duration="11.98" data-media-start="0" style="left:60px;top:362px;width:420px;height:756px;object-fit:cover"></video>
 
-  <audio id="a-musica" class="clip" src="midia/som/news2-14.wav" data-start="0" data-duration="87.2" data-media-start="0" data-fade-out="0.6"></audio>
-  <audio id="a-voz" class="clip" src="midia/som/news2-voz.wav" data-start="0" data-duration="87.2" data-media-start="0"></audio>
+  <audio id="a-musica" class="clip" src="midia/som/news2-14.wav" data-start="0" data-duration="82.2" data-media-start="0" data-fade-out="0.6"></audio>
+  <audio id="a-voz" class="clip" src="midia/som/news2-voz.wav" data-start="0" data-duration="82.2" data-media-start="0"></audio>
 
   <script>
     const { div, ator, anim, quadro, flash, estouro, telaFinal, piscada, quadra, treme, torcida, torcidaPulo, torcidaAnim } = C;
@@ -1089,10 +1090,9 @@ video.painel { position: absolute; z-index: 21; border-radius: 10px; }
     tl.fromTo('#evo-nome', { scale: 1.6 }, { scale: 1, duration: 0.25, ease: 'back.out(2.5)', immediateRender: false }, M.holofote);
     estouro(tl, $('m-rec'), 405, 320, M.holofote + 0.05, { tam: 420, dur: 0.4 });
 
-    // f5 e f6 · a carta do Caterpie (bronze, 36): as 6 barras crescem 30% (src/engine/items.ts EVIOLITE); na f6 o aro na
-    // nota (não muda) e o selo BRONZE
+    // f5 · a carta do Caterpie (bronze, 36): as 6 barras crescem 30% (src/engine/items.ts EVIOLITE)
     paineis(F.f5.s, '#p-barras');
-    empurra(F.f5.s, F.f6.z - F.f5.s, 1.04);
+    empurra(F.f5.s, F.f5.z - F.f5.s, 1.04);
     {
       const t0 = F.f5.s;
       const ATR = [['VEL', 47], ['CHU', 24], ['PAS', 23], ['DRI', 42], ['DES', 32], ['FOR', 29]]; // a carta do Caterpie (cartas/10.png)
@@ -1113,11 +1113,6 @@ video.painel { position: absolute; z-index: 21; border-radius: 10px; }
       });
       tl.set('#selo-30', { opacity: 1 }, M.patro);
       tl.fromTo('#selo-30', { scale: 2.2, rotation: -20 }, { scale: 1, rotation: -6, duration: 0.25, ease: 'back.out(2.5)', immediateRender: false }, M.patro);
-      tl.set('#aro-nota', { opacity: 1 }, M.nota);
-      tl.fromTo('#aro-nota', { scale: 1.5 }, { scale: 1, duration: 0.25, ease: 'back.out(2.5)', immediateRender: false }, M.nota);
-      tl.set('#selo-bronze', { opacity: 1 }, M.bronze);
-      tl.fromTo('#selo-bronze', { scale: 2.4, rotation: -14 }, { scale: 1, rotation: 8, duration: 0.25, ease: 'back.out(2.5)', immediateRender: false }, M.bronze);
-      estouro(tl, $('p-barras'), 740, 340, M.bronze + 0.05, { tam: 240, dur: 0.3 });
     }
     // f6b · o Machoke de perto, a Eviolite no quadro gráfico: "eu ainda posso evoluir" (ele estufa e brilha)
     estudio(F.f6b.s, 'CLOSE_M', '#t-marca', F.f6b.z - F.f6b.s);
