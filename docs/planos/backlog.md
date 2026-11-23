@@ -1,0 +1,53 @@
+---
+description: Backlog único de features do Soccermon (fora bugs e Natal), juntado dos planos em 23/11/2026, com tamanho e fonte.
+---
+
+# Backlog de features (23/11/2026)
+
+Juntado de `roadmap.md`, das pesquisas, do relatório de 18/11 (`ux.md` §2, `produto.md`) e das decisões de 18/11. Bugs
+ficam na esteira (Trello); o Natal tem plano próprio (`natal.md`). Tamanho: P (até 1 dia), M (2 a 4 dias), G (semana ou
+mais). "Motor" = mexe no resultado das partidas (sobe `ENGINE_VERSION`, número com o Miguel antes).
+
+## Copa e draft: mais diversão por esforço
+
+| # | Feature | Tam. | Fonte | Nota |
+|---|---|---|---|---|
+| 1 | **Capitão mostra o golpe máximo na escolha**: nome, ícone e clipe de 1 s ao segurar a carta | P | ux.md §2.2 | a escolha vira "quero ver esse golpe" |
+| 2 | **Recompensa mostra o efeito no seu time** ("Golem 87 → 90") antes de escolher | P–M | ux.md §2.3 | usa `modifiers.ts` (carta = campo) |
+| 3 | **Dica pós-jogo que ensina a escalar** ("Seu Pivô tinha 46; no banco tinha Jolteon 88") | P | ux.md §2.4 | só texto, nada automático |
+| 4 | **Dica de formação e tática no intervalo** (70% das copas usam 1-2-1 e 91% a Equilibrada) | P | produto.md §2.2 | as outras quase ninguém usa |
+| 5 | **Revanche com o mesmo time depois de cair** (botão na eliminação, chave nova) | P–M | decisão 13 (18/11) | combinado pra janeiro; decidir se dá recompensa |
+
+## Partida e espetáculo
+
+| # | Feature | Tam. | Fonte | Nota |
+|---|---|---|---|---|
+| 6 | **Sinergias secretas**: 26 combos escondidos, chip "???" na escalação, revelação em campo, Registro de Sinergias no Álbum, medalhas | M–G | pesquisas/sinergias-e-animacoes.md §3 e §5 | começar pelas que são só tela (rivalidades); as com bônus são motor |
+| 7 | **Mais animações próprias**: o catálogo tem 20; saíram as 5 comemorações e o cut-in de dupla (0.9.53.1) | M | mesma pesquisa §4 | Skylab, toca aqui, cenas de dupla |
+| 8 | **Escolher os golpes do Pokémon** | M | roadmap | motor e equilíbrio |
+| 9 | **Quadras temáticas por ginásio e treinadores com sprite na Copa** | M | roadmap | os 47 treinadores já estão em `public/assets/trainers/` |
+
+## Time Ultimate (depois da estreia de 27/11)
+
+| # | Feature | Tam. | Fonte | Nota |
+|---|---|---|---|---|
+| 10 | **Desafios de montagem** ("só tipo Água", "só bronze"…) | M | decisão 5 | combinado pra janeiro |
+| 11 | **Duelo com o time do UT** | G | decisão 8 | próximo multiplayer |
+| 12 | **Troca de cartas entre amigos** | G | ultimate-team.md (30/10) | precisa do servidor conferindo |
+| 13 | **Ranking do UT** | G | decisão 5 | junto com a Temporada 2 (01/06/2027) |
+
+## Perfil e progressão
+
+| # | Feature | Tam. | Fonte | Nota |
+|---|---|---|---|---|
+| 14 | **Perfil revamp**: seletor de título novo, Legado do UT no Perfil, título no ranking | M ×3 | perfil-revamp.md, decisão 7 | fase 1 vai no Natal 1 (30/11) |
+| 15 | **Caminho do treinador**: Metas mostrando o prêmio | M | revamp-ui.md, decisão 7 | prometido e nunca saiu |
+| 16 | **Personalização do clube**: cores, mascote, quadra (nome e escudo já existem) | M–G | personalizacao-e-pokedex.md | |
+
+## Modos grandes (2027)
+
+| # | Feature | Tam. | Fonte | Nota |
+|---|---|---|---|---|
+| 17 | **Modo História**, capítulo 1 (Pallet até o Brock) | G | decisão 9 | plano em fevereiro, jogável em abril |
+| 18 | **Gen 2**: Copa Johto separada | G | decisão 10 | âncora da Temporada 2 |
+| 19 | **Modo jogável** (controlar um Pokémon ou o time, estilo FC) | G | CLAUDE.md (visão) | o motor já tem controllers plugáveis |
