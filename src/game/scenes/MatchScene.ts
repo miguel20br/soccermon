@@ -3293,7 +3293,7 @@ export class MatchScene extends Phaser.Scene {
             celeb: Comemoracao;
             captain: boolean;
             rival: boolean;
-            /** Natal: o gorro na cabeça (só o time campeão). */
+            /** Natal: o gorro na cabeça (o time campeão; o capitão tem a taça). */
             hat?: Phaser.GameObjects.Image;
         }[];
         fans: { img: Phaser.GameObjects.Image; f: Fan; key: string; shadow: Phaser.GameObjects.Ellipse }[];
@@ -3419,7 +3419,8 @@ export class MatchScene extends Phaser.Scene {
             });
         }
         if (this.textures.exists('gorro'))
-            for (const a of actors) if (!a.rival) a.hat = this.add.image(0, 0, 'gorro').setOrigin(6.5 / 17, 11.5 / 12);
+            for (const a of actors)
+                if (!a.rival && !a.captain) a.hat = this.add.image(0, 0, 'gorro').setOrigin(6.5 / 17, 11.5 / 12);
         const cam = this.cameras.main;
         // a cerimônia manda na câmera: os panos e zooms que ainda andavam (o drama do FIM DE JOGO) param aqui
         cam.panEffect.reset();
@@ -3568,11 +3569,11 @@ export class MatchScene extends Phaser.Scene {
                 .setAlpha(alpha)
                 .setScale(this.ssNow * (c.reduce ? 1 : sx), this.ssNow * (c.reduce ? 1 : sy));
             if (a.hat) {
-                // a aba um pouco abaixo do topo da cabeça (headTop), de frente pra câmera
+                // a aba logo abaixo do topo da cabeça (headTop), de frente pra câmera
                 const sp = v.sprite;
                 const top = sp.y - (sp.originY - headTop(v.skin)) * sp.frame.realHeight * sp.scaleY;
                 a.hat
-                    .setPosition(sp.x, top + 3 * this.ssNow)
+                    .setPosition(sp.x, top + this.ssNow)
                     .setScale(this.ssNow * 0.75)
                     .setDepth(at.y + 0.5)
                     .setAlpha(alpha);
