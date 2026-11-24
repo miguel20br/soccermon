@@ -74,7 +74,7 @@ function cadeira(frente, vazio) {
     }
     return S;
 }
-const CAD = [cadeira(false), cadeira(true), cadeira(true, true)];
+export const CAD = [cadeira(false), cadeira(true), cadeira(true, true)];
 
 function janela(P, c, x0, x1, yb) {
     const h = yb - 24;

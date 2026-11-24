@@ -11,6 +11,11 @@ import { tmpdir } from 'node:os';
 import { fileURLToPath } from 'node:url';
 import puppeteer from 'puppeteer-core';
 import { CENAS } from './cenas.mjs';
+import { carregar } from './pmd.mjs';
+import { RES as RES_CHEFE4, chefe4 } from './chefe4.mjs';
+import { plano4 } from './plano4.mjs';
+CENAS['D-chefe'] = { res: RES_CHEFE4, fn: chefe4, pmd: [53] };
+CENAS['D-plano'] = { res: RES_CHEFE4, fn: plano4, pmd: [52, 23, 109] };
 import { Pix } from './pix.mjs';
 import { RAIZ, analisar } from './render.mjs';
 
@@ -40,6 +45,8 @@ html,body{margin:0;width:1920px;height:1080px;background:transparent;overflow:hi
 }
 
 export async function renderClipe({ wav, cena, bpm, titulo, n, saida, trechos }) {
+    const cc = CENAS[cena], cenaFn = typeof cc === 'function' ? cc : cc.fn, [CW, CH] = cc.res ?? [W, H];
+    if (cc.pmd) await carregar(...cc.pmd);
     const tmp = mkdtempSync(`${tmpdir()}/clipe-`);
     const segs = (trechos ?? '').split(',').filter(Boolean).map((s) => s.split('-').map(Number));
     let src = wav;
@@ -56,12 +63,12 @@ export async function renderClipe({ wav, cena, bpm, titulo, n, saida, trechos })
     const flux = grave.map((v, i) => Math.max(0, v - (grave[i - 1] ?? v)));
     const ordenado = [...flux].sort((p, q) => p - q), norma = ordenado[Math.floor(ordenado.length * 0.95)] || 1;
     await placas(titulo, n, tmp);
-    const ff = spawn('ffmpeg', ['-v', 'error', '-y', '-f', 'rawvideo', '-pix_fmt', 'rgb24', '-s', `${W}x${H}`, '-framerate', String(FPS), '-i', '-',
+    const ff = spawn('ffmpeg', ['-v', 'error', '-y', '-f', 'rawvideo', '-pix_fmt', 'rgb24', '-s', `${CW}x${CH}`, '-framerate', String(FPS), '-i', '-',
         '-loop', '1', '-framerate', String(FPS), '-i', `${tmp}/abertura.png`, '-loop', '1', '-framerate', String(FPS), '-i', `${tmp}/etiqueta.png`, '-i', src,
         '-filter_complex', `[0:v]scale=1920:1080:flags=neighbor,fade=t=in:st=0:d=0.5,fade=t=out:st=${(an.dur - 0.9).toFixed(2)}:d=0.8[a];[1:v]format=rgba,fade=t=in:st=0.4:d=0.4:alpha=1,fade=t=out:st=3.4:d=0.6:alpha=1[i];[2:v]format=rgba,fade=t=in:st=3.8:d=0.6:alpha=1[e];[a][i]overlay[b];[b][e]overlay,format=yuv420p[v]`,
         '-map', '[v]', '-map', '3:a', '-c:v', 'libx264', '-preset', 'medium', '-crf', '18', '-r', String(FPS), '-c:a', 'aac', '-b:a', '256k', '-t', String(an.dur), '-movflags', '+faststart', saida], { stdio: ['pipe', 'inherit', 'inherit'] });
     const done = new Promise((res, rej) => { ff.on('close', (c) => (c ? rej(new Error(`ffmpeg ${c}`)) : res())); ff.stdin.on('error', () => {}); });
-    const P = new Pix(W, H), cenaFn = CENAS[cena], beatDur = 60 / bpm;
+    const P = new Pix(CW, CH), beatDur = 60 / bpm;
     let kickPulse = 0;
     for (let q = 0; q < an.n; q++) {
         const t = q / FPS, tt = tmap(t), beatN = tt / beatDur;
@@ -69,7 +76,7 @@ export async function renderClipe({ wav, cena, bpm, titulo, n, saida, trechos })
         const clapB = Math.floor(beatN / 4) * 4 + 2, clapAt = (beatN >= clapB ? clapB : clapB - 4) * beatDur, clapAge = tt - clapAt;
         const c = { t, tt, q, dur: full, bandas: an.bandas[q], vol: an.vol[q], beatN, kickPulse, clapAge, clapPulse: Math.exp(-clapAge * 6) * (clapAge >= 0 ? 1 : 0) };
         cenaFn(P, c);
-        P.rect(0, 267, Math.round((q / an.n) * W), 3, [255, 203, 5]);
+        P.rect(0, CH - 4, Math.round((q / an.n) * CW), 4, [255, 203, 5]);
         if (!ff.stdin.write(P.b)) await new Promise((r) => ff.stdin.once('drain', r));
     }
     ff.stdin.end();
