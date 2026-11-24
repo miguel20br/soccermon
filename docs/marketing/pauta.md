@@ -44,14 +44,43 @@ Legenda: "<série>, ep. N. Joga grátis: soccermon.com/ig" (`/tt` no TikTok, `/y
 |---|---|---|---|---|---|
 | 13 | seg 09/11 19h (Miguel adiantou em 09/11) | Vestiário do Pallet FC | **A foto do time:** o Psyduck tenta a foto da inscrição na Liga e cada um estraga uma; a final sai a cara deles, com o Slowpoke borrado (troca "O atrasado", 08/11) | VESTIÁRIO DO PALLET FC · A FOTO | **agendado** (09/11) nas 3 redes pelo Buffer: 54 s, música própria (tema do Vestiário em `livre-foto.mjs`), `soccermon-midia/9-vestiario-a-foto-do-time.mp4` |
 | 14 | sex 13/11 19h | Confessionário | **Paredão:** quem vai pro banco? Magikarp faz campanha com a medalha, Pikachu faz pose, Snorlax dorme na cabine; quem sai é o Ditto, que estava fingindo ser o Psyduck | CONFESSIONÁRIO · DIA 1 | aprovado (07/11) |
-| 15 | ter 17/11 19h | Vestiário do Pallet FC | **Saco de bolas:** o Pikachu chuta o Voltorb achando que é a bola; explosão, fumaça, plateia ri | VESTIÁRIO DO PALLET FC | aprovado (07/11) |
-| 16 | sex 20/11 19h | Confessionário | **Sem a medalha:** o Magikarp chora porque perdeu a medalha; corta pro Ditto usando ela | CONFESSIONÁRIO · DIA 2 | aprovado (07/11) |
+| 15 | ter 17/11 19h | Vestiário do Pallet FC | **Saco de bolas:** o Pikachu chuta o Voltorb achando que é a bola; explosão, fumaça | VESTIÁRIO DO PALLET FC | vira o item 20 (mockumentary, 13/11) |
+| 16 | sex 20/11 19h | Confessionário | **Sem a medalha:** o Magikarp chora porque perdeu a medalha; corta pro Ditto usando ela | CONFESSIONÁRIO · DIA 2 | saiu da grade (12/11); a sexta virou o Soccermon News |
 | 17 | ter 24/11 19h | Vestiário do Pallet FC | **O pacote:** o Magikarp abre o 1º pacote do Time Ultimate e sai ele mesmo, carta bronze; o Snorlax acorda pra ver | TIME ULTIMATE 27/11 | aprovado (07/11) |
 | 18 | sex 27/11 19h | Lançamento | Trailer do Time Ultimate + comentário com o link | TIME ULTIMATE | aprovado (07/11) (o trailer passa pelo Miguel) |
 | 19 | ter 01/12 19h | Confessionário | **Prova do líder:** prova de segurar a bola na cabeça; o Snorlax ganha dormindo | CONFESSIONÁRIO · DIA 3 | aprovado (07/11) |
 
 Trailerzinhos das 0.9.40, 0.9.41 e 0.9.43 (pendentes): proposta de arquivar, o jogo já mudou e o trailer do Time
 Ultimate cobre a novidade.
+
+## A partir de 15/11: três posts por semana, um gênero cada (Miguel, 12/11)
+
+| Dia | Série | Gênero | O que entra | O que não entra |
+|---|---|---|---|---|
+| ter 19h | Vestiário do Pallet FC | mockumentary (The Office: cena + "talking head" olhando pra câmera) | história do elenco; eles são atores | notícia, número, patch |
+| sex 19h | Soccermon News | jornalístico (bancada, vinheta, trechos do jogo) | quadros fixos, comentário da galera quando tiver, convidado da semana | enredo e fofoca da série (a série só como manchete) |
+| dom 19h | Lance da semana | clipe de jogo, 7–15 s, começa no lance | lance nosso; depois, clipes da galera mandados na DM (exportar clipe do jogo) | |
+
+- **BBB:** minissérie de 3 episódios perto do Time Ultimate (27/11), "quem vai ser trocado por carta?", enquete nos stories.
+- **Paredão (14) e Confessionário saíram da pauta.** O Paredão vai pra ideia do BBB. O ep. 15 "Saco de bolas" vira o teste do mockumentary.
+- **Clipes da galera:** só depois que o exportar clipe estiver redondo.
+
+## Semana de 15 a 22/11 (aprovada pelo Miguel em 13/11: "ok 20–22, sem plateia, posta o chapéu no dia 15")
+
+Numeração continua daqui (a lista 20–31 do `pallet-fc-temporada-1.md` era da grade antiga). Os três vão nas 3 redes
+(TikTok + Reels + Shorts) pelo Buffer, com o comentário do link no TikTok. Vídeo pronto 2 dias antes, pro Miguel ver.
+Mockumentary **sem plateia** (sem risada gravada), inclusive no ep. 2.
+
+| # | Quando | Série | O quê | Texto na tela | Legenda (TikTok; `/ig` e `/yt` nas outras) | Status |
+|---|---|---|---|---|---|---|
+| 19b | dom 15/11 19h | Lance da semana #1 | **O chapéu:** o Mew dá chapéu e faz o gol (`lance-01-chapeu.mp4`, 9,5 s) | O CHAPÉU CHEGOU · CHAPÉU / MEW | O Mew deu chapéu e fez o gol 🎩⚽ Quem do seu time de Kanto dava esse chapéu? Joga grátis: soccermon.com/tt | saiu dom 15/11 19h nas 3 redes (Buffer, agendado 13/11) e o Miguel apagou os 3 às ~20h20 do mesmo dia: não era pra ter ido ao ar |
+| 20 | **sex 13/11 19h** (era ter 17/11; ter 17/11 ficou livre) | Vestiário do Pallet FC | **Bola fora** (ep. 2) v7, 49 s, gol de lado; Magikarp ("Hoje é dia de organizar material."), Pikachu ("Sabe como é, eu gosto de comemorar antes. Economiza tempo."), Psyduck ("Eu contei treze bolas."). Roteiro: `docs/marketing/ep15-mockumentary.md`; vídeo `soccermon-midia/15-bola-fora.mp4` | VESTIÁRIO DO PALLET FC · EP. 2 · BOLA FORA | Tinha uma bola a mais no treino ⚽ Vestiário do Pallet FC, ep. 2: Bola fora. Joga grátis: soccermon.com/tt (YT: "Dia de organizar material \| Vestiário do Pallet FC ep. 2 #shorts") | agendado 13/11 no Buffer, capa 1,5 s (TikTok 6af73f1c60bde15261f20a04, IG 6af73f1d60bde15261f20a68, YT 6af73f1e22cd418aa2da9428) |
+| 21 | **seg 16/11 19h** (era sex 20/11: desde 16/11 atualização e News saem toda segunda) | Soccermon News #1 | v11b (roteiro aprovado 15/11, vídeo aprovado 16/11): Raichu e Machoke de terno na bancada, Meowth ao vivo da Rota, Psyduck no estúdio; gancho do Voltorb reserva, Copa do Dia com Patrocínio, ₽3 na Rota, toda semana, Time Ultimate 27/11. ~60 s. Roteiro: `docs/marketing/news-01.md` | PLANTÃO · VOLTORB VIRA RESERVA | Estreia do Soccermon News 📺⚽ Raichu e Machoke trazem as novidades do jogo de futsal com os Pokémon de Kanto. Qual você vai testar primeiro? Joga grátis: soccermon.com/tt #pokemon #futsal #soccermon #voltorb | **no ar 16/11 19h** (TikTok 7708892689915268353, IG reel Df0YYbohCuf, YT shorts yXEd4CZh_eY) |
+| 22 | **qua 18/11 19h** (era dom 22/11: a terça ficou livre e o domingo é o dia mais fraco do jogo) | Lance da semana #2 | **Os 4 dribles** v4, 18,5 s: Mew lambreta, Gengar roleta, Pikachu elástico, Charizard chapéu no Machop, câmera lenta em cada drible, gol, tela final com o Machop tonto. Música B ("o Machop desafia"). Vídeo `~/Vídeos/soccermon-postar/pauta-16-22/lance-02-dribles-v4-musicaB.mp4` (worktree `lance1`) | LAMBRETA · ROLETA · ELÁSTICO · CHAPÉU (a faixa do jogo) | Lambreta, roleta, elástico e chapéu ⚽ Qual desses você faria? Joga grátis: soccermon.com/tt | agendado 16/11 no Buffer (TikTok 6afb2542aa36fe9e61228bd0, IG 6afb2542a9138ceaed059a74, YT 6afb25432dd9beb097f7c647); vídeo soccermon-midia/lance-02-dribles.mp4 |
+| 23 | **seg 23/11 19h** | Soccermon News #2 | v6, 82 s (roteiro e vídeo aprovados 23/11): gancho Machoke × Machamp, PLANTÃO da Eviolite (99 x 91), AO VIVO com o Meowth (Magikarp e o raio do Pikachu), E MAIS, VEM AÍ "Na sexta teremos um programa especial, pois finalmente o novo modo Time Ultimate irá abrir" | **agendado** (23/11) nas 3 redes pelo Buffer, conta BR (`23-news-02.mp4`, capa 2,3 s): TikTok 6b044a999f81e6b0249e3e78, IG 6b044a9a3d1480b30d531fed, YT 6b044a9b9f81e6b0249e3fb8; a 0.9.53.1 (comemorações, cut-in e drible lento) subiu às 11h30 |
+
+
+Pra aprovar: "ok 20–22" (ou "ok 20, 22" se a 0.9.51 não tiver data).
 
 ## Registro (toda segunda)
 

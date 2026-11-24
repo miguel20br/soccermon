@@ -1,5 +1,33 @@
 # Novidades
 
+## 0.9.54 · Natal, sinergias secretas e Desafios de Montagem (2026-11-30)
+
+### Natal (de 30/11 a 06/01)
+- Neve e luzes de Natal nos menus e na quadra da partida
+- Treinadores de gorro, festão nas telas e o logo com gorrinho
+- Três músicas de menu de Natal em rodízio (Noite Feliz, Trenó e Luzes da árvore) e uma música de partida de Natal
+- Título novo "Natal 2026", com efeito de gelo, ganho no evento de Natal
+
+### Copa
+- A escolha do capitão mostra o golpe máximo de cada Pokémon
+- Item e Patrocínio na recompensa mostram quem do time ganha nota e quanto (antes e depois)
+- Escolher os golpes do Pokémon na ficha, na escalação (a assinatura fica)
+- Dica de tática e formação no intervalo, conforme o placar
+- Ao cair, uma dica da escalação: quem jogou mal na vaga e quem estava no banco
+- Jogar de novo com o mesmo time depois de cair na Copa
+
+### Partida
+- Comemoração de gol própria pra mais 8: Jigglypuff, Slowpoke, Meowth, Charizard, Squirtle, Cubone, Voltorb e Kadabra (e as evoluções deles)
+- Sinergias secretas: 6 combinações escondidas contra o rival, reveladas em campo; Registro de Sinergias na Coleção
+
+### Time Ultimate
+- Desafios de Montagem: troque cartas por pacotes e Picks montando times com regra
+- Duelo com o time do Time Ultimate: cada um joga com o próprio time, sem draft
+
+### Perfil
+- Seletor de título novo, com prévia do efeito
+- Caminho do treinador nas Metas da Sede, com o prêmio de cada missão
+
 ## 0.9.53.1 · Comemorações próprias e cut-in de dupla (2026-11-23)
 
 ### Partida

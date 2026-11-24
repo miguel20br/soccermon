@@ -6,6 +6,14 @@ description: Histórico por versão (0.8.0 a 0.9.x) que saiu do CLAUDE.md.
 
 Histórico por versão (0.8.0 a 0.9.x), tirado do CLAUDE.md em 21/10/2026 para enxugá-lo. Texto copiado fiel.
 
+## 0.9.53.1 · Comemorações próprias e cut-in de dupla (23/11/2026)
+
+Motor 32 (sem mudança de partida). Comemorações de gol de Psyduck, Snorlax, Magikarp, Gengar e Pikachu (`golCelebOf`, `goalCelebPose`, `?demo=comemoracao&sp=N`), cut-in de dupla nos combos (`src/game/combo-cutin.ts`, `?demo=combo`), drible com nome em câmera lenta e zoom em 2x/4x/8x (`dribbleEase` em match-view.ts), polimento do UT (Loja, Metas em trilha, química no Elenco).
+
+## 0.9.53 · Eviolite e reforço no lugar do titular (23/11/2026)
+
+Motor 32 (`liga` republicada). Eviolite (+30% em tudo pra quem ainda pode evoluir; na carta, nota e atributos já com a pedra, com faixa de luz roxa por cima do número e sem o selo de evolução), reforço no lugar de titular, Copa do Dia numerada, Duelo com troca de capitão entre jogos, item da prancheta sem esticar (`.slot img.slot-item`). O timer de lançamento falhou às 9h (PC sem internet no boot) e a versão subiu à mão às 10h.
+
 ## 0.9.52.4 · Placa da Semana Fora da Lei (17/11/2026)
 
 Motor 31 (sem mudança de partida). A placa `nn-sign` do Estádio ficava na arquibancada, atrás do telão do logo, que cresce na 1ª visita (frase): agora é `NeonSign flow` no fluxo da UI, logo abaixo do `es-top` (`order: 1`, src/ui/ambientes/Estadio.tsx e neon.css); a de trás some no Estádio (`.es-scene .nn-sign`) e as duas somem com altura <= 700 px. Teste: src/ui/ambientes/neon-sign.test.ts. Pendência vista: no menu de modos (`ModeMenu`) a placa da arquibancada cobre a linha "Copa Relâmpago · Rota Índigo · Duelo".

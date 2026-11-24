@@ -9,6 +9,54 @@ export interface PatchNotes {
 
 export const PATCH_NOTES: PatchNotes[] = [
     {
+        version: '0.9.54',
+        date: '2026-11-30',
+        title: 'Natal, sinergias secretas e Desafios de Montagem',
+        sections: [
+            {
+                title: 'Natal (de 30/11 a 06/01)',
+                lines: [
+                    'Neve e luzes de Natal nos menus e na quadra da partida',
+                    'Treinadores de gorro, festão nas telas e o logo com gorrinho',
+                    'Três músicas de menu de Natal em rodízio (Noite Feliz, Trenó e Luzes da árvore) e uma música de partida de Natal',
+                    'Título novo "Natal 2026", com efeito de gelo, ganho no evento de Natal',
+                ],
+            },
+            {
+                title: 'Copa',
+                lines: [
+                    'A escolha do capitão mostra o golpe máximo de cada Pokémon',
+                    'Item e Patrocínio na recompensa mostram quem do time ganha nota e quanto (antes e depois)',
+                    'Escolher os golpes do Pokémon na ficha, na escalação (a assinatura fica)',
+                    'Dica de tática e formação no intervalo, conforme o placar',
+                    'Ao cair, uma dica da escalação: quem jogou mal na vaga e quem estava no banco',
+                    'Jogar de novo com o mesmo time depois de cair na Copa',
+                ],
+            },
+            {
+                title: 'Partida',
+                lines: [
+                    'Comemoração de gol própria pra mais 8: Jigglypuff, Slowpoke, Meowth, Charizard, Squirtle, Cubone, Voltorb e Kadabra (e as evoluções deles)',
+                    'Sinergias secretas: 6 combinações escondidas contra o rival, reveladas em campo; Registro de Sinergias na Coleção',
+                ],
+            },
+            {
+                title: 'Time Ultimate',
+                lines: [
+                    'Desafios de Montagem: troque cartas por pacotes e Picks montando times com regra',
+                    'Duelo com o time do Time Ultimate: cada um joga com o próprio time, sem draft',
+                ],
+            },
+            {
+                title: 'Perfil',
+                lines: [
+                    'Seletor de título novo, com prévia do efeito',
+                    'Caminho do treinador nas Metas da Sede, com o prêmio de cada missão',
+                ],
+            },
+        ],
+    },
+    {
         version: '0.9.53.1',
         date: '2026-11-23',
         title: 'Comemorações próprias e cut-in de dupla',
@@ -3069,6 +3117,54 @@ export const PATCH_NOTES: PatchNotes[] = [
 
 /** Notes in English (same versions; a version missing here falls back to Portuguese). */
 export const PATCH_NOTES_EN: PatchNotes[] = [
+    {
+        version: '0.9.54',
+        date: '2026-11-30',
+        title: 'Christmas, secret synergies and Build Challenges',
+        sections: [
+            {
+                title: 'Christmas (Nov 30 to Jan 6)',
+                lines: [
+                    'Christmas snow and lights in the menus and on the match court',
+                    'Trainers in Santa hats, garlands on the screens and the logo with a little hat',
+                    'Three Christmas menu songs in rotation (Silent Night, Sleigh and Tree Lights) and a Christmas match song',
+                    'New "Christmas 2026" title with an ice effect, earned in the Christmas event',
+                ],
+            },
+            {
+                title: 'Cup',
+                lines: [
+                    "Picking the captain shows each Pokémon's max move",
+                    'Items and Sponsors in the reward show who on your team gains rating and how much (before and after)',
+                    "Choose a Pokémon's moves on its card, in the lineup (the signature move stays)",
+                    'Tactic and formation tip at half-time, based on the score',
+                    'When you are knocked out, a lineup tip: who played badly in their slot and who was on the bench',
+                    'Play again with the same team after being knocked out of the Cup',
+                ],
+            },
+            {
+                title: 'Match',
+                lines: [
+                    'Signature goal celebrations for 8 more: Jigglypuff, Slowpoke, Meowth, Charizard, Squirtle, Cubone, Voltorb and Kadabra (and their evolutions)',
+                    'Secret synergies: 6 hidden pairings against the rival, revealed on the court; Synergy Log in the Collection',
+                ],
+            },
+            {
+                title: 'Ultimate Team',
+                lines: [
+                    'Build Challenges: trade cards for packs and Picks by building teams that follow a rule',
+                    'Duel with your Ultimate Team: each player brings their own team, no draft',
+                ],
+            },
+            {
+                title: 'Profile',
+                lines: [
+                    'New title picker with a preview of the effect',
+                    "Trainer path in the Club's Goals, with the reward for each mission",
+                ],
+            },
+        ],
+    },
     {
         version: '0.9.53.1',
         date: '2026-11-23',
