@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { type ComponentProps, useEffect, useMemo, useRef, useState } from 'react';
 import { track } from '../../analytics/track';
 import { FUTSAL_5 } from '../../engine/config';
 import { clubLeader, cupRival } from '../../engine/cup';
@@ -100,6 +100,7 @@ import { captainAt, clockExtrasAt, type MaxWait, maxOrderTick, maxWaitNext, role
 import { maxTap } from '../max-beat';
 import { matchMusic, penaltyMusic } from '../music-sync';
 import { bannerText, useClubColor } from '../profile/club';
+import { useMyInfo } from '../profile/PlayerCard';
 import { reduceMotionOn } from '../settings-sync';
 import { simulateMatch } from '../sim-client';
 import { neonOn } from '../tema';
@@ -125,6 +126,28 @@ const SAVE_EVERY_MS = 1500;
 /** `liga`: partida contra um time fantasma (src/league): a mesma tela, com a partida da Liga no lugar da copa. */
 /** Sheets da partida no ?lab=hud: Tática, Trocar (Posições), Tempo e Lances. */
 type HudSheet = 'tactic' | 'board' | 'time' | 'feed';
+
+/**
+ * VERSUS da Copa, da Liga e do Time Ultimate com o seu treinador (avatar, nome, título com o look e a vitrine), como no
+ * Duelo. Fica num componente à parte: o `useMyInfo` assina o perfil, e a partida não redesenha por isso.
+ */
+function MyVersus(props: ComponentProps<typeof VersusIntro>) {
+    const me = useMyInfo();
+    return (
+        <VersusIntro
+            {...props}
+            homeCoach={{
+                name: me.name,
+                title: me.title.name,
+                titleLook: me.title.look,
+                avatar: me.avatar.src,
+                avatarGoogle: me.avatar.google,
+                showcase: me.showcase,
+                frame: me.frame,
+            }}
+        />
+    );
+}
 
 /** `ultimate`: partida do Time Ultimate contra a IA (src/store/ultimate): a mesma tela, como a da Liga. */
 export function Match({ liga = false, ultimate = false }: { liga?: boolean; ultimate?: boolean }) {
@@ -838,7 +861,7 @@ export function Match({ liga = false, ultimate = false }: { liga?: boolean; ulti
     return (
         <>
             {!introDone && (
-                <VersusIntro
+                <MyVersus
                     home={lockedSetup}
                     away={opponent}
                     stage={stage}

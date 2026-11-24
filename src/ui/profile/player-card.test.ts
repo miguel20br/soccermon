@@ -3,6 +3,7 @@ import { buildVitrine } from '../../friends/api';
 import type { Peer } from '../../net/duel-state';
 import { headToHead } from '../../store/duels';
 import { ART } from '../components/PixelTrophy';
+import { ornamentIds } from './ornaments';
 import { friendInfo, peerInfo } from './PlayerCard';
 
 /** Perfil que chega do rival na sala: dado de fora, cada campo tem que passar pela validação. */
@@ -46,6 +47,30 @@ describe('cartão do treinador do rival', () => {
         expect(info.trainer).toBe('blue');
         expect(info.clubTag).toBe('RIV');
         expect(info.other).toBe(false);
+    });
+});
+
+describe('nível e enfeites no cartão', () => {
+    it('valida o que vem de fora: nível limitado, enfeites curtos e no máximo 6', () => {
+        const info = peerInfo(
+            peer({
+                level: 7,
+                ornaments: ['natal-2026', 'champ:1', '<img>', 42, 'x'.repeat(40), 'a', 'b', 'c', 'd', 'e'],
+            }),
+        );
+        expect(info.level).toBe(7);
+        expect(info.ornaments).toEqual(['natal-2026', 'champ:1', 'a', 'b', 'c', 'd']);
+        const none = peerInfo(peer({ level: 'x', ornaments: 'lixo' }));
+        expect(none.level).toBeUndefined();
+        expect(none.ornaments).toEqual([]);
+        expect(peerInfo(peer({ level: 99999 })).level).toBe(99);
+    });
+    it('ornamentIds: campeão de temporada vira champ:N, depois os enfeites de evento', () => {
+        const seasons = [
+            { season: 1, played: 3, wins: 2, marks: 5, champion: true, legend: null },
+            { season: 2, played: 1, wins: 0, marks: 1, champion: false, legend: null },
+        ];
+        expect(ornamentIds({ seasons, ornaments: ['natal-2026'] })).toEqual(['champ:1', 'natal-2026']);
     });
 });
 

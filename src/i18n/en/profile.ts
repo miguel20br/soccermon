@@ -26,6 +26,7 @@ export const profile: typeof pt = {
     collection: 'Collection',
     publicHint: 'The card other players see',
     card: {
+        level: 'Level {n}',
         open: 'See my public profile',
         aria: "{name}'s profile",
         openAria: "See {name}'s profile",
@@ -593,6 +594,7 @@ export const profile: typeof pt = {
         } as Record<string, string>,
     },
     picker: {
+        legacy: 'Team Ultimate',
         trainer: 'Your trainer',
         trainerCount: '{n} of {total} unlocked',
         trainerHelp: 'The others come from missions: each one shows its own below.',

@@ -5,6 +5,7 @@ import { viewInstance } from '../engine/instance';
 import { clubName, cupStageShort, dict, fmt, getLang, type Lang, tn } from '../i18n';
 import { isPerfectCup, type RunState, useGame } from '../store/game-store';
 import { isGoldTrainer, isHoloTrainer, type TrainerId, trainerSrc } from '../store/missions';
+import { type TitleLook, titleLook } from '../store/title-codes';
 import { cardSprite } from './components/PokeCard';
 import { Trophy } from './components/Trophy';
 import { titleName, trainerLabel } from './profile/club';
@@ -27,7 +28,15 @@ export interface ShareCardData {
     squad: { sprite: string; name: string; captain: boolean }[];
     scorer: { label: string; text: string; sprite: string } | null;
     /** Treinador campeão (só no formato Stories, ao lado da taça). */
-    trainer: { sprite: string; name: string; title: string; gold: boolean; holo: boolean } | null;
+    trainer: {
+        sprite: string;
+        name: string;
+        title: string;
+        /** O look do título (gelo, holo, dourado): a cor dele no canvas. */
+        titleLook?: TitleLook;
+        gold: boolean;
+        holo: boolean;
+    } | null;
     site: string;
 }
 
@@ -38,7 +47,7 @@ export function shareCardData(
     run: RunState,
     color: number,
     lang: Lang = getLang(),
-    trainer: { id: TrainerId; name: string; title: string } | null = null,
+    trainer: { id: TrainerId; name: string; title: string; titleLook?: TitleLook } | null = null,
 ): ShareCardData {
     const d = dict(lang).result;
     const byUid = new Map(run.picks.map((p) => [p.uid, p]));
@@ -80,6 +89,7 @@ export function shareCardData(
             sprite: trainerSrc(trainer.id),
             name: trainer.name,
             title: trainer.title,
+            titleLook: trainer.titleLook,
             gold: isGoldTrainer(trainer.id) || isHoloTrainer(trainer.id),
             holo: isHoloTrainer(trainer.id),
         },
@@ -123,13 +133,48 @@ function fitFont(ctx: CanvasRenderingContext2D, text: string, size: number, maxW
 }
 
 /** Texto centrado com sombra dura (como as capas em docs/marketing). */
-function text(ctx: CanvasRenderingContext2D, s: string, x: number, y: number, color: string, shadow = 0) {
+function text(
+    ctx: CanvasRenderingContext2D,
+    s: string,
+    x: number,
+    y: number,
+    color: string | CanvasGradient,
+    shadow = 0,
+) {
     if (shadow) {
         ctx.fillStyle = INK;
         ctx.fillText(s, x + shadow * 0.8, y + shadow);
     }
     ctx.fillStyle = color;
     ctx.fillText(s, x, y);
+}
+
+/**
+ * A cor do título no canvas, a partir do look (title-fx.css): gelo em degradê azul, holo em degradê de arco-íris,
+ * dourado nos outros. Parado: o movimento fica só na tela. `width` é a largura do texto, já com a fonte ajustada.
+ */
+export function titleFill(
+    ctx: CanvasRenderingContext2D,
+    look: TitleLook | undefined,
+    cx: number,
+    base: number,
+    width: number,
+    size = 28,
+): string | CanvasGradient {
+    if (look === 'ice') {
+        const g = ctx.createLinearGradient(0, base - size, 0, base);
+        g.addColorStop(0, '#f4fbff');
+        g.addColorStop(0.45, '#9fd9fa');
+        g.addColorStop(1, '#3a8fd6');
+        return g;
+    }
+    if (look === 'holo') {
+        const g = ctx.createLinearGradient(cx - width / 2, 0, cx + width / 2, 0);
+        for (const [i, c] of ['#ff9ad5', '#9ae6ff', '#b6ffa0', '#fff29a', '#d7a6ff'].entries())
+            g.addColorStop(i / 4, c);
+        return g;
+    }
+    return GOLD;
 }
 
 function box(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, fill: string, r = 18) {
@@ -257,7 +302,14 @@ export async function drawShareCard(data: ShareCardData, format: CardFormat): Pr
             fitFont(ctx, data.trainer.name, 36, 260);
             text(ctx, data.trainer.name, tx, top - 44, '#ffffff', 3);
             fitFont(ctx, data.trainer.title, 28, 260, false);
-            text(ctx, data.trainer.title, tx, top - 8, GOLD, 3);
+            text(
+                ctx,
+                data.trainer.title,
+                tx,
+                top - 8,
+                titleFill(ctx, data.trainer.titleLook, tx, top - 8, ctx.measureText(data.trainer.title).width),
+                3,
+            );
         }
         y += ts + 20;
         const s = fitFont(ctx, data.title, 136, W - 120);
@@ -378,6 +430,7 @@ export async function shareCardBlob(run: RunState, format: CardFormat, color: nu
               id: won.trainer,
               name: trainerLabel(profile),
               title: won.trainerTitle ? titleName(won.trainerTitle) : '',
+              titleLook: won.trainerTitle ? titleLook(won.trainerTitle) : undefined,
           }
         : null;
     const canvas = await drawShareCard(shareCardData(run, color, getLang(), trainer), format);

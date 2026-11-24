@@ -351,3 +351,23 @@ Pra o Miguel julgar (headless, 390 e 1440 salvo dito outra coisa). Nenhum foi ti
 9. O título no ranking fica pra decidir em dezembro, porque precisa de migração.
 10. Sem floco ao lado do título de gelo por enquanto; ele vê na galeria.
 11. Os efeitos são aprovados na galeria antes de espalhar.
+
+## Fase 2 (24/11/2026, branch `feat-perfil-fase2`)
+
+Feito: nível (estrela da barra de cima) no canto do avatar do cartão do Perfil e do cartão do treinador; título em
+15 px; fileira de enfeites (`ornaments.tsx`); Legado do UT saiu do fim do Álbum e virou a porta "Time Ultimate" do
+Perfil (aparece só com legado), com a melhor carta grande, total de partidas e vitórias e as temporadas; título do
+Perfil no VERSUS da Copa, da Liga e do UT (`MyVersus` em `Match.tsx`); look do título no canvas do Compartilhar
+(`titleFill` em `share-card.ts`: gelo e holo em degradê parado, dourado no resto).
+
+Propostas (o doc deixava em aberto; decidi pelo mais simples, o Miguel confirma):
+
+- **Enfeites no cartão** = um chip por evento do UT completo (`legacy.ornaments`) e um "Campeão T{n}" por temporada
+  em que foi campeão (`champ:N`). Vai na vitrine do amigo e na sala do Duelo como `level` (número) e `ornaments`
+  (até 6 ids curtos, validados no cliente): `friend_cards.perfil` é jsonb, sem migração; peer antigo só não mostra.
+- **"Melhor carta"** = a Lenda de maior nota entre as temporadas (empate, a mais recente).
+- **"Campeão T1" como título de verdade** (decisão 6): **não feito**, precisa mexer em `src/store/ultimate/`
+  (congelado até 26/11). Por ora é só o chip de enfeite.
+- **VERSUS da Liga**: só o seu título; o do fantasma fica pra fase 3 (a tabela não guarda título).
+- **Compartilhar**: o título só aparece no formato Stories (o quadrado nunca teve treinador); sem movimento, só cor.
+- **Metas com prêmio da missão** (A4) fica de fora desta rodada.

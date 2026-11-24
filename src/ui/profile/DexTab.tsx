@@ -10,7 +10,6 @@ import { Tip } from '../components/Tip';
 import { TypeIcon } from '../components/TypeIcon';
 import { Stepper } from '../kit/controls';
 import { trainerSrc } from '../tema';
-import { UltimateLegacy } from '../ultimate/Legacy';
 import { AlbumView } from './Album';
 import { speciesGif } from './club';
 import { BallMark, CareerSealIcon, ChampionRibbon } from './icons';
@@ -92,8 +91,6 @@ export function DexTab({ view, onView }: { view: DexView; onView: (v: DexView) =
         return (
             <div className="pf-dex" key={view}>
                 <AlbumView at={at} paused={!!open} onSheet={(id, o) => setOpen({ id, order: o })} />
-                {/* as Lendas e as medalhas das temporadas do Time Ultimate (só aparece com legado) */}
-                <UltimateLegacy />
                 {sheet}
             </div>
         );

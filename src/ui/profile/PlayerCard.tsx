@@ -24,6 +24,7 @@ import { activeTitle, activeTrainer, TRAINERS, type TrainerId, trainerFrame } fr
 import { bannerOf, clubColorHex } from '../../store/profile';
 import { titleClass } from '../../store/title-codes';
 import { cupCounts, cupList, METALS } from '../../store/trophies';
+import { levelOfDone } from '../ambientes/metas';
 import { useCardModal } from '../card-modal';
 import { FutCard } from '../components/FutCard';
 import { HudIcon } from '../components/MatchHud';
@@ -48,6 +49,7 @@ import {
 import { frameClass, ShowcaseRow, useShowcase } from './Medals';
 import { Num } from './NumbersTab';
 import { NewDot, useNews } from './news';
+import { LevelStar, OrnamentRow, ornamentIds, parseOrnaments } from './ornaments';
 import { TrainerSprite } from './TrainerTab';
 import './profile.css';
 import './player-card.css';
@@ -75,6 +77,9 @@ export interface PlayerInfo {
     anon?: boolean;
     /** Taças da Copa por metal (bronze, prata, ouro): o pedaço da sala de troféus. */
     cups: [number, number, number];
+    /** Nível do treinador e enfeites do Time Ultimate (quem não mandou: sem estrela e sem fileira). */
+    level?: number;
+    ornaments: string[];
     /** Perfil de um amigo (Perfil → Amigos → tocar no nome): números, últimos títulos e o retrospecto no Duelo. */
     friend?: { code: string; club: string; numbers: FriendNumbers | null; hall: FriendTitle[] };
 }
@@ -102,6 +107,8 @@ export function peerInfo(p: Peer, other = true): PlayerInfo {
         showcase,
         cards: parseCardShowcase(p.cards),
         cups: parseCups(p.cups),
+        level: int(p.level, 99) || undefined,
+        ornaments: parseOrnaments(p.ornaments),
         other,
         id: str(p.id, 64),
         code: typeof p.code === 'string' && isFriendCode(p.code) ? p.code : undefined,
@@ -177,6 +184,7 @@ export function useMyInfo(): PlayerInfo {
     const title = activeTitle(profile);
     const hall = useGame((s) => s.hall);
     const name = useTrainerLabel();
+    const legacy = useGame((s) => s.ultimate.legacy);
     return {
         name,
         trainer: activeTrainer(profile),
@@ -189,6 +197,8 @@ export function useMyInfo(): PlayerInfo {
         showcase: show.items,
         cards,
         cups: cupList(cupCounts(hall)),
+        level: levelOfDone(profile.missionsDone).level,
+        ornaments: ornamentIds(legacy),
         other: false,
     };
 }
@@ -201,6 +211,7 @@ export function usePublicPeer(): PublicPeer {
     const cards = useCardShowcase().encoded;
     const code = useFriends((s) => s.code);
     const hall = useGame((s) => s.hall);
+    const legacy = useGame((s) => s.ultimate.legacy);
     return useMemo(() => {
         const av = avatarImage(profile.avatar, user?.avatar);
         return {
@@ -218,9 +229,11 @@ export function usePublicPeer(): PublicPeer {
             showcase,
             cards,
             cups: cupList(cupCounts(hall)),
+            level: levelOfDone(profile.missionsDone).level,
+            ornaments: ornamentIds(legacy),
             ...(code ? { code } : {}),
         };
-    }, [profile, user, showcase, cards, code, hall]);
+    }, [profile, user, showcase, cards, code, hall, legacy]);
 }
 
 /** Cartão do treinador aberto (de qualquer tela: Perfil, sala, VERSUS, placar). */
@@ -268,6 +281,7 @@ export function PlayerCardModal() {
                             alt=""
                             referrerPolicy="no-referrer"
                         />
+                        {info.level && <LevelStar level={info.level} />}
                     </div>
                 )}
                 <div className="pf-who">
@@ -284,6 +298,7 @@ export function PlayerCardModal() {
                 </div>
             </header>
             {info.bare && <p className="muted pcard-empty">{t('profile.card.notFriend')}</p>}
+            {!info.bare && <OrnamentRow ids={info.ornaments} className="pcard-orn" />}
             {!info.bare && <ShowcaseRow items={info.showcase} className="pcard-medals" />}
             {info.cups.some((n) => n > 0) && (
                 <div

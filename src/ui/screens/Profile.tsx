@@ -14,6 +14,7 @@ import {
 import { clubColorHex } from '../../store/profile';
 import { titleClass } from '../../store/title-codes';
 import { cupCounts, METALS } from '../../store/trophies';
+import { levelOfDone } from '../ambientes/metas';
 import { backTarget } from '../back-nav';
 import { FutCard } from '../components/FutCard';
 import { HudIcon } from '../components/MatchHud';
@@ -31,11 +32,13 @@ import { PencilIcon } from '../profile/icons';
 import { frameClass, ShowcaseRow, useShowcase } from '../profile/Medals';
 import { MyStats, StatsStrip } from '../profile/MyStats';
 import { NewDot, useNews } from '../profile/news';
+import { LevelStar, OrnamentRow, ornamentIds } from '../profile/ornaments';
 import { RedeemCode, TitlePicker, TrainerPicker, TrainerSprite } from '../profile/TrainerTab';
+import { UltimateLegacy } from '../ultimate/Legacy';
 import '../profile/profile.css';
 import '../profile/armario.css';
 
-type SheetId = 'nome' | 'treinadores' | 'titulo' | 'numeros';
+type SheetId = 'nome' | 'treinadores' | 'titulo' | 'numeros' | 'legado';
 const FLAGS = Array.from({ length: 14 }, (_, i) => i);
 /** `?aba=` (links antigos `?perfil=`) que abre a folha do Clube ou dos Amigos. As missões moram nas Metas. */
 const ABA_SHEET: Record<string, DoorSheet> = { clube: 'clube', amigos: 'amigos' };
@@ -133,6 +136,8 @@ export function Profile() {
     const has = (prefix: string) => [...news].some((k) => k.startsWith(prefix));
     const cups = cupCounts(hall);
     const look = lookOfProfile(profile);
+    const legacy = useGame((s) => s.ultimate.legacy);
+    const hasLegacy = !!legacy.seasons.length || !!legacy.ornaments.length;
     const [sheet, setSheet] = useState<SheetId | null>(null);
     const close = () => setSheet(null);
     // voltar leva pra onde o Perfil abriu (a Sede pelo armário, o Estádio pela barra de cima…), nunca pra outra
@@ -187,6 +192,7 @@ export function Profile() {
                         alt=""
                         referrerPolicy="no-referrer"
                     />
+                    <LevelStar level={levelOfDone(profile.missionsDone).level} />
                     <NewDot on={has('av:')} />
                 </button>
                 <div className="pf-who">
@@ -210,6 +216,7 @@ export function Profile() {
                         {profile.clubName || 'Pallet FC'} · <b>{profile.clubTag}</b>
                     </span>
                     <ShowcaseRow items={showcase.items} className="pf-showcase" />
+                    <OrnamentRow ids={ornamentIds(legacy)} />
                     {METALS.some((m) => cups[m]) && (
                         <button
                             type="button"
@@ -285,6 +292,14 @@ export function Profile() {
                     dot={has('ti:')}
                     onClick={() => setSheet('titulo')}
                 />
+                {hasLegacy && (
+                    <Locker
+                        icon={<HudIcon kind="medal" />}
+                        title={t('profile.picker.legacy')}
+                        count={legacy.seasons.length || undefined}
+                        onClick={() => setSheet('legado')}
+                    />
+                )}
             </nav>
 
             <Sheet open={sheet === 'nome'} onClose={close} title={edit} className="pf pf-sheet" style={vars}>
@@ -312,6 +327,15 @@ export function Profile() {
                     <h3>{t('profile.picker.code')}</h3>
                     <RedeemCode />
                 </section>
+            </Sheet>
+            <Sheet
+                open={sheet === 'legado'}
+                onClose={close}
+                title={t('profile.picker.legacy')}
+                className="pf pf-sheet"
+                style={vars}
+            >
+                <UltimateLegacy />
             </Sheet>
             <Sheet
                 open={sheet === 'numeros'}

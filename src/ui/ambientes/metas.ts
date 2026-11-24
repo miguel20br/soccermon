@@ -51,6 +51,11 @@ export function trainerLevel(done: number): { level: number; n: number; goal: nu
     return { level, n: left, goal: Math.floor(level / 2) + 1 };
 }
 
+/** Missões que ainda existem na tabela (o nível não conta id de missão que saiu). */
+const MISSION_IDS = new Set(MISSIONS.map((m) => m.id));
+/** O nível de quem tem essas missões cumpridas (barra de cima, cartão do Perfil e do amigo). */
+export const levelOfDone = (done: readonly string[]) => trainerLevel(done.filter((id) => MISSION_IDS.has(id)).length);
+
 /** O próximo cinturão do Duelo (vitórias até ele); `null` com o de ouro na mão. */
 export function nextBelt(wins: number): { metal: (typeof BELTS)[number]['metal']; n: number; goal: number } | null {
     const b = BELTS.find((x) => wins < x.wins);

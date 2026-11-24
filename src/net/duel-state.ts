@@ -122,6 +122,9 @@ export interface Peer {
     code?: string;
     /** Taças da Copa por metal [bronze, prata, ouro]: o pedaço da sala de troféus que o cartão mostra. */
     cups?: number[];
+    /** Nível do treinador e enfeites do Time Ultimate (cartão; `parseOrnaments` valida, peer antigo não tem). */
+    level?: number;
+    ornaments?: string[];
 }
 
 /** Ordem do duelo: a de sempre + `seq` do time (quem deu a ordem numera; o host só põe o tick). */

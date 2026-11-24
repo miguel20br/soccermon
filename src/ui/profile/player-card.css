@@ -207,3 +207,47 @@
     align-items: center;
     gap: 8px;
 }
+
+/* nível (estrela no canto do avatar) e enfeites do Time Ultimate no cartão */
+.pf-duo .pf-lv {
+    left: -10px;
+    bottom: -12px;
+    width: 34px;
+    height: 34px;
+    pointer-events: none;
+}
+.pf-duo .pf-lv .cb-num {
+    --gs: 14px;
+    font-size: var(--gfs, 14px);
+}
+.pf-orn {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+.pf-orn-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 2px 8px 2px 5px;
+    border: 2px solid var(--cb-ink);
+    border-radius: 999px;
+    background: var(--panel-2);
+    color: var(--yellow);
+    font-size: 11px;
+    font-weight: 700;
+    white-space: nowrap;
+}
+.pf-orn-chip .hud-icon {
+    width: 13px;
+    height: 13px;
+    flex: none;
+}
+/* título do cartão maior (15 px): é o que os outros leem embaixo do nome */
+.pf-head .pf-title-line,
+.pcard-head .pf-title-line {
+    font-size: 15px;
+}

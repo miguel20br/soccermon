@@ -41,3 +41,9 @@
     gap: 4px;
     color: var(--yellow);
 }
+/* a melhor Lenda grande, no alto do Legado (no Perfil) */
+.ut-legacy-best {
+    display: grid;
+    justify-items: center;
+    gap: 6px;
+}

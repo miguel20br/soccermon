@@ -908,3 +908,8 @@
 :root[data-reduce-motion="true"] .pf-tprev-body {
     animation: none;
 }
+
+/* a porta do Legado do Time Ultimate (só com legado) ocupa a linha de baixo inteira */
+.pf-locker:nth-child(3):last-child {
+    grid-column: 1 / -1;
+}

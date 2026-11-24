@@ -26,6 +26,7 @@ export const profile = {
     publicHint: 'O cartão que os outros jogadores veem',
     /** Cartão do treinador: o perfil que os outros veem (Duelo) e o seu, pelo botão do Perfil. */
     card: {
+        level: 'Nível {n}',
         open: 'Ver meu perfil público',
         aria: 'Perfil de {name}',
         openAria: 'Ver o perfil de {name}',
@@ -598,6 +599,7 @@ export const profile = {
         } as Record<string, string>,
     },
     picker: {
+        legacy: 'Time Ultimate',
         trainer: 'Seu treinador',
         trainerCount: '{n} de {total} liberados',
         trainerHelp: 'Os outros saem das missões: cada um mostra a sua logo abaixo.',

@@ -87,6 +87,22 @@ describe('Rota Índigo: compartilhar', () => {
     });
 });
 
+describe('card do título com título de gelo', () => {
+    it('leva o look do título pro canvas', () => {
+        const run = rota({ status: 'champion' });
+        const d = shareCardData(run, 0xf2c230, 'pt', {
+            id: 'red',
+            name: 'Miguel',
+            title: 'Natal 2026',
+            titleLook: 'ice',
+        });
+        expect(d.trainer?.titleLook).toBe('ice');
+        expect(
+            shareCardData(run, 0xf2c230, 'pt', { id: 'red', name: 'M', title: 'x' }).trainer?.titleLook,
+        ).toBeUndefined();
+    });
+});
+
 describe('Rota Índigo: cartão da derrota', () => {
     const lost = (n: number) => Array.from({ length: n }, (_, s) => result(s, s !== n - 1));
     it('amarelo no mapa, vermelho na 2ª derrota do mapa', () => {
