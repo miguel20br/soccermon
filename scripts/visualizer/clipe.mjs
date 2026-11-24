@@ -19,14 +19,14 @@ const W = 480, H = 270, FPS = 30;
 /** Placas de texto (PNG transparente 1920x1080): abertura (grande) e etiqueta fixa. */
 async function placas(titulo, n, dir) {
     const fonte = `file://${RAIZ}public/fonts/`, T = titulo.toUpperCase().replace(/&/g, '&amp;');
-    const tam = Math.min(96, Math.floor(1300 / (T.length * 0.95)));
+    const tam = 48;
     const css = `<style>@font-face{font-family:G14;src:url(${fonte}Galmuri14.woff2)}@font-face{font-family:G11;font-weight:700;src:url(${fonte}Galmuri11-Bold.woff2)}
 html,body{margin:0;width:1920px;height:1080px;background:transparent;overflow:hidden;color:#f4f1e6;font-family:G11}
 .logo{position:absolute;left:60px;top:44px;width:400px}
 .chip{position:absolute;left:60px;top:136px;font:700 28px G11;letter-spacing:4px;color:#141a33;background:#ffcb05;padding:6px 18px;border-radius:6px;box-shadow:5px 5px 0 #0e1430}
 .tag{position:absolute;right:60px;top:60px;font:700 26px G11;letter-spacing:3px;color:#a6aed6;text-shadow:3px 3px 0 #0e1430}.tag b{color:#ffcb05}
-.placa{position:absolute;left:200px;right:200px;top:380px;height:260px;background:#141a33;border:6px solid #4b5a9a;border-radius:10px;box-shadow:10px 10px 0 #0e1430;box-sizing:border-box;display:flex;flex-direction:column;justify-content:center;align-items:center;gap:26px}
-.faixa{font:700 30px G11;letter-spacing:6px;color:#141a33;background:#ffcb05;padding:6px 22px;border-radius:6px}.tit{font:${tam}px G14;text-shadow:6px 6px 0 #0e1430;white-space:nowrap}</style>`;
+.placa{position:absolute;left:50%;transform:translateX(-50%);top:150px;padding:14px 30px;background:#141a33;border:5px solid #4b5a9a;border-radius:10px;box-shadow:8px 8px 0 #0e1430;display:flex;align-items:center;gap:24px;white-space:nowrap}
+.faixa{font:700 22px G11;letter-spacing:4px;color:#141a33;background:#ffcb05;padding:6px 22px;border-radius:6px}.tit{font:${tam}px G14;text-shadow:6px 6px 0 #0e1430;white-space:nowrap}</style>`;
     const A = `${css}<div class=placa><div class=faixa>FAIXA ${String(n).padStart(2, '0')}</div><div class=tit>${T}</div></div><div class=tag>SOCCERMON SONGS <b>VOL. 1</b></div>`;
     const B = `${css}<img class=logo src="file://${RAIZ}public/assets/ui/logo.svg"><div class=chip>${String(n).padStart(2, '0')} · ${T}</div>`;
     const b = await puppeteer.launch({ executablePath: process.env.CHROME_PATH ?? '/usr/bin/chromium', headless: true, args: ['--no-sandbox', '--allow-file-access-from-files'] });
@@ -58,7 +58,7 @@ export async function renderClipe({ wav, cena, bpm, titulo, n, saida, trechos })
     await placas(titulo, n, tmp);
     const ff = spawn('ffmpeg', ['-v', 'error', '-y', '-f', 'rawvideo', '-pix_fmt', 'rgb24', '-s', `${W}x${H}`, '-framerate', String(FPS), '-i', '-',
         '-loop', '1', '-framerate', String(FPS), '-i', `${tmp}/abertura.png`, '-loop', '1', '-framerate', String(FPS), '-i', `${tmp}/etiqueta.png`, '-i', src,
-        '-filter_complex', `[0:v]scale=1920:1080:flags=neighbor,fade=t=in:st=0:d=0.5,fade=t=out:st=${(an.dur - 0.9).toFixed(2)}:d=0.8[a];[1:v]format=rgba,fade=t=in:st=0.4:d=0.4:alpha=1,fade=t=out:st=4.6:d=0.6:alpha=1[i];[2:v]format=rgba,fade=t=in:st=5:d=0.6:alpha=1[e];[a][i]overlay[b];[b][e]overlay,format=yuv420p[v]`,
+        '-filter_complex', `[0:v]scale=1920:1080:flags=neighbor,fade=t=in:st=0:d=0.5,fade=t=out:st=${(an.dur - 0.9).toFixed(2)}:d=0.8[a];[1:v]format=rgba,fade=t=in:st=0.4:d=0.4:alpha=1,fade=t=out:st=3.4:d=0.6:alpha=1[i];[2:v]format=rgba,fade=t=in:st=3.8:d=0.6:alpha=1[e];[a][i]overlay[b];[b][e]overlay,format=yuv420p[v]`,
         '-map', '[v]', '-map', '3:a', '-c:v', 'libx264', '-preset', 'medium', '-crf', '18', '-r', String(FPS), '-c:a', 'aac', '-b:a', '256k', '-t', String(an.dur), '-movflags', '+faststart', saida], { stdio: ['pipe', 'inherit', 'inherit'] });
     const done = new Promise((res, rej) => { ff.on('close', (c) => (c ? rej(new Error(`ffmpeg ${c}`)) : res())); ff.stdin.on('error', () => {}); });
     const P = new Pix(W, H), cenaFn = CENAS[cena], beatDur = 60 / bpm;
