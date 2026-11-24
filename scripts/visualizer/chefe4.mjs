@@ -4,6 +4,7 @@ import { CAD } from './cenas.mjs';
 import { acabamento, banda, bloco, bloom, camera, cone, esmear, poeira, reflexo } from './fx.mjs';
 import { clamp, ease, hex, mix, rnd } from './pix.mjs';
 import { pmd, quadro } from './pmd.mjs';
+import { tracos } from './plano4.mjs';
 
 export const RES = [640, 360];
 const W = 640, H = 360, HZ = 270;
@@ -40,12 +41,14 @@ function corredor(P, c) {
     P.poly([[cx - dw * 1.4 * op, cy + dh * 0.9], [cx + dw * 1.4 * op, cy + dh * 0.9], [cx + dw * 4 * op + 30, H], [cx - dw * 4 * op - 30, H]], WARM, 0.2 * op);
     poeira(P, cn, tt, 60, [255, 235, 190], 4);
     P.circle(cx + dw - 6, cy + 6, 3, Y);
+    if (tt > 1.3 && tt < 2.4) { const u = (tt - 1.3) / 1.1, tx = cx - dw * 0.9 + u * dw * 1.8; P.poly([[tx - 3, cy + dh * 0.6], [tx + 6, cy + dh * 0.6], [tx + 22, cy - dh * 0.1 + Math.sin(u * 6) * 8], [tx + 16, cy - dh * 0.3 + Math.sin(u * 6) * 8], [tx + 2, cy + dh * 0.2]], [0, 0, 0], 0.95); }
     reflexo(P, Math.round(cy + h * 0.5), 150, 0.3);
 }
 
-function sombraCadeira(P, x, y, sc, ox, oy, esc, a) { // silhueta da cadeira projetada na parede
-    P.poly([[x + ox - 28 * sc * esc, y + oy - 105 * sc * esc], [x + ox + 28 * sc * esc, y + oy - 105 * sc * esc], [x + ox + 30 * sc * esc, y + oy + 20 * sc * esc], [x + ox - 30 * sc * esc, y + oy + 20 * sc * esc]], [0, 0, 0], a);
-    P.circle(Math.round(x + ox), Math.round(y + oy - 105 * sc * esc), Math.round(22 * sc * esc), [0, 0, 0], a);
+function sombraCadeira(P, x, y, sc, ox, oy, esc, a, wv = 1, orelhas = false) { // silhueta da cadeira projetada na parede
+    P.poly([[x + ox - 28 * sc * esc * wv, y + oy - 105 * sc * esc], [x + ox + 28 * sc * esc * wv, y + oy - 105 * sc * esc], [x + ox + 30 * sc * esc * wv, y + oy + 20 * sc * esc], [x + ox - 30 * sc * esc * wv, y + oy + 20 * sc * esc]], [0, 0, 0], a);
+    P.circle(Math.round(x + ox), Math.round(y + oy - 105 * sc * esc), Math.round(22 * sc * esc * Math.max(0.3, wv)), [0, 0, 0], a);
+    if (orelhas) for (const d of [-1, 1]) P.poly([[x + ox + d * 6 * sc * esc, y + oy - 118 * sc * esc], [x + ox + d * 20 * sc * esc, y + oy - 118 * sc * esc], [x + ox + d * 15 * sc * esc, y + oy - 150 * sc * esc]], [0, 0, 0], a);
 }
 
 function sala(P, c, o) {
@@ -66,6 +69,7 @@ function sala(P, c, o) {
         const rows = Math.floor(bh / 5);
         for (let r = 0; r < rows - 1; r++) { const f = r / rows; if (f < lvl * 1.05 + 0.05) { const col = f > 0.7 ? RED : f > 0.4 ? Y : WARM; P.rect(bx + 1, wb - 6 - r * 5, 2, 2, col); P.rect(bx + 3, wb - 6 - r * 5 + (r & 1), 1, 2, col, 0.8); } }
     }
+    if (tt > 70 && tt < 84) { const pr = clamp((tt - 70) / 9) * (tt < 80 ? 1 : 1 - (tt - 80) / 4), n = Math.floor(pr * tracos.length * 1); const mx = (x) => wx + 10 + (x / 350) * 240, my = (y) => 60 + ((y - 55) / 75) * 100; tracos.forEach((t, i) => { if (i < n) P.line(mx(t[0]), my(t[1]), mx(t[2]), my(t[3]), [230, 244, 255], 2, 0.85 * (0.6 + 0.4 * Math.sin(tt * 4))); }); }
     if (Math.floor(beatN) % 2 === 0 && beatN % 1 < 0.35) P.circle(Math.round(wx + 6 * (ww / 52) * 10), wb - 36 - alt[10] * 0.9, 1, RED);
     for (const [x, y, w, h] of [[wx - 5, wy - 6, ww + 10, 7], [wx - 5, wb, ww + 10, 7], [wx - 5, wy - 6, 6, wb - wy + 13], [wx + ww - 1, wy - 6, 6, wb - wy + 13], [wx + ww / 2 - 2, wy, 4, wb - wy], [wx, 125, ww, 4]]) P.rect(Math.round(x), y, Math.round(w), h, hex('#151b3c'));
     // estantes (parallax .6) com troféus: o naipe de metais acende o dourado
@@ -101,17 +105,35 @@ function sala(P, c, o) {
         P.poly([[0, 20], [lw, 54 + th * 18], [lw, 330 - th * 14], [0, 350]], hex('#2a1810')); P.poly([[0, 20], [lw * 0.12, 24], [lw * 0.12, 346], [0, 350]], hex('#4a3020'));
     }
     // cadeira: sombra no piso (luz da janela atrás), corpo (gira) e Persian
-    const T0 = c.dur - 4.5, phi = clamp((tt - T0) / 3.0) * Math.PI, wv = Math.max(0.07, Math.abs(Math.cos(phi))), cxx = 320 + ox(1.0) + (clap > 0.05 ? Math.round(Math.sin(q * 5) * clap * 1.5) : 0);
+    const TL = c.dur - 4.5, antic = clamp((tt - TL) / 0.7), gira = clamp((tt - (TL + 0.7)) / 2.7);
+    const c1 = 1.70158, c2 = c1 * 1.525, eio = gira < 0.5 ? (Math.pow(2 * gira, 2) * ((c2 + 1) * 2 * gira - c2)) / 2 : (Math.pow(2 * gira - 2, 2) * ((c2 + 1) * (2 * gira - 2) + c2) + 2) / 2;
+    const phi = Math.PI * eio, wv = Math.max(0.07, Math.abs(Math.cos(phi))), front = phi > Math.PI / 2;
+    const balanco = tt > TL && gira <= 0 ? Math.sin(antic * Math.PI * 3) * 0.035 * (1 - antic * 0.3) : 0;
+    const cxx = 320 + ox(1.0) + (clap > 0.05 ? Math.round(Math.sin(q * 5) * clap * 1.5) : 0);
+    // sombra da cadeira na parede (a luz entra pela esquerda) e no piso (janela atrás): gira junto, com as orelhas quando vira
+    if (tt > TL - 0.3 || false) sombraCadeira(P, 320, 205, 1.5, 150 + ox(0.9), 8, 1.1, 0.38, wv, front);
     P.poly([[cxx - 42 * wv - 4, 322], [cxx + 42 * wv + 4, 322], [cxx + 140 * wv + 30, H], [cxx - 140 * wv - 30, H]], [0, 0, 0], 0.5);
-    if (o.cena !== 'porta') { /* mantém desenho */ }
-    P.blit(CAD[phi > Math.PI / 2 ? 2 : 0], cxx, 215, { sx: 1.5 * wv, sy: 1.5 });
-    if (phi > Math.PI / 2) {
-        const r0 = clamp((tt - (T0 + 1.5)) / 1.2);
-        const q0 = quadro(53, 'Idle', 0, Math.floor(tt * 3));
-        P.blit(q0.s, cxx, 215 + 62 + 4, { px: q0.px, py: q0.py, sx: 2.1 * wv, sy: 2.1 });
-        // refletor de cima e brilho dourado
-        const cn = cone(P, cxx, 0, 0, 300, 40, 220, WARM, 0.11 * r0); poeira(P, cn, tt, 60, [255, 240, 200], 13);
-        for (let k = 0; k < 12; k++) { const a = k * 1.3 + tt * 0.7, d = 40 + 50 * r0 * (0.5 + 0.5 * Math.sin(k)), x = cxx + Math.cos(a) * d, y = 190 + Math.sin(a) * d * 0.7; if (Math.sin(tt * 6 + k * 2) > 0.2) { P.rect(x - 2, y, 5, 1, WARM); P.rect(x, y - 2, 1, 5, WARM); } }
+    P.blit(CAD[front ? 2 : 0], cxx, 215, { sx: 1.5 * wv, sy: 1.5, rot: balanco });
+    if (front) {
+        const r0 = clamp((tt - (TL + 3.0)) / 1.0), hop = tt > TL + 3.7 && tt < TL + 4.1 ? Math.sin(((tt - TL - 3.7) / 0.4) * Math.PI) * 10 : 0;
+        pmd(P, 53, 'Idle', 0, Math.floor(tt * 3), cxx, 281 - hop, { sc: 3.0, sx: wv, dim: 0.74 });
+        const cn = cone(P, cxx, 0, 0, 300, 50, 230, WARM, 0.1 * r0); poeira(P, cn, tt, 60, [255, 240, 200], 13);
+        const g = clamp((tt - (TL + 3.4)) / 0.1) * clamp(1 - (tt - (TL + 3.5)) / 0.35);
+        if (g > 0) for (const dx of [-10, 10]) { P.rect(cxx + dx - 7, 192, 15, 2, [255, 255, 255], g); P.rect(cxx + dx - 1, 186, 3, 14, [255, 255, 255], g); }
+        for (let k = 0; k < 10; k++) { const a2 = k * 1.3 + tt * 0.7, d = 60 + 60 * r0 * (0.5 + 0.5 * Math.sin(k)), x = cxx + Math.cos(a2) * d, y = 210 + Math.sin(a2) * d * 0.6; if (Math.sin(tt * 6 + k * 2) > 0.3) { P.rect(x - 2, y, 5, 1, WARM); P.rect(x, y - 2, 1, 5, WARM); } }
+    }
+    // o trio (Meowth, Ekans, Koffing) entra e grita o SOC-CER-MON em pulinhos; reage quando a cadeira vira
+    if (tt > 119.6) {
+        const reac = clamp((tt - (TL + 3.4)) / 0.4);
+        [52, 23, 109].forEach((id, i) => {
+            const alvo = 150 + i * 62, ent = clamp((tt - 120 - i * 0.9) / 3.2), parado = tt > 130.4, andando = ent < 1;
+            let x = lerp(-80, alvo, ease(ent)) - 26 * ease(reac), y = 338 - (id === 109 ? 16 : 0), anim = 'Walk', n = Math.floor(tt * 8), dir = 2;
+            if (!andando && !parado) { const u = beatN % 1; anim = 'Hop'; n = Math.floor(u * 10); y -= Math.sin(u * Math.PI) * 12; }
+            else if (parado && reac <= 0) { anim = 'Idle'; n = Math.floor(tt * 2); }
+            if (reac > 0) { anim = 'Hurt'; n = Math.floor(tt * 3); }
+            pmd(P, id, anim, dir, n, x + ox(1.4), y, { sc: 2.4, dim: 0.85 });
+            if (reac > 0.3 && tt < TL + 5.2) { P.rect(x + ox(1.4) + 20, y - 96, 4, 14, RED); P.rect(x + ox(1.4) + 20, y - 78, 4, 4, RED); }
+        });
     }
     // pilar em primeiro plano (parallax 1.8), em silhueta
     P.rect(-30 + ox(1.8), 0, 56, H, hex('#05060f')); P.rect(26 + ox(1.8), 0, 2, H, hex('#1c2447'));
@@ -125,22 +147,32 @@ function sala(P, c, o) {
 }
 
 export function chefe4(P, c) {
-    const { tt, q } = c;
-    const S = tt < 5 ? 1 : tt < 10 ? 2 : tt < 118 ? 3 : tt < 130.4 ? 4 : 5;
+    const { tt, q } = c, TL = c.dur - 4.5;
+    const S = tt < 5 ? 1 : tt < 10 ? 2 : tt < 118 ? 3 : tt < TL - 0.9 ? 4 : 5;
     const clap = c.clapPulse, sh = Math.round(Math.sin(q * 5) * clap * 2);
     let cam = {}, o = { cam: 0, lamp: 0, porta: 0, feixes: [] };
+    const cortes = [[5, 'whip'], [10, 'bloco'], [118.2, 'bloco']];
+    for (let t = 20; t < 118; t += 10) cortes.push([t, (t / 10) % 2 ? 'whip' : 'bloco']);
     if (S === 1) { corredor(P, c); camera(P, { z: 1 + 0.05 * (tt / 5), cy: 170 - tt, dx: sh, rot: 0.01 * Math.sin(tt * 0.9) }); }
     else {
         if (S === 2) { const u = (tt - 5) / 5; o = { cam: -50 + 70 * u, lamp: 0, porta: ease(u), feixes: [] }; cam = { z: 1.05 + 0.1 * u, cx: 330, cy: 190, rot: 0.02 - 0.03 * u }; }
-        else if (S === 3) { o = { cam: Math.sin(tt * 0.2) * 60, lamp: tt > 50 && tt < 82 ? 1 : 0, porta: 0, feixes: [] }; cam = { z: 1.1 + 0.03 * Math.sin(tt * 0.1), cx: 320 + Math.sin(tt * 0.2) * 14, cy: 190, rot: Math.sin(tt * 0.13) * 0.012 }; }
+        else if (S === 3) {
+            const k = Math.floor((tt - 10) / 10), u = ((tt - 10) % 10) / 10;
+            const pre = [() => ({ cam: lerp(-70, 70, u), z: 1.1, cx: 320, cy: 190, rot: 0 }), () => ({ cam: 0, z: lerp(1.1, 1.6, ease(u)), cx: 320, cy: lerp(190, 235, u), rot: lerp(0, -0.03, u) }), () => ({ cam: lerp(60, -60, u), z: 1.25, cx: lerp(250, 200, u), cy: 120, rot: 0.03 }), () => ({ cam: lerp(-40, 40, u), z: 1.7, cx: lerp(100, 150, u), cy: 150, rot: 0 }), () => ({ cam: 0, z: lerp(1.5, 1.1, ease(u)), cx: 320, cy: lerp(120, 190, u), rot: lerp(0.05, 0, u) }), () => ({ cam: lerp(80, -80, u), z: 1.15, cx: 320, cy: 200, rot: lerp(-0.02, 0.02, u) })][((k % 6) + 6) % 6]();
+            o = { cam: pre.cam, lamp: tt > 50 && tt < 82 ? 1 : 0, porta: 0, feixes: tt > 100 ? [[130, 1], [510, -1]] : [], tinta: tt > 100 ? [RED, 0.05] : tt > 50 && tt < 70 ? [hex('#c8761a'), 0.07] : null };
+            cam = { z: pre.z, cx: pre.cx, cy: pre.cy, rot: pre.rot };
+        }
         else if (S === 4) { const u = clamp((tt - 118.1) / 12.3); o = { cam: lerp(-90, 90, u), lamp: 0, porta: 0, feixes: [[130, 1], [510, -1]], tinta: [RED, 0.05] }; cam = { z: 1.16, cx: 320 + lerp(-20, 20, u), cy: 195, rot: lerp(-0.02, 0.02, u) }; }
-        else { const u = ease((tt - 130.4) / 5.4); o = { cam: lerp(90, 0, u), lamp: 0, porta: 0, feixes: [] }; cam = { z: 1.1 + 0.8 * u, cx: 320, cy: lerp(195, 215, u), rot: 0.045 * Math.sin(u * 3.14) }; }
+        else { // final: a banda corta, empurra a câmera, balanço, giro com peso, segura no Persian
+            const u = ease(clamp((tt - (TL - 0.9)) / 3.4)), v = ease(clamp((tt - (TL + 3.0)) / 1.6));
+            o = { cam: lerp(90, 0, u), lamp: 0, porta: 0, feixes: [] };
+            cam = { z: 1.1 + 0.5 * u + 0.25 * v, cx: lerp(320, 300, u), cy: lerp(195, 205, u) + 12 * v, rot: 0.05 * Math.sin(u * 3.14) - 0.02 * v };
+        }
         sala(P, c, o);
-        camera(P, { ...cam, dx: sh, dy: Math.round(banda(c.bandas, 0, 5) * 2) });
+        const tremor = tt > TL + 3.4 && tt < TL + 3.9 ? Math.round(Math.sin(q * 9) * 3) : 0;
+        camera(P, { ...cam, dx: sh + tremor, dy: Math.round(banda(c.bandas, 0, 5) * 2) });
     }
-    // transições no tempo (corte na batida)
-    const cuts = [[5, 'whip'], [10, 'bloco'], [118.2, 'bloco']];
-    for (const [ct, tp] of cuts) { const d = Math.abs(tt - ct); if (d < 0.25) { const p = 1 - d / 0.25; if (tp === 'whip') esmear(P, Math.round(p * 28)); else bloco(P, p * 0.9, ct); if (tt >= ct - 0.04 && tt < ct + 0.1) P.rect(0, 0, W, H, [255, 255, 255], 0.25); } }
+    for (const [ct, tp] of cortes) { const d = Math.abs(tt - ct); if (d < 0.25) { const p = 1 - d / 0.25; if (tp === 'whip') esmear(P, Math.round(p * 28)); else bloco(P, p * 0.9, ct); if (tt >= ct - 0.04 && tt < ct + 0.1) P.rect(0, 0, W, H, [255, 255, 255], 0.25); } }
     bloom(P, 205, 0.6); acabamento(P, 0.6);
-    if (S === 5 && tt > c.dur - 0.9) bloco(P, 0, 1);
+    if (tt > c.dur - 1.2) bloco(P, clamp((tt - (c.dur - 1.2)) / 1.1), 5);
 }

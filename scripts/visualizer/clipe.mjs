@@ -14,8 +14,12 @@ import { CENAS } from './cenas.mjs';
 import { carregar } from './pmd.mjs';
 import { RES as RES_CHEFE4, chefe4 } from './chefe4.mjs';
 import { plano4 } from './plano4.mjs';
-CENAS['D-chefe'] = { res: RES_CHEFE4, fn: chefe4, pmd: [53] };
-CENAS['D-plano'] = { res: RES_CHEFE4, fn: plano4, pmd: [52, 23, 109] };
+import { curto5 } from './curto5.mjs';
+import { ultima5 } from './ultima5.mjs';
+CENAS['D-chefe'] = { res: RES_CHEFE4, fn: chefe4, pmd: [53, 52, 23, 109] };
+CENAS['D-curto'] = { res: RES_CHEFE4, fn: curto5, pmd: [25, 81, 100, 39, 54, 66, 7, 1] };
+CENAS['D-ultima'] = { res: RES_CHEFE4, fn: ultima5, pmd: [59, 58, 74, 66, 25, 7, 4] };
+CENAS['D-plano'] = { res: RES_CHEFE4, fn: plano4, pmd: [52, 23, 109, 100] };
 import { Pix } from './pix.mjs';
 import { RAIZ, analisar } from './render.mjs';
 

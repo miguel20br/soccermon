@@ -33,8 +33,25 @@ export function quadro(id, anim, dir, n) {
     return o;
 }
 /** Desenha o PMD em (x, y = pés) com escala inteira; t em quadros do jogo a 60/s não é preciso: n vem do chamador. */
-export function pmd(P, id, anim, dir, n, x, y, { sc = 2, flip = false, rot = 0, a = 1, sy = 1 } = {}) {
-    const q = quadro(id, anim, dir, n) ?? quadro(id, 'Idle', dir, 0);
-    P.blit(q.s, x, y, { px: q.px, py: q.py, sx: sc, sy: sc * sy, flip, rot, a });
+const tints = new Map();
+/** dim escurece (1 = igual), gray mistura com cinza (0..1), cor = [r,g,b] opcional multiplicando (luz colorida). */
+function tintado(q, key, dim, gray, cor) {
+    const k = `${key}|${dim}|${gray}|${cor}`;
+    if (tints.has(k)) return tints.get(k);
+    const S = sprite(q.s.w, q.s.h);
+    for (let i = 0; i < q.s.w * q.s.h; i++) {
+        const r = q.s.b[i * 3], g = q.s.b[i * 3 + 1], b = q.s.b[i * 3 + 2];
+        if (r === 255 && g === 0 && b === 255) { S.b[i * 3] = 255; S.b[i * 3 + 2] = 255; continue; }
+        const l = (r + g + b) / 3;
+        S.b[i * 3] = Math.min(254, (r + (l - r) * gray) * dim * (cor ? cor[0] / 255 : 1)); S.b[i * 3 + 1] = Math.min(254, (g + (l - g) * gray) * dim * (cor ? cor[1] / 255 : 1)); S.b[i * 3 + 2] = Math.min(253, (b + (l - b) * gray) * dim * (cor ? cor[2] / 255 : 1));
+    }
+    const o = { ...q, s: S };
+    tints.set(k, o);
+    return o;
+}
+export function pmd(P, id, anim, dir, n, x, y, { sc = 2, flip = false, rot = 0, a = 1, sy = 1, sx = 1, dim = 1, gray = 0, cor = null } = {}) {
+    let q = quadro(id, anim, dir, n) ?? quadro(id, 'Idle', dir, 0);
+    if (dim !== 1 || gray || cor) q = tintado(q, `${id}/${anim}/${dir}/${((n % q.total) + q.total) % q.total}`, dim, gray, cor);
+    P.blit(q.s, x, y, { px: q.px, py: q.py, sx: sc * sx, sy: sc * sy, flip, rot, a });
 }
 export { KEY };
