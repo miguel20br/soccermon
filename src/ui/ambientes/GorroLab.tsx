@@ -14,13 +14,27 @@ export function GorroLab({ onExit }: { onExit: () => void }) {
             <MenuHead title="Gorro · galeria" onBack={onExit} />
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: 8 }}>
                 {ids.map((id) => (
-                    <section key={id} className="panel" style={{ padding: 8 }}>
+                    <section
+                        key={id}
+                        className="panel"
+                        style={{ padding: 8, position: 'relative', overflow: 'visible' }}
+                    >
                         <small>#{id}</small>
                         <div style={{ display: 'flex', gap: 4, height: 190, alignItems: 'flex-end' }}>
                             {DIRS.map((d) => (
                                 <span key={d} style={{ position: 'relative', flex: 1, height: '100%' }}>
-                                    <span style={{ position: 'absolute', left: '50%', bottom: 6 }}>
-                                        <FieldSprite id={id} anim="Idle" dir={d} scale={3} play={false} hat="lab" />
+                                    <span
+                                        style={{ position: 'absolute', left: '50%', bottom: 16, width: 0, height: 0 }}
+                                    >
+                                        <FieldSprite
+                                            id={id}
+                                            anim="Idle"
+                                            dir={d}
+                                            scale={3}
+                                            play={false}
+                                            hat="lab"
+                                            style={{ position: 'absolute' }}
+                                        />
                                     </span>
                                 </span>
                             ))}
