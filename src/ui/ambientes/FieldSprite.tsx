@@ -11,6 +11,7 @@ import {
 import SHINY_MISSING from '../../data/pmd-shiny-missing.json';
 import FEET from '../../data/sprite-feet.json';
 import { ClockCtx } from './clock';
+import { Gorro, hasGorro } from './Gorro';
 import { realScale } from './sprite-scale';
 
 type Frame = { x: number; y: number; w: number; h: number };
@@ -132,6 +133,7 @@ export function FieldSprite({
     scale = 2,
     play = true,
     start = 0,
+    hat,
     className = '',
     style,
     children,
@@ -143,6 +145,8 @@ export function FieldSprite({
     scale?: number;
     play?: boolean;
     start?: number;
+    /** Gorro de Natal (só com o tema, e só espécie com âncora): capitão da Home, Arena e pódio; 'lab' na galeria. Nunca no campo. */
+    hat?: boolean | 'lab';
     className?: string;
     style?: CSSProperties;
     children?: ReactNode;
@@ -224,6 +228,7 @@ export function FieldSprite({
                 backgroundSize: `${atlas.meta.size.w * r.css}px ${atlas.meta.size.h * r.css}px`,
             }}
         >
+            {hat && hasGorro(id, hat === 'lab') && <Gorro id={id} dir={dir} top={feet?.top ?? 0.2} />}
             {children && (
                 <span
                     className="fs-head"

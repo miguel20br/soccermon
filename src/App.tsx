@@ -68,6 +68,8 @@ const WalkoutLab = lazy(() => import('./ui/screens/WalkoutLab').then((m) => ({ d
 const KitLab = lazy(() => import('./ui/kit/KitLab').then((m) => ({ default: m.KitLab })));
 // galeria dos títulos (?lab=titulos, perfil-revamp.md): o gelo do "Natal 2026" e o seletor com tudo ganho
 const TitleLab = lazy(() => import('./ui/profile/TitleLab').then((m) => ({ default: m.TitleLab })));
+// galeria do gorro de Natal (?lab=gorro, natal.md): a âncora de cada espécie, de frente, de lado e de costas
+const GorroLab = lazy(() => import('./ui/ambientes/GorroLab').then((m) => ({ default: m.GorroLab })));
 // Noite Neon (ui/tema.ts): a capa em painéis, pedaço à parte (só baixa na semana do tema)
 const NeonCover = lazy(() => import('./ui/NeonCover'));
 // conceitos do menu de modos (antes da Home), só no dev e nas prévias
@@ -158,7 +160,8 @@ export default function App() {
                 q === 'cenas' ||
                 q === 'kit' ||
                 q === 'menu-modos' ||
-                q === 'titulos')
+                q === 'titulos' ||
+                q === 'gorro')
         )
             return q;
         return (__SMOKE__ || params.has('revisao')) && q === 'posicoes' ? q : null;
@@ -300,7 +303,8 @@ export default function App() {
                 lab === 'kit' ||
                 lab === 'walkout' ||
                 lab === 'menu-modos' ||
-                lab === 'titulos' ? (
+                lab === 'titulos' ||
+                lab === 'gorro' ? (
                     <Suspense fallback={<p className="muted">{t('common.ui.loading')}</p>}>
                         {lab === 'golpes' ? (
                             <MoveLab onExit={exit} />
@@ -322,6 +326,8 @@ export default function App() {
                             <ModeMenuLab onExit={exit} />
                         ) : lab === 'titulos' ? (
                             <TitleLab onExit={exit} />
+                        ) : lab === 'gorro' ? (
+                            <GorroLab onExit={exit} />
                         ) : (
                             <VersusLab onExit={exit} />
                         )}

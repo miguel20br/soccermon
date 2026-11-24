@@ -196,7 +196,15 @@ export function ArenaScene({
                     <div className="ar-duel">
                         <span className="ar-side me">
                             <i className="es-shadow" />
-                            <FieldSprite id={me.id} shiny={me.shiny} anim="Idle" dir={2} scale={scale} play={active} />
+                            <FieldSprite
+                                id={me.id}
+                                shiny={me.shiny}
+                                anim="Idle"
+                                dir={2}
+                                scale={scale}
+                                play={active}
+                                hat
+                            />
                         </span>
                         <b className="ar-vs">VS</b>
                         <span className={`ar-side rival${seen || reveal ? ' seen' : ''}`}>

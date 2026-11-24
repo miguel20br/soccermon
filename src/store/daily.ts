@@ -3,6 +3,7 @@ import { SPECIES, species } from '../engine/data';
 import { createInstance, type PokemonInstance } from '../engine/instance';
 import { Rng } from '../engine/rng';
 import { ESPECIAL_EVENT, weeklyEventType } from '../engine/specials';
+import { isNatalCup } from './natal-cup';
 
 /**
  * Copa do Dia: a mesma copa (draft e rivais) pra todo mundo no dia, 1 tentativa, estilo Wordle. O dia vira à meia-noite
@@ -39,7 +40,7 @@ const inEspecial = (day: string) => day >= ESPECIAL_WEEK.from && day <= ESPECIAL
  * Evento da Copa do Dia: o da semana do dia (meio-dia local, pra data não escorregar de fuso), ou a semana especial.
  */
 export const dailyEventType = (day: string): string =>
-    inEspecial(day) ? ESPECIAL_EVENT : weeklyEventType(new Date(`${day}T12:00:00`));
+    isNatalCup(day) ? 'Ice' : inEspecial(day) ? ESPECIAL_EVENT : weeklyEventType(new Date(`${day}T12:00:00`));
 
 /**
  * Evento de agora (draft, Mercado, letreiro, notícia): o mesmo do dia de Brasília (`dailyEventType`), em qualquer fuso.

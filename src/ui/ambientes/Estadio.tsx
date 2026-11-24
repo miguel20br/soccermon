@@ -7,6 +7,7 @@ import { isFirstVisit } from '../../store/coach';
 import { dailyDay, weekEvent } from '../../store/daily';
 import { resumeScreenOf, seedFromUrl, useGame } from '../../store/game-store';
 import type { CupMode } from '../../store/long-cup';
+import { isNatalCup } from '../../store/natal-cup';
 import { bannerInk, clubColorHex } from '../../store/profile';
 import { markSeen, useHydrated } from '../coach/Coach';
 import { cupStep } from '../components/AccountLink';
@@ -211,7 +212,13 @@ export function Stands({
     // notícia, não a lista de modos: a Copa do Dia de hoje ainda não jogada e a Liga que está pra abrir
     const playedToday = useGame((s) => s.daily.some((e) => e.day === dailyDay()));
     const liga = ligaTeaser();
-    const news = [week, !playedToday && t('home.amb.ledDaily'), liga && t('home.amb.ledLiga', { d: liga.d })];
+    const day = dailyDay();
+    const [, mm, dd] = day.split('-');
+    const news = [
+        isNatalCup(day) ? t('home.amb.ledNatal', { dd, mm }).toUpperCase() : week,
+        !playedToday && t('home.amb.ledDaily'),
+        liga && t('home.amb.ledLiga', { d: liga.d }),
+    ];
     const led = (text ? `${text} · ` : `${news.filter(Boolean).join(' · ')} · `).repeat(3);
     const stand = useRef<HTMLDivElement>(null);
     // a ola anda de pedaço em pedaço da torcida (42 px de pixel) até atravessar a arquibancada, fileira por fileira
@@ -312,6 +319,7 @@ function Court({
                     dir={look}
                     scale={scale}
                     play={play}
+                    hat
                     className="es-mon"
                 />
                 {champ ? (
