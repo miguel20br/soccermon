@@ -99,7 +99,7 @@ function Entry() {
     return (
         <>
             <small className="muted">{t('ultimate.draft.hint')}</small>
-            <small className="ut-off">{t('ultimate.draft.note')}</small>
+            <small className="muted">{t('ultimate.draft.note')}</small>
             <span className="bc-lbl">{t('ultimate.draft.formation')}</span>
             <FormationCarousel value={formation} onChange={setFormation} />
             <span className="bc-lbl">{t('ultimate.draft.prizes')}</span>
