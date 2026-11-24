@@ -96,6 +96,7 @@ import {
     withKnownEvents,
 } from './long-events';
 import { activeTitle, activeTrainer, matchView, newMissions, stageView } from './missions';
+import { isNatalCup, NATAL_TITLE, natalCupWon, natalOpponents } from './natal-cup';
 import { withSeenBaseline } from './news';
 import {
     type Career,
@@ -1557,7 +1558,11 @@ export const useGame = create<GameStore>()(
                         bench: Array(BENCH_SIZE).fill(''),
                         captainUid: null,
                         tactic: 'balanced',
-                        opponents: mode ? [] : buildCupOpponents(runSeed),
+                        opponents: mode
+                            ? []
+                            : daily && isNatalCup(daily)
+                              ? natalOpponents(buildCupOpponents(runSeed), runSeed)
+                              : buildCupOpponents(runSeed),
                         stage: 0,
                         results: [],
                         rewards: [],
@@ -2104,6 +2109,15 @@ export const useGame = create<GameStore>()(
                         }),
                         unlockQueue: [...getState().unlockQueue, ...fresh],
                     });
+                    // Copa de Natal ganha nos dois dias: título "Natal 2026" (de evento, em redeemedTitles)
+                    const pr = getState().profile;
+                    if (
+                        run.daily &&
+                        isNatalCup(run.daily) &&
+                        natalCupWon(dailyNext) &&
+                        !pr.redeemedTitles.includes(NATAL_TITLE)
+                    )
+                        setState({ profile: { ...pr, redeemedTitles: [...pr.redeemedTitles, NATAL_TITLE] } });
                 },
 
                 markParaded: () => {

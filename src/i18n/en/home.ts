@@ -64,6 +64,7 @@ export const home: typeof pt = {
         tabs: { lab: 'Lab', rota: 'Road', estadio: 'Stadium', arena: 'Arena', sede: 'Club' },
         skip: 'Tap to skip',
         ledDaily: 'NEW DAILY CUP',
+        ledNatal: 'CHRISTMAS CUP {mm}/{dd}',
         ledChamp: '{cup} CHAMPIONS · {club}',
         ledNeon: 'OUTLAW WEEK',
         neonEnds: 'OUTLAW WEEK · ends in {left}',

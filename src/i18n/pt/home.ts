@@ -67,6 +67,7 @@ export const home = {
         skip: 'Toque pra pular',
         /** Letreiro de LED do Estádio, rolando sem parar (o fim emenda no começo). */
         ledDaily: 'COPA DO DIA NOVA',
+        ledNatal: 'COPA DE NATAL {dd}/{mm}',
         ledChamp: 'CAMPEÕES DA {cup} · {club}',
         ledNeon: 'SEMANA FORA DA LEI',
         /** Cronômetro da Noite Neon (ui/tema.ts): `left` = "2d 14h", "5h 32min". */
