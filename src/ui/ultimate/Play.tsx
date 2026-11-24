@@ -1,4 +1,4 @@
-import { type CSSProperties, type ReactNode, useMemo, useState } from 'react';
+import { type CSSProperties, type ReactNode, useEffect, useMemo, useState } from 'react';
 import { cupRival } from '../../engine/cup';
 import { viewInstance } from '../../engine/instance';
 import { clubName } from '../../i18n';
@@ -23,6 +23,8 @@ import { Sheet } from '../kit/Sheet';
 import { simulateMatch } from '../sim-client';
 import { trainerSrc } from '../tema';
 import { Challenges } from './Challenges';
+import { DraftMode, draftBack } from './DraftMode';
+import { utDraftOn } from './flag';
 import { CardBack } from './PickMoment';
 import { Gyms } from './Season';
 
@@ -116,8 +118,16 @@ export function Play({ onPacks }: { onPacks: () => void }) {
     const { t, d, lang } = useT();
     const { u, home, ready, strength, rival, level, setLevel, paid } = useBattle();
     const [sheet, setSheet] = useState<'level' | 'gyms' | null>(null);
-    const [sbc, setSbc] = useState(false);
-    const { busy, error, kick } = useKick();
+    // a volta da partida do Draft abre direto nele
+    const [view, setView] = useState<'sbc' | 'draft' | null>(() => (draftBack.on ? 'draft' : null));
+    useEffect(() => {
+        draftBack.on = false;
+    }, []);
+    const kicker = useKick();
+    const { busy, error, kick } = kicker;
+    // partida aberta do Draft: as Batalhas esperam (as duas usam a mesma partida aberta)
+    const battleLive = u.live && !u.live.draft ? u.live : null;
+    const draftOn = utDraftOn(__SMOKE__);
     const start = () => {
         if (!rival) return;
         useGame.getState().ultimateStart({ n: u.played, level: paid(level), home, rival });
@@ -131,8 +141,9 @@ export function Play({ onPacks }: { onPacks: () => void }) {
         useGame.getState().ultimateStart({ n: u.played, level: GYM_LEVEL, home, rival: r, gym });
         void kick();
     };
-    const art = u.live?.rival ?? rival;
-    if (sbc) return <Challenges onBack={() => setSbc(false)} />;
+    const art = battleLive?.rival ?? rival;
+    if (view === 'sbc') return <Challenges onBack={() => setView(null)} />;
+    if (view === 'draft') return <DraftMode onBack={() => setView(null)} onPacks={onPacks} kick={kicker} />;
 
     return (
         <div className="ut-modes">
@@ -156,7 +167,7 @@ export function Play({ onPacks }: { onPacks: () => void }) {
                         {t('ultimate.modes.battles.gives')}
                     </span>
                 </span>
-                {u.live ? (
+                {battleLive ? (
                     <button
                         type="button"
                         className="btn primary big wide ut-go"
@@ -167,7 +178,7 @@ export function Play({ onPacks }: { onPacks: () => void }) {
                         <span>
                             {busy ? t('ultimate.play.warming') : t('ultimate.play.resume')}
                             <small className="ut-go-goal">
-                                {clubName(u.live.rival.name, lang)} · {d.ultimate.play.levels[u.live.level]}
+                                {clubName(battleLive.rival.name, lang)} · {d.ultimate.play.levels[battleLive.level]}
                             </small>
                         </span>
                     </button>
@@ -189,7 +200,12 @@ export function Play({ onPacks }: { onPacks: () => void }) {
                             })}
                             <b>{t('ultimate.home.change')}</b>
                         </button>
-                        <button type="button" className="btn primary big wide ut-go" disabled={busy} onClick={start}>
+                        <button
+                            type="button"
+                            className="btn primary big wide ut-go"
+                            disabled={busy || !!u.live}
+                            onClick={start}
+                        >
                             <i className="cb-shine" aria-hidden />
                             <span>{busy ? t('ultimate.play.warming') : t('ultimate.play.go')}</span>
                         </button>
@@ -224,11 +240,27 @@ export function Play({ onPacks }: { onPacks: () => void }) {
                         {t('ultimate.modes.sbc.gives')}
                     </span>
                 </span>
-                <button type="button" className="btn wide" onClick={() => setSbc(true)}>
+                <button type="button" className="btn wide" onClick={() => setView('sbc')}>
                     {t('ultimate.sbc.open')}
                 </button>
             </section>
-            {SOON.map((id) => (
+            {draftOn && (
+                <section className="panel bc-surface ut-mode is-draft">
+                    <span className="ut-mode-art">{SOON_ART.draft}</span>
+                    <span className="ut-mode-text">
+                        <b className="ut-mode-name">{t('ultimate.modes.draft.name')}</b>
+                        <small>{t('ultimate.modes.draft.line')}</small>
+                        <span className="ut-mode-gives">
+                            <HudIcon kind="chest" />
+                            {t('ultimate.modes.draft.gives')}
+                        </span>
+                    </span>
+                    <button type="button" className="btn wide" onClick={() => setView('draft')}>
+                        {u.live?.draft ? t('ultimate.play.resume') : t('ultimate.draft.open')}
+                    </button>
+                </section>
+            )}
+            {SOON.filter((id) => !(draftOn && id === 'draft')).map((id) => (
                 <section key={id} className={`panel bc-surface ut-mode is-locked is-${id}`} aria-disabled="true">
                     <span className="ut-mode-art">{SOON_ART[id]}</span>
                     <span className="ut-mode-text">

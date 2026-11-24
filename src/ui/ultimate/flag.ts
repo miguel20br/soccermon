@@ -12,7 +12,8 @@ const KEY = 'soccermon-lab-ultimate';
 
 export function ultimateOn(smoke: boolean, search: string, stored: string | null, now: number): boolean {
     const q = smoke ? new URLSearchParams(search).get('lab') : null;
-    if (q === 'ultimate') return true;
+    // ?lab=ut-draft (o Draft, abaixo) também abre o modo
+    if (q === 'ultimate' || q === 'ut-draft') return true;
     if (q === 'ultimate-off') return false;
     if (now >= ULTIMATE_OPENS_AT) return true;
     return smoke && stored === '1';
@@ -46,3 +47,9 @@ export function readUltimate(): boolean {
     }
     return on;
 }
+
+/**
+ * Draft do Time Ultimate (ADR 0005): só no dev e nas prévias (`__SMOKE__`) até o Miguel jogar; em produção o cartão
+ * segue EM BREVE. `?lab=ut-draft` entra no Time Ultimate já com ele (antes de 27/11 o modo também está atrás da bandeira).
+ */
+export const utDraftOn = (smoke: boolean) => smoke;

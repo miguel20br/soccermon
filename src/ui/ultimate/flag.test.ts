@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { ULTIMATE_OPENS_AT, ultimateOn, utClockOf } from './flag';
+import { ULTIMATE_OPENS_AT, ultimateOn, utClockOf, utDraftOn } from './flag';
 
 const BEFORE = Date.UTC(2026, 10, 27, 2, 59); // 26/11 23:59 de Brasília
 const AFTER = Date.UTC(2026, 10, 27, 3); // 27/11 00:00 de Brasília
@@ -35,5 +35,11 @@ describe('relógio da prévia ?utnow=', () => {
         expect(utClockOf(true, '?utnow=2027-06-01T03:00:00Z')).toBe(Date.UTC(2027, 5, 1, 3));
         expect(utClockOf(true, '?utnow=amanha')).toBeNull();
         expect(utClockOf(true, '')).toBeNull();
+    });
+    it('Draft: só no dev e nas prévias; ?lab=ut-draft abre o modo lá, nunca em produção antes da data', () => {
+        expect(utDraftOn(false)).toBe(false);
+        expect(utDraftOn(true)).toBe(true);
+        expect(ultimateOn(true, '?lab=ut-draft', null, BEFORE)).toBe(true);
+        expect(ultimateOn(false, '?lab=ut-draft', null, BEFORE)).toBe(false);
     });
 });

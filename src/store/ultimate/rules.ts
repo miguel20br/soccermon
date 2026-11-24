@@ -285,3 +285,27 @@ export const FIRST_STEPS = [
     { id: 'evo', fichas: 50 },
 ] as const;
 export type FirstStepId = (typeof FIRST_STEPS)[number]['id'];
+
+// ------------------------------------------------------------------------------------------- Draft (0.9.54)
+
+/**
+ * Draft do Time Ultimate (o Draft do FC; `draft.ts`): capitão 1 de DRAFT_OPTIONS, depois uma vaga por vez (as 5 da
+ * formação e DRAFT_BENCH reservas), sempre 1 de DRAFT_OPTIONS do pool inteiro. DRAFT_GAMES partidas contra a IA, do
+ * Fácil ao Mestre; perdeu (ou empatou sem vencer nos pênaltis), acabou. O time não entra no Clube.
+ *
+ * PROPOSTA, FALTA O OK DO MIGUEL. A entrada custa DRAFT_FICHAS (= 1 Pacote Mini na loja, FICHAS_PACK_PRICE) e a
+ * primeira da semana (segunda, Brasília) é grátis. Zero vitória devolve a entrada em 1 Mini: o Draft nunca vira uma
+ * loja de pacote mais barata que a Loja.
+ */
+export const DRAFT_FICHAS = 150;
+export const DRAFT_OPTIONS = 5;
+export const DRAFT_BENCH = 3;
+export const DRAFT_GAMES = 4;
+/** Prêmio por vitórias (índice = vitórias, 0 a DRAFT_GAMES): Pacotes Mini e Grandes. */
+export const DRAFT_PRIZES: { packs: number; big: number }[] = [
+    { packs: 1, big: 0 },
+    { packs: 2, big: 0 },
+    { packs: 1, big: 1 },
+    { packs: 0, big: 2 },
+    { packs: 1, big: 3 },
+];

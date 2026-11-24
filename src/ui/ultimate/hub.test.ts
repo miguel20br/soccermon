@@ -41,6 +41,8 @@ describe('Time Ultimate abre no Início', () => {
 
 describe('aba Jogar', () => {
     it('Batalhas de Treinador liberado; Montagem liberada; Rivais, Elite dos Quatro e Draft trancados e sem botão', () => {
+        // produção: o Draft fica atrás da bandeira (ADR 0005)
+        vi.stubGlobal('__SMOKE__', false);
         useGame.setState({ ultimate: newUltimate('teste', Date.UTC(2026, 10, 9, 15)) });
         const html = renderToStaticMarkup(createElement(Play, { onPacks: () => undefined }));
         const cards = html.split('<section').slice(1);
@@ -53,6 +55,18 @@ describe('aba Jogar', () => {
             expect(c).toContain('is-locked');
             expect(c.split('</section>')[0]).not.toContain('<button');
         }
+    });
+
+    it('no dev e nas prévias o Draft abre (com botão); Rivais e Elite seguem trancados', () => {
+        vi.stubGlobal('__SMOKE__', true);
+        useGame.setState({ ultimate: newUltimate('teste', Date.UTC(2026, 10, 9, 15)) });
+        const html = renderToStaticMarkup(createElement(Play, { onPacks: () => undefined }));
+        const cards = html.split('<section').slice(1);
+        const draft = cards.find((c) => c.includes('is-draft'))!;
+        expect(draft).not.toContain('is-locked');
+        expect(draft.split('</section>')[0]).toContain('<button');
+        expect(cards.filter((c) => c.includes('is-locked'))).toHaveLength(2);
+        vi.unstubAllGlobals();
     });
 });
 

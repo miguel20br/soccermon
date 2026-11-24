@@ -132,6 +132,7 @@ import { combosFoundOf, freshCombos } from './secret-links';
 import { dailyTitlesOf } from './trophies';
 import { sbcDeliver, sbcPlace, sbcRemove } from './ultimate/challenges';
 import { utNow } from './ultimate/clock';
+import { draftClose, draftEnter, draftPick } from './ultimate/draft';
 import {
     bridgePays,
     buyCard,
@@ -528,6 +529,10 @@ export interface GameStore {
     ultimateSbcPlace(id: string, uid: string): void;
     ultimateSbcRemove(id: string, uid: string): void;
     ultimateSbcDeliver(id: string): void;
+    /** Draft (src/store/ultimate/draft.ts): entrar (false = faltam Fichas), escolher a carta da vez, fechar a campanha. */
+    ultimateDraftEnter(formation: FormationId): boolean;
+    ultimateDraftPick(uid: string): void;
+    ultimateDraftClose(): void;
     /** Duelos amistosos (só no save), do mais recente ao mais antigo. */
     duels: DuelRecord[];
     recordDuel(rec: DuelRecord): void;
@@ -1486,6 +1491,13 @@ export const useGame = create<GameStore>()(
                 ultimateSbcPlace: (id, uid) => setState({ ultimate: sbcPlace(getState().ultimate, id, uid) }),
                 ultimateSbcRemove: (id, uid) => setState({ ultimate: sbcRemove(getState().ultimate, id, uid) }),
                 ultimateSbcDeliver: (id) => setState({ ultimate: sbcDeliver(getState().ultimate, id) }),
+                ultimateDraftEnter: (formation) => {
+                    const u = draftEnter(getState().ultimate, formation, utNow());
+                    if (u) setState({ ultimate: u });
+                    return !!u;
+                },
+                ultimateDraftPick: (uid) => setState({ ultimate: draftPick(getState().ultimate, uid) }),
+                ultimateDraftClose: () => setState({ ultimate: draftClose(getState().ultimate) }),
                 ultimateSeen: () => {
                     const u = getState().ultimate;
                     if (u.last && !u.last.seen) setState({ ultimate: { ...u, last: { ...u.last, seen: true } } });

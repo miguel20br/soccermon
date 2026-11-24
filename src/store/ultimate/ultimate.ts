@@ -16,6 +16,7 @@ import { dailyDay } from '../daily';
 import type { RunState } from '../game-store';
 import { newSbc, sbcOf, sbcPlaced, type UtSbc } from './challenges';
 import { chemistry } from './chemistry';
+import { draftFinish, draftOf, newDraft, type UtDraft } from './draft';
 import { countEvos, evoPaths, evoReady, evoStep, evoSteps, evosOf, newEvo, type UtEvo } from './evolutions';
 import {
     countObjectives,
@@ -101,6 +102,8 @@ export interface UltimateLive {
     engine: number;
     /** Desafio de líder (GYMS): o id dele. */
     gym?: string;
+    /** Partida do Draft (`draft.ts`): o apito final vai pra campanha, não pras Batalhas. */
+    draft?: boolean;
 }
 
 /** A última partida, pro painel do prêmio (some no "Continuar"). */
@@ -240,6 +243,8 @@ export interface UltimateSave {
     picked: number;
     /** Desafios de Montagem: o que já foi posto em cada um e os entregues. */
     sbc: UtSbc;
+    /** Draft: a campanha em andamento, a entrada grátis da semana e o recorde. */
+    draft: UtDraft;
 }
 
 export const newUltimate = (salt = Math.floor(Math.random() * 1e9).toString(36), now = Date.now()): UltimateSave => ({
@@ -283,12 +288,13 @@ export const newUltimate = (salt = Math.floor(Math.random() * 1e9).toString(36),
     picks: [{ ...FIRST_PICK, uid: 'start', from: 'start', ref: '' }],
     picked: 0,
     sbc: newSbc(),
+    draft: newDraft(),
 });
 
 const num = (v: unknown, max = Number.MAX_SAFE_INTEGER) =>
     typeof v === 'number' && Number.isFinite(v) ? Math.min(max, Math.max(0, Math.floor(v))) : 0;
 const isObj = (v: unknown): v is Record<string, unknown> => !!v && typeof v === 'object' && !Array.isArray(v);
-const cardOk = (c: unknown): c is PokemonInstance =>
+export const cardOk = (c: unknown): c is PokemonInstance =>
     isObj(c) &&
     typeof c.uid === 'string' &&
     typeof c.speciesId === 'number' &&
@@ -359,6 +365,7 @@ export function ultimateOf(raw: unknown): UltimateSave {
                       tick: num(live.tick),
                       engine: ENGINE_VERSION,
                       ...(typeof live.gym === 'string' && GYMS.some((g) => g.id === live.gym) && { gym: live.gym }),
+                      ...(live.draft === true && { draft: true }),
                   }
                 : null,
         last:
@@ -400,6 +407,8 @@ export function ultimateOf(raw: unknown): UltimateSave {
         picked: num(raw.picked),
         // campo novo (0.9.54): a carta posta precisa existir no Clube ou nos Pendentes
         sbc: sbcOf(raw.sbc, new Set([...uids, ...pendingUids(raw.pending)])),
+        // campo novo (0.9.54): sem ele, nasce sem campanha
+        draft: draftOf(raw.draft),
     };
 }
 
@@ -509,7 +518,7 @@ function mergeLegacy(a: UtLegacy, b: UtLegacy): UtLegacy {
     };
 }
 
-const progress = (u: UltimateSave) => u.opened + u.played + u.bought + u.picked;
+const progress = (u: UltimateSave) => u.opened + u.played + u.bought + u.picked + u.draft.runs;
 /**
  * Nuvem x aparelho: fica o lado da temporada mais nova e, na mesma, o que andou mais (pacotes abertos + partidas +
  * compras); empate, o que vale (`keep`). O legado (Perfil) dos dois lados fica junto.
@@ -1087,6 +1096,7 @@ export type UltimateMatch = { score: readonly [number, number]; shootout: [numbe
  */
 export function finishMatch(u: UltimateSave, m: UltimateMatch, now: number): UltimateSave {
     if (!u.live) return u;
+    if (u.live.draft) return draftFinish(u, m);
     const outcome = outcomeOf(m.score);
     const gym = u.live.gym;
     const fichas = fichasFor(u.live.level, outcome, !!gym);

@@ -23,6 +23,7 @@ import { ConfirmSheet } from '../kit/Sheet';
 import { metalLabel } from '../rarity';
 import { Club, type ClubSeg } from './Club';
 import { hms, useNow } from './clock';
+import { draftBack } from './DraftMode';
 import { ULTIMATE_OPENS_AT } from './flag';
 import { FirstSteps, Goals } from './Goals';
 import { Home, type UtTab } from './Home';
@@ -55,7 +56,8 @@ export function Ultimate() {
     const u = useGame((s) => s.ultimate);
     const now = useNow();
     // entra sempre no Início (o destaque e o número na aba já avisam dos pacotes; retorno de 09/11)
-    const [tab, setTab] = useState<UtTab>('home');
+    // (a volta da partida do Draft abre na aba Jogar, no Draft)
+    const [tab, setTab] = useState<UtTab>(() => (draftBack.on ? 'play' : 'home'));
     const [seg, setSeg] = useState<ClubSeg>('squad');
     // virou a temporada (ou a partida aberta acabou): zera o modo e guarda o legado
     const roll = useGame((s) => s.ultimateSeason);

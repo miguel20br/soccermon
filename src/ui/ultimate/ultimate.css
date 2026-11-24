@@ -3441,3 +3441,103 @@
         transition: none;
     }
 }
+
+/* Draft (0.9.54, atrás de bandeira): cada passo entra com o painel; as 8 vagas em 5 colunas (o banco embaixo) */
+.ut-draft-step {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 12px;
+    animation: ut-in var(--dur-tela, 280ms) var(--ease-out) backwards;
+}
+.ut-draft-team {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 6px;
+    max-width: 420px;
+}
+.ut-draft-team .ut-sbc-slot {
+    aspect-ratio: auto;
+    min-height: 58px;
+    padding: 4px 0;
+    cursor: default;
+    transition:
+        border-color 250ms var(--ease-out),
+        background-color 250ms var(--ease-out);
+}
+.ut-draft-team .ut-sbc-slot.is-on {
+    border-color: var(--line);
+}
+.ut-draft-team .ut-sbc-slot small {
+    font-size: 10px;
+    color: var(--muted);
+}
+.ut-draft-team .ut-sbc-slot.is-next,
+.ut-draft-team .ut-sbc-slot.is-cap {
+    border-color: var(--yellow);
+}
+.ut-draft-team .ut-sbc-slot.is-next {
+    animation: ut-draft-next 1.4s ease-in-out infinite;
+}
+@keyframes ut-draft-next {
+    50% {
+        background-color: rgb(255 214 0 / 12%);
+    }
+}
+.ut-draft-title {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 8px;
+}
+.ut-draft-pick {
+    justify-self: center;
+}
+.ut-draft-prizes td {
+    text-align: left;
+}
+.ut-draft-games {
+    display: grid;
+    gap: 6px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+.ut-draft-game {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 4px 10px;
+    padding: 8px 12px;
+    border: 2px solid transparent;
+    border-radius: 8px;
+    background: var(--bc-ink-3);
+    font-size: 13px;
+    color: var(--muted);
+}
+.ut-draft-game.is-cur {
+    border-color: var(--yellow);
+    color: var(--text);
+}
+.ut-draft-game.is-won {
+    color: var(--text);
+}
+.ut-draft-game.is-won b {
+    color: var(--green);
+}
+.ut-draft-game.is-lost b {
+    color: var(--red);
+}
+.ut-draft-over {
+    display: grid;
+    justify-items: center;
+    gap: 6px;
+    padding: 14px;
+    text-align: center;
+}
+.ut-draft-over.is-champ .ut-mode-name {
+    color: var(--yellow);
+}
+[data-reduce-motion="true"] :is(.ut-draft-step, .ut-draft-team .ut-sbc-slot.is-next) {
+    animation: none;
+}
