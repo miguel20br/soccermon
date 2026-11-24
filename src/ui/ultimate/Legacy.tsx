@@ -46,10 +46,6 @@ export function UltimateLegacy() {
     });
     return (
         <section className="panel ut-legacy bc-surface">
-            <h2 className="bc-caption">
-                <HudIcon kind="medal" />
-                {t('ultimate.legacy.title')}
-            </h2>
             {best && (
                 <div className="ut-legacy-best">
                     <FutCard inst={best} ribbon={t('ultimate.legacy.best')} />
