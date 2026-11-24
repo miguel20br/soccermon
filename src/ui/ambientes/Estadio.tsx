@@ -319,6 +319,7 @@ function Court({
                     dir={look}
                     scale={scale}
                     play={play}
+                    hat
                     className="es-mon"
                 />
                 {champ ? (

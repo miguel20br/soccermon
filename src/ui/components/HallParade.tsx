@@ -64,6 +64,7 @@ export function HallParade({ entry, trainer, onDone }: { entry: HallEntry; train
                                 shiny={mon.shiny}
                                 anim="Idle"
                                 dir={0}
+                                hat
                                 scale={Math.max(3, scale * 2)}
                             />
                         </span>
@@ -96,7 +97,14 @@ export function HallParade({ entry, trainer, onDone }: { entry: HallEntry; train
                                     role="img"
                                     aria-label={m.name}
                                 >
-                                    <FieldSprite id={m.speciesId} shiny={m.shiny} anim="Idle" dir={0} scale={scale} />
+                                    <FieldSprite
+                                        id={m.speciesId}
+                                        shiny={m.shiny}
+                                        anim="Idle"
+                                        dir={0}
+                                        scale={scale}
+                                        hat
+                                    />
                                 </span>
                             ))}
                         </div>

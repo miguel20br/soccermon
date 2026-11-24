@@ -243,3 +243,7 @@ Não reabri todas hoje; conferir antes de citar.
   - push em 15, 24 e 25/12.
 - **Antes do Álbum "Natal 2026"** o Miguel quer lançar o "Soccermon Songs vol. 1". Falta confirmar se é álbum de músicas ou de figurinhas.
 - **Pedido junto:** revamp do Perfil do jogador. O seletor de título está "super primitivo", e há outras features atrasadas.
+
+## Plano técnico do desafio comunitário (24/11/2026, sem código)
+
+Precisa de uma migração e de uma Edge Function, as duas só com o ok do Miguel: nada foi criado. Tabela `natal_gols(dia date primary key, gols bigint not null default 0)` mais `natal_marcou(user_id uuid, dia date, gols int, primary key (user_id, dia))`, com RLS (cada um lê e escreve só a própria linha de `natal_marcou`; `natal_gols` só leitura pública). Ao fim de cada partida terminada entre 15/12 e 05/01 o cliente chama uma RPC `natal_gols_somar(gols)` (security definer) que limita os gols ao teto por partida e por conta por dia, grava em `natal_marcou` e soma a diferença em `natal_gols`; a barra do letreiro, da Home e do News lê `natal_gols` (uma linha por dia, soma no cliente, cache de 1 min). Quem tem `natal_marcou` com pelo menos 1 gol abre o prêmio do degrau batido na próxima entrada (enfeite, título `natal2026` via `redeemedTitles`, Pacote Mini de Evento), sem código. Sem Supabase o desafio aparece como "só online". As 3 metas saem do `npm run stats` e o Miguel vê antes de valer. Fora do repo: nada de segredo, e o jogo local segue igual.
