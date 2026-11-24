@@ -102,6 +102,9 @@ interface PokeCard2Props {
     bare?: boolean;
     /** Outra imagem no lugar do sprite (carta Metal): a proposta da edição Retrô na galeria. */
     art?: string;
+    /** Proposta do draft no celular (só na galeria): classe extra na carta e, no `top2`, só os 2 atributos mais altos. */
+    extra?: string;
+    top2?: boolean;
 }
 
 /**
@@ -186,6 +189,8 @@ export const PokeCard2 = memo(function PokeCard2({
     tipFocus,
     bare,
     art,
+    extra,
+    top2,
 }: PokeCard2Props) {
     const tr = useT();
     const d = cardData(inst, tr, position);
@@ -241,6 +246,7 @@ export const PokeCard2 = memo(function PokeCard2({
     if (holo) classes.push(`holo-${d.sp.types[0].toLowerCase()}`);
     if (weak) classes.push('is-weak');
     if (showcase) classes.push('pc2-showcase');
+    if (extra) classes.push(extra);
     if (bare) {
         const frame = classes.filter((c) => c !== 'pc2-fx' && !c.startsWith('fin-'));
         return (
@@ -266,6 +272,7 @@ export const PokeCard2 = memo(function PokeCard2({
             seal={seal}
             tipFocus={!!tipFocus && !onClick}
             art={art}
+            top2={top2}
         />
     ) : fig ? (
         <Figurinha inst={inst} d={d} captain={captain} edition={edition} />
@@ -365,6 +372,12 @@ const specialTitle = (inst: PokemonInstance, tr: Translator) =>
  * raridade (fosco = comum, brilhante = raro, creme e dourado = lendário). Nota grande, atributos grandes,
  * só o símbolo do tipo bem sutil no fundo. Edições especiais têm moldura própria e uma etiqueta.
  */
+/** Os 2 atributos mais altos, na ordem da carta (proposta B do draft no celular). */
+function topTwo<T extends { v: number }>(stats: T[]): T[] {
+    const min = [...stats].sort((a, b) => b.v - a.v)[1].v;
+    return stats.filter((s) => s.v >= min).slice(0, 2);
+}
+
 function Metal({
     inst,
     d,
@@ -374,7 +387,9 @@ function Metal({
     seal,
     tipFocus,
     art,
+    top2,
 }: VariantProps & {
+    top2?: boolean;
     edition: Edition | null;
     metalLabel: string;
     seal?: PokeCard2Props['seal'];
@@ -442,7 +457,7 @@ function Metal({
                 )}
             </span>
             <span className={`m-stats${d.evio ? ' evio' : ''}`}>
-                {d.stats.map((s) => (
+                {(top2 ? topTwo(d.stats) : d.stats).map((s) => (
                     <span key={s.k}>
                         <b data-v={s.v}>{s.v}</b>
                         <i>{s.label}</i>

@@ -1,4 +1,4 @@
-import { lazy, Suspense, useMemo, useState } from 'react';
+import { type CSSProperties, lazy, Suspense, useMemo, useState } from 'react';
 import { SPECIES, species } from '../../engine/data';
 import { evolveInstance } from '../../engine/evolution';
 import {
@@ -207,6 +207,50 @@ const ARROW_CARDS: Step[] = [
     { label: 'Mewtwo Shiny Ícone', inst: card(150, true, ico(150)) },
     { label: 'Machoke com Eviolite (nota e atributos roxos)', inst: sample(67, { item: 'eviolite' }) },
     { label: 'Machoke sem item', inst: sample(67) },
+];
+
+/** Cartas do draft no celular (galeria, proposta): a mesma dupla em cada opção, com a largura real da carta a 390 px. */
+const DRAFT_PAIR = [sample(67, { item: 'eviolite' }), sample(19), sample(130)];
+const DRAFT_MOBILE: {
+    id: string;
+    title: string;
+    note: string;
+    w: string;
+    extra?: string;
+    top2?: boolean;
+    cards: PokemonInstance[];
+}[] = [
+    {
+        id: 'atual',
+        title: 'Hoje (referência, 114 px)',
+        note: 'Três por linha, como o draft está.',
+        w: 'min(114px, calc((min(366px, 100vw - 32px) - 16px) / 3))',
+        cards: DRAFT_PAIR,
+    },
+    {
+        id: 'a',
+        title: 'A: carta maior (2 por linha + a 3ª embaixo, 170 px)',
+        note: 'A carta de sempre, 50% maior: número do atributo 14 px, rótulo 8,8 px, nome 13 px. O custo é altura: o draft rola.',
+        w: 'min(170px, calc((min(366px, 100vw - 32px) - 8px) / 2))',
+        cards: DRAFT_PAIR,
+    },
+    {
+        id: 'b',
+        title: 'B: compacta (só nota, posição, nome e os 2 melhores atributos, 114 px)',
+        note: 'Três por linha. Texto a partir de 11 px (número 15 px). Perde os outros 4 atributos e o ▲ (a carta completa abre ao tocar).',
+        w: 'min(114px, calc((min(366px, 100vw - 32px) - 16px) / 3))',
+        extra: 'pc2-dr-b',
+        top2: true,
+        cards: DRAFT_PAIR,
+    },
+    {
+        id: 'c',
+        title: 'C: 6 atributos em 2 colunas, números maiores e sem o ▲ (114 px)',
+        note: 'Três por linha. Número 12 px, rótulo 9 px, nome e posição 11 px. Mantém todos os atributos.',
+        w: 'min(114px, calc((min(366px, 100vw - 32px) - 16px) / 3))',
+        extra: 'pc2-dr-c',
+        cards: DRAFT_PAIR,
+    },
 ];
 
 function Ladder({ steps }: { steps: Step[] }) {
@@ -504,6 +548,26 @@ function CurrentCards({ onExit }: { onExit: () => void }) {
                             ))}
                         </div>
                     </div>
+                </section>
+                <section className="panel" id="draft-celular">
+                    <h2>Cartas do draft no celular · 3 propostas pro ok do Miguel</h2>
+                    <p className="muted cb-intro">
+                        Hoje, a 390 px, a carta do draft tem 114 px de largura: nota 21, posição 7, nome 8,8, número do
+                        atributo 9,5 e rótulo 5,9 px (a 320: 92 px de carta, rótulo 4,8). Abaixo, a mesma carta (Machoke
+                        com Eviolite e um bronze comum) no tamanho real de cada proposta. Nada disso está no draft de
+                        verdade ainda.
+                    </p>
+                    {DRAFT_MOBILE.map((o) => (
+                        <div key={o.id}>
+                            <h3>{o.title}</h3>
+                            <p className="muted cb-intro">{o.note}</p>
+                            <div className="cg-dr" style={{ '--w': o.w } as CSSProperties}>
+                                {o.cards.map((c) => (
+                                    <PokeCard2 key={c.uid} inst={c} variant="metal" extra={o.extra} top2={o.top2} />
+                                ))}
+                            </div>
+                        </div>
+                    ))}
                 </section>
                 <section className="panel" id="seta">
                     <h2>O ▲ da carta</h2>

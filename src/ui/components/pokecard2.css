@@ -4181,3 +4181,98 @@ button.pc2.pc2-fx:hover {
     background: #12062a;
     box-shadow: inset 0 0 0 0.12em #ff7fc8;
 }
+
+/* ---------- Cartas do draft no celular: 3 propostas só na galeria (?cards=1), o draft de verdade ainda não usa ---------- */
+.cg-dr {
+    /* sai da largura do painel: o tamanho real é o da tela do draft (a 390: 358 px de pista, 8 px de vão) */
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 8px;
+    width: min(366px, calc(100vw - 32px));
+    margin: 0 0 14px 50%;
+    transform: translateX(-50%);
+}
+.cg-dr-group {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+}
+/* a largura real da carta (--w) vira o font-size: o layout todo é em em (15em de largura) */
+.cg-dr .pc2 {
+    font-size: calc(var(--w) / 15);
+}
+/* B: compacta, só nota, posição, nome e os 2 atributos mais altos, tudo a partir de 11 px */
+.pc2-metal.pc2-dr-b .m-pos {
+    --gs: 11px;
+    font-size: 11px;
+}
+.pc2-metal.pc2-dr-b .m-name {
+    --gs: 11px;
+    font-size: 11px;
+}
+.pc2.pc2-metal.pc2-dr-b .m-name > small {
+    display: none;
+}
+.pc2-metal.pc2-dr-b .m-stats {
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: auto;
+    column-gap: 4px;
+    padding: 0.3em 0 0;
+}
+.pc2-metal.pc2-dr-b .m-stats span:nth-child(-n + 3) {
+    border-right: 0;
+    padding-right: 0;
+}
+.pc2-metal.pc2-dr-b .m-stats span {
+    flex-direction: column;
+    align-items: center;
+    gap: 0;
+}
+.pc2-metal.pc2-dr-b .m-stats b {
+    --gs: 15px;
+    font-size: 15px;
+    min-width: 0;
+    text-align: center;
+}
+.pc2-metal.pc2-dr-b .m-stats i {
+    font-size: 11px;
+}
+.pc2-metal.pc2-dr-b .m-mod {
+    display: none;
+}
+/* C: os 6 atributos em 2 colunas com números maiores, rótulo de 3 letras e sem o ▲ */
+.pc2-metal.pc2-dr-c .m-pos {
+    --gs: 11px;
+    font-size: 11px;
+}
+.pc2-metal.pc2-dr-c .m-name {
+    --gs: 11px;
+    font-size: 11px;
+}
+.pc2.pc2-metal.pc2-dr-c .m-name > small {
+    display: none;
+}
+.pc2-metal.pc2-dr-c .m-stats {
+    column-gap: 3px;
+    row-gap: 0;
+    padding: 0.2em 0 0;
+}
+.pc2-metal.pc2-dr-c .m-stats span:nth-child(-n + 3) {
+    padding-right: 3px;
+}
+.pc2-metal.pc2-dr-c .m-stats span {
+    gap: 2px;
+}
+.pc2-metal.pc2-dr-c .m-stats b {
+    --gs: 12px;
+    font-size: 12px;
+    min-width: 0;
+}
+.pc2-metal.pc2-dr-c .m-stats i {
+    font-size: 9px;
+}
+.pc2-metal.pc2-dr-c .m-mod {
+    display: none;
+}
