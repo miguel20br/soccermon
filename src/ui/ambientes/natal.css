@@ -177,10 +177,10 @@
     }
 }
 
-/* ---------- o gorro nos Pokémon da Home e do pódio (Gorro.tsx): entra com o resto, em fade ---------- */
+/* ---------- o gorro nos Pokémon da Home e do pódio (Gorro.tsx, pixel art no tamanho do pixel do sprite): entra com o
+   resto, em fade ---------- */
 .fs-gorro {
     position: absolute;
-    height: auto;
     pointer-events: none;
     animation: neve-in 300ms var(--ease-out) both;
 }

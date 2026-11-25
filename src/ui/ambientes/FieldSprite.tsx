@@ -228,7 +228,15 @@ export function FieldSprite({
                 backgroundSize: `${atlas.meta.size.w * r.css}px ${atlas.meta.size.h * r.css}px`,
             }}
         >
-            {hat && hasGorro(id, hat === 'lab') && <Gorro id={id} dir={dir} top={feet?.top ?? 0.2} />}
+            {hat && hasGorro(id, hat === 'lab') && (
+                <Gorro
+                    id={id}
+                    dir={dir}
+                    anim={after ? 'Idle' : use}
+                    i={after ? (k - 1000) % after.length : play ? k % n : 0}
+                    css={r.css}
+                />
+            )}
             {children && (
                 <span
                     className="fs-head"
