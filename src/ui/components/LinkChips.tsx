@@ -5,6 +5,8 @@ import { type ActiveLink, computeLinks, type LinkDef } from '../../engine/links'
 import { computeSynergies, type Synergy } from '../../engine/synergy';
 import { linkText, secretText, typeName } from '../../i18n';
 import { useT } from '../../i18n/react';
+import { useGame } from '../../store/game-store';
+import { combosFoundOf } from '../../store/secret-links';
 import { TYPE_COLOR } from '../type-colors';
 import { HudIcon } from './MatchHud';
 
@@ -22,20 +24,36 @@ export function LinkChip({
     fresh?: boolean;
 }) {
     const { t, lang } = useT();
+    const found = useGame((s) => s.profile.combosFound);
+    const pct = <b>+{Math.round((bonus - 1) * 100)}%</b>;
+    // secreta do mesmo time (fase 2): o bônus vale e aparece (carta = campo), o nome só depois de descoberta
+    if (def.secret) {
+        const known = combosFoundOf({ combosFound: found }).includes(def.secret);
+        const txt = secretText(def.secret, lang);
+        return (
+            <span
+                className={`link-chip secret-chip${known ? ' known' : ''}${fresh ? ' fresh' : ''}`}
+                title={known ? txt.desc : t('common.secretUi.teamChipTitle')}
+                data-secret={known ? def.secret : undefined}
+            >
+                <HudIcon kind="max" /> {known ? txt.name : t('common.secretUi.chip')} {pct}
+            </span>
+        );
+    }
     const txt = linkText(def.id, lang);
     return (
         <span
             className={`link-chip${fresh ? ' fresh' : ''}${special ? ` special aura-${def.id}` : ''}`}
             title={t('team.linkTitle', { desc: txt.desc, combo: txt.combo })}
         >
-            <HudIcon kind="max" /> {txt.name} <b>+{Math.round((bonus - 1) * 100)}%</b>
+            <HudIcon kind="max" /> {txt.name} {pct}
         </span>
     );
 }
 
 /**
  * Selo de uma sinergia secreta com o rival (src/store/secret-links.ts): "???" até ela acontecer em quadra; descoberta,
- * mostra o nome. Só tela: não tem bônus, então não tem número.
+ * mostra o nome. Só tela: não tem bônus, então não tem número (as do mesmo time são `LinkChip` com o `+N%`).
  */
 export function SecretChip({ id, known }: { id: string; known: boolean }) {
     const { t, lang } = useT();

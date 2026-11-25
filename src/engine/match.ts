@@ -391,7 +391,7 @@ function transformDittos(s: MatchState, candidates: PlayerState[]) {
     }
 }
 
-/** Duas peças da mesma sinergia de história: passe de um, chute do outro = combo (1 por tempo). */
+/** Duas peças da mesma sinergia de história: passe de um, chute do outro = combo (1 por tempo; as `noCombo` não têm). */
 function comboLink(s: MatchState, shooter: PlayerState): { link: string; partner: number } | null {
     const lk = s.ball.lastKick;
     if (lk?.kind !== 'pass' || lk.receiverId !== shooter.idx || lk.by === shooter.idx) return null;
@@ -403,6 +403,7 @@ function comboLink(s: MatchState, shooter: PlayerState): { link: string; partner
     const uidOf = (p: PlayerState) => (p.origin ?? p.inst).uid;
     const hit = links.find(
         (l) =>
+            !l.def.noCombo &&
             !rt.combosUsed.includes(l.def.id) &&
             l.members.includes(uidOf(shooter)) &&
             l.members.includes(uidOf(partner)),

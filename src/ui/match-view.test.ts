@@ -629,8 +629,10 @@ describe('sincronia do toque na bola (só tela)', () => {
         for (const e of r.events) {
             if ((e.type !== 'pass' && e.type !== 'shot') || e.tick < 4) continue;
             const o = e.by * SNAP_STRIDE;
+            // o carrinho do mesmo jogador logo depois do passe não é o toque do passe (motor 34: passe, interceptação e
+            // carrinho em 2 ticks)
             const cue = strikesNear(r.snapshots, index(e.tick), o, deps.get(e.by)).find(
-                (c) => Math.abs(c.contact - (e.tick - 1)) < 2,
+                (c) => c.action !== Action.Tackle && Math.abs(c.contact - (e.tick - 1)) < 2,
             );
             if (!cue) continue;
             n++;

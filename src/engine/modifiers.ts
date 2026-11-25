@@ -181,9 +181,18 @@ export function attributeModifiers(inst: PokemonInstance, ctx: TeamContext = {})
                 factor: syn,
             });
         // tipo × história somam sem teto (Miguel, 04/11/2026: o teto de +15% saiu)
-        const link = linkFactor(computeLinks(lineup), inst.uid);
+        const links = computeLinks(lineup);
+        const link = linkFactor(links, inst.uid);
+        // a secreta mostra o número, nunca o nome (docs/planos/sinergias-secretas-fase2.md)
+        const secret = links.some((l) => l.def.secret && l.bonus === link && l.members.includes(inst.uid));
         if (link > 1)
-            mods.push({ source: 'historia', label: `Sinergia de história: ${pct(link)}`, attrs: 'all', factor: link });
+            mods.push({
+                source: 'historia',
+                label: `Sinergia ${secret ? 'secreta' : 'de história'}: ${pct(link)}`,
+                ref: secret ? 'secret' : undefined,
+                attrs: 'all',
+                factor: link,
+            });
     }
     if (ctx.crowd)
         mods.push({ source: 'torcida', label: `Torcida a favor: ${pct(ctx.crowd)}`, attrs: 'all', factor: ctx.crowd });

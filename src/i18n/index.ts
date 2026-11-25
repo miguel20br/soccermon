@@ -175,9 +175,14 @@ export const iconTitle = (speciesId: number, saved?: string, lang: Lang = curren
 export const formationText = (id: string, lang: Lang = current) =>
     DICTS[lang].common.formation[id] ?? { name: id, description: '', up: '', down: '' };
 
-/** Sinergia de história: nome, descrição e combo. */
-export const linkText = (id: string, lang: Lang = current) =>
-    DICTS[lang].common.link[id] ?? { name: id, desc: '', combo: '' };
+/** Sinergia de história: nome, descrição e combo (a secreta do mesmo time usa o próprio nome como combo). */
+export const linkText = (id: string, lang: Lang = current) => {
+    const s = DICTS[lang].common.secretLink[id];
+    return (
+        DICTS[lang].common.link[id] ??
+        (s ? { name: s.name, desc: s.desc, combo: s.name } : { name: id, desc: '', combo: '' })
+    );
+};
 
 /** Sinergia secreta (src/store/secret-links.ts): nome, descrição e charada. */
 export const secretText = (id: string, lang: Lang = current) =>
@@ -229,7 +234,7 @@ export function modLabel(m: AttrModifier, lang: Lang = current): string {
         case 'sinergia':
             return fmt(m.ref === 'mono' ? c.mod.monoSynergy : c.mod.typeSynergy, { pct: pct(f) });
         case 'historia':
-            return fmt(c.mod.storySynergy, { pct: pct(f) });
+            return fmt(m.ref === 'secret' ? c.mod.secretSynergy : c.mod.storySynergy, { pct: pct(f) });
         case 'posicao':
             return fmt(c.mod.offPosition, { pct: pct(f) });
         case 'torcida':

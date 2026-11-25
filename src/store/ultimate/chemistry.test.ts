@@ -13,10 +13,11 @@ describe('losangos de química', () => {
     });
 
     it('o X/15 é a soma dos losangos dos titulares', () => {
-        // Time do Ash (+5%): Pikachu, Charizard, Lapras e Snorlax com 2 cada; o Gengar fica sem
+        // Time do Ash (+5%): Lapras com 2; Pikachu, Charizard e Snorlax também ligam a secreta Monte Prateado (+8%): 3
+        // cada; o Gengar fica sem
         const ch = chemistry([card(25), card(6), card(131), card(143), card(94)], roles);
-        expect(ch.players.map((p) => diamondsOf(p.chem))).toEqual([2, 2, 2, 2, 0]);
-        expect(chemTotal(ch)).toBe(8);
+        expect(ch.players.map((p) => diamondsOf(p.chem))).toEqual([3, 3, 2, 3, 0]);
+        expect(chemTotal(ch)).toBe(11);
     });
 });
 
@@ -25,8 +26,9 @@ describe('por que da química (só lê o cálculo)', () => {
         const lineup = [card(25), card(6), card(131), card(143), card(94)];
         const ch = chemistry(lineup, roles);
         const pika = chemWhy(ch, lineup, 0);
-        expect(pika.link.active.map((l) => l.def.id)).toEqual(['ash']);
-        expect(pika.link.factor).toBeCloseTo(1.05);
+        // a secreta (Monte Prateado, +8%) vale por cima do Time do Ash e entra na lista (o chip mostra "???")
+        expect(pika.link.active.map((l) => l.def.id)).toEqual(['montePrateado', 'ash']);
+        expect(pika.link.factor).toBeCloseTo(1.08);
         expect(pika.partners).toEqual(['c6', 'c131', 'c143']);
         // Charizard: a família dele está nas Iniciais, que falta pouco
         expect(chemWhy(ch, lineup, 1).link.near.map((n) => n.def.id)).toContain('iniciais');

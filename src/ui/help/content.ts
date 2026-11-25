@@ -52,7 +52,8 @@ function dynamicList(kind: Extract<HelpDictBlock, { dyn: string }>['dyn'], lang:
     const g = d.help.gen;
     switch (kind) {
         case 'links':
-            return LINKS.map((l): [string, string] => {
+            // as secretas ficam de fora (o nome só aparece depois de descoberta)
+            return LINKS.filter((l) => !l.secret).map((l): [string, string] => {
                 const text = linkText(l.id, lang);
                 return [
                     fmt(g.linkTerm, { name: text.name, pct: pct(l.bonus) }),

@@ -71,6 +71,7 @@ export const battle: typeof pt = {
     combo: '{link} combo: {a} + {b}!',
     comboSub: '{link} combo: {a} + {b}',
     secretSub: '{a} vs {b}',
+    secretSubTeam: '{a} and {b}',
     substitutePop: 'SUBSTITUTE!',
     decoy: 'The substitute took damage for {x}!',
     cleared: 'cleared!',

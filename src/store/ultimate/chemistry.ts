@@ -56,6 +56,8 @@ export function chemistry(
     for (const p of lineup) for (const t of species(p.speciesId).types) counts.set(t, (counts.get(t) ?? 0) + 1);
     const nearTypes = [...counts].filter(([, c]) => c === 1).map(([t]) => t);
     const nearLinks = LINKS.flatMap((def) => {
+        // secreta não vira dica de "falta 1" (o nome só aparece depois de descoberta)
+        if (def.secret) return [];
         const active = links.find((l) => l.def.id === def.id);
         if (active && (active.full || !def.full)) return [];
         const has = (g: number[]) => lineup.some((p) => g.includes(p.speciesId));

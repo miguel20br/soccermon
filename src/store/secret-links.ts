@@ -1,3 +1,4 @@
+import { computeLinks, LINKS, type LinkDef } from '../engine/links';
 import type { MatchResult } from '../engine/runners/batch-runner';
 import type { MatchEvent } from '../engine/state';
 
@@ -5,8 +6,9 @@ import type { MatchEvent } from '../engine/state';
  * Sinergias secretas, fase 1 (docs/planos/pesquisas/sinergias-e-animacoes.md, §3 e §5): as rivalidades, um Pokémon de
  * cada time. Só tela: não mudam a partida (nada no motor, sem ENGINE_VERSION), aparecem como "???" na escalação, se
  * revelam em campo na 1ª vez que os dois se cruzam num lance e entram no Registro de Sinergias. Puro (sem Phaser,
- * Math.random ou Date): a cena, a tela e o store leem daqui. As secretas com bônus em campo ficam para a fase 2
- * (docs/planos/sinergias-secretas-fase2.md, decisão do Miguel).
+ * Math.random ou Date): a cena, a tela e o store leem daqui. As secretas com bônus em campo (fase 2,
+ * docs/planos/sinergias-secretas-fase2.md) moram em `LINKS` (src/engine/links.ts, `secret`) e se revelam no combo ou no
+ * gol de dupla (passe de um, chute do outro, os dois da mesma secreta).
  */
 export interface SecretLink {
     id: string;
@@ -53,7 +55,14 @@ export const SECRET_LINKS: readonly SecretLink[] = [
     },
 ];
 
-const IDS = new Set(SECRET_LINKS.map((s) => s.id));
+/** As secretas do mesmo time (fase 2), uma por id do Registro (a 1ª definição de cada: Mestre e Aprendiz tem 53). */
+export const TEAM_SECRETS: readonly LinkDef[] = LINKS.filter(
+    (l, i) => l.secret && LINKS.findIndex((x) => x.secret === l.secret) === i,
+);
+
+const IDS = new Set([...SECRET_LINKS.map((s) => s.id), ...TEAM_SECRETS.map((l) => l.secret!)]);
+/** Quantas secretas existem (rivalidades + do mesmo time): o total do Registro e da medalha. */
+export const SECRET_TOTAL = IDS.size;
 
 /** A secreta (rivalidade) entre um Pokémon de um time (`a`) e um do outro (`b`); a primeira da lista ganha. */
 export function secretOf(a: number, b: number): string | null {
@@ -100,11 +109,27 @@ export interface SecretHit {
     a: number;
     b: number;
     species: [number, number];
+    /** Secreta do mesmo time (fase 2): "a e b" em vez de "a x b". */
+    team?: true;
+}
+
+/** A secreta do mesmo time que liga `a` e `b` (índices) com os titulares de agora do time; senão null. */
+function teamSecret(sp: Map<number, { speciesId: number; team: 0 | 1 }>, a: number, b: number): string | null {
+    const pa = sp.get(a);
+    if (!pa || a === b || sp.get(b)?.team !== pa.team) return null;
+    const lineup = [...sp]
+        .filter(([, p]) => p.team === pa.team)
+        .map(([i, p]) => ({ uid: `${i}`, speciesId: p.speciesId }));
+    return (
+        computeLinks(lineup).find((l) => l.def.secret && l.members.includes(`${a}`) && l.members.includes(`${b}`))?.def
+            .secret ?? null
+    );
 }
 
 /**
- * Cada secreta que aconteceu na partida, na 1ª vez (um lance entre um de cada time). A espécie de cada índice segue as
- * substituições e as evoluções; o Ditto transformado continua Ditto.
+ * Cada secreta que aconteceu na partida, na 1ª vez: um lance entre um de cada time (rivalidade) ou, nas do mesmo time,
+ * o combo ou o gol de dupla (passe de um, gol do outro). A espécie de cada índice segue as substituições e as evoluções;
+ * o Ditto transformado continua Ditto.
  */
 export function matchSecrets(m: Pick<MatchResult, 'roster' | 'events'>): SecretHit[] {
     const sp = new Map<number, { speciesId: number; team: 0 | 1 }>(
@@ -120,6 +145,25 @@ export function matchSecrets(m: Pick<MatchResult, 'roster' | 'events'>): SecretH
         if (e.type === 'evolve') {
             const p = sp.get(e.by);
             if (p) sp.set(e.by, { ...p, speciesId: e.into });
+            continue;
+        }
+        const duo =
+            e.type === 'combo'
+                ? [e.partner, e.by]
+                : e.type === 'goal' && !e.ownGoal && e.assist !== null
+                  ? [e.assist, e.by]
+                  : null;
+        const tid = duo && teamSecret(sp, duo[0], duo[1]);
+        if (duo && tid) {
+            if (!hits.some((h) => h.id === tid))
+                hits.push({
+                    id: tid,
+                    event: e,
+                    a: duo[0],
+                    b: duo[1],
+                    species: [sp.get(duo[0])!.speciesId, sp.get(duo[1])!.speciesId],
+                    team: true,
+                });
             continue;
         }
         const pair = duelPair(e);
