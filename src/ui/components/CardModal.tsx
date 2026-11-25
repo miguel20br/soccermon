@@ -32,7 +32,7 @@ import {
 } from '../../i18n';
 import { rich, useT } from '../../i18n/react';
 import { useGame } from '../../store/game-store';
-import { type CardAction, useCardModal } from '../card-modal';
+import { type CardAction, canPickMoves, useCardModal } from '../card-modal';
 import { Sheet } from '../kit/Sheet';
 import { ratingAt } from '../rating';
 import { TYPE_COLOR } from '../type-colors';
@@ -90,6 +90,8 @@ export function CardModal() {
     // aberta a partir de um golpe: já mostra a parte dos golpes
     useEffect(() => {
         if (inst && section === 'moves') movesRef.current?.scrollIntoView({ block: 'start' });
+        if (inst && section === 'pick')
+            document.querySelector('.card-modal .mpick')?.scrollIntoView({ block: 'start' });
     }, [inst, section]);
 
     if (!inst) return null;
@@ -162,7 +164,7 @@ function CardBody({
     const run = useGame((s) => s.run);
     const dex = useGame((s) => s.dex);
     // escolher golpes (?lab=golpes-escolher): a ficha segue a carta do time, que muda ao trocar de golpe
-    const canPick = !peek && run?.status === 'lineup' && !run.lockedTeam;
+    const canPick = canPickMoves(run, peek);
     const mine = canPick ? run?.picks.find((p) => p.uid === shown.uid) : undefined;
     const inst = mine ?? shown;
     const { t, tn, d, lang } = useT();

@@ -7,7 +7,8 @@ import { cardAttributes } from '../../engine/modifiers';
 import { editionOf } from '../../engine/specials';
 import { dict, moveName } from '../../i18n';
 import { useT } from '../../i18n/react';
-import { type CardAction, useCardModal } from '../card-modal';
+import { useGame } from '../../store/game-store';
+import { type CardAction, canPickMoves, useCardModal } from '../card-modal';
 import { editionLabel } from '../rarity';
 import { ratingAt } from '../rating';
 import { TYPE_COLOR } from '../type-colors';
@@ -81,6 +82,7 @@ export function FutCard({
     fullButton = false,
 }: FutCardProps) {
     const open = useCardModal((s) => s.open);
+    const canPick = useGame((s) => canPickMoves(s.run) && s.run?.picks.some((p) => p.uid === inst.uid));
     const { t, d } = useT();
     const [peek, setPeek] = useState(false);
     const hoverTimer = useRef<number | undefined>(undefined);
@@ -99,6 +101,15 @@ export function FutCard({
         },
         [],
     );
+
+    const openPick = () =>
+        open(inst, {
+            position: pos,
+            captain,
+            note: modalNote,
+            actions: modalActions ?? (action ? [action] : []),
+            section: 'pick',
+        });
 
     const openFull = () => {
         if (inModal) return;
@@ -210,6 +221,13 @@ export function FutCard({
                     <span>
                         <b>{t('team.card.full')}</b>
                         <small>{t('team.card.fullSub')}</small>
+                    </span>
+                </button>
+            )}
+            {fullButton && !inModal && canPick && (
+                <button type="button" className="fut-full fut-pick" onClick={openPick}>
+                    <span>
+                        <b>{t('team.card.pick')}</b>
                     </span>
                 </button>
             )}
