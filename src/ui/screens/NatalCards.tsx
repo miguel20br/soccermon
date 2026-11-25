@@ -1,6 +1,7 @@
 import type { CSSProperties } from 'react';
 import { createInstance, type PokemonInstance, viewInstance } from '../../engine/instance';
 import { Rng } from '../../engine/rng';
+import { useT } from '../../i18n/react';
 import { PokeCard2 } from '../components/PokeCard2';
 import { type Metal, metalOf } from '../rarity';
 import '../natal-cards.css';
@@ -228,6 +229,103 @@ const FLOCO = pixels(
     { w: '#ffffff', c: '#9fd8ff' },
 );
 
+// ---------------------------------------------------------------- D: presente polido (B + neve da A + luzes da C)
+/** Papel em losangos de 2 vermelhos, grandes e calmos (o losango é |x| + |y| <= 7 a partir do meio do ladrilho). */
+const LOSANGO = pixels(
+    Array.from({ length: 16 }, (_, y) =>
+        Array.from({ length: 16 }, (_, x) => (Math.abs(x - 7.5) + Math.abs(y - 7.5) <= 7 ? 'k' : '.')).join(''),
+    ),
+    { k: '#a51624' },
+);
+/** Laço grande com volume: meia-volta à esquerda (alça, dobra escura, nó e ponta da fita), espelhada. */
+const LACO_D_ESQ = [
+    '....oooo......',
+    '...ohhhmoo....',
+    '..ohhmmmmmoo..',
+    '.ohhmmmmmmmloo',
+    'ohhmmmmmmmlloh',
+    'ohmmmmmmmlldoh',
+    'ohmmmmmmlldd' + 'om',
+    'ohmmmmmllddd' + 'om',
+    '.ommmmllddoo' + 'om',
+    '..ollllooo..' + 'ol',
+    '...oooo.olml' + 'ol',
+    '........olmm' + 'oo',
+    '.......olmml' + 'o.',
+    '......olmmlo..',
+    '.....olmmlo...',
+    '....olmmlo....',
+    '....ommlo.....',
+    '...ommlo......',
+    '...oolo.......',
+    '....oo........',
+];
+const LACO_D = LACO_D_ESQ.map((r) => r + [...r].reverse().join(''));
+const DARK: Record<Metal, string> = { bronze: '#5e3818', prata: '#4f5869', ouro: '#6e5208' };
+const BOW_D = Object.fromEntries(
+    (Object.keys(METAL_PAL) as Metal[]).map((m) => [m, pixels(LACO_D, { ...METAL_PAL[m], d: DARK[m] })]),
+) as Record<Metal, string>;
+/** Pisca-pisca enrolado na fita do nome: fio reto, 4 lâmpadas por ladrilho (vermelha e verde num grupo, amarela e azul no outro). */
+const FIO = (() => {
+    const g = ['.'.repeat(96), 'k'.repeat(96), ...Array.from({ length: 7 }, () => '.'.repeat(96))];
+    ['r', 'y', 'g', 'b'].forEach((c, i) => {
+        const C = c.toUpperCase();
+        put(g, i * 24 + 10, 2, [
+            '.ss.',
+            `w${c}${c}${c}`,
+            `w${c}${c}${c}`,
+            `${c}${c}${c}${C}`,
+            `${c}${c}${C}${C}`,
+            `.${C}${C}.`,
+        ]);
+    });
+    return g;
+})();
+const FIO_BASE = pixels(FIO, {
+    k: '#3a1a10',
+    s: '#8a7a5a',
+    ...Object.fromEntries(Object.entries(BULB_ON).map(([k, c]) => [k, k === 'w' ? '#c9b8a8' : off(c)])),
+});
+const FIO_A = pixels(FIO, only('wrRgG'));
+const FIO_B = pixels(FIO, only('wyYbB'));
+const NEVE_LEVE = pixels(
+    [
+        '................................',
+        '......w.........................',
+        '.....www........................',
+        '......w...................w.....',
+        '................................',
+        '................................',
+        '................................',
+        '.................w..............',
+        '................................',
+        '................................',
+        '................................',
+        '..w.............................',
+        '...........................w....',
+        '..........................www...',
+        '...........................w....',
+        '................................',
+        '................................',
+        '................................',
+        '.............w..................',
+        '............www.................',
+        '.............w..................',
+        '................................',
+        '................................',
+        '.......w........................',
+        '................................',
+        '................................',
+        '.........................w......',
+        '................................',
+        '................................',
+        '..................w.............',
+        '................................',
+        '................................',
+    ],
+    { w: '#ffffff' },
+);
+
 const ART = {
     '--xm-festao': FESTAO,
     '--xm-neve-fina': NEVE_FINA,
@@ -237,9 +335,24 @@ const ART = {
     '--xm-luzes-a': LUZES_A,
     '--xm-luzes-b': LUZES_B,
     '--xm-floco': FLOCO,
+    '--xm-losango': LOSANGO,
+    '--xm-fio': FIO_BASE,
+    '--xm-fio-a': FIO_A,
+    '--xm-fio-b': FIO_B,
+    '--xm-neve-leve': NEVE_LEVE,
 } as CSSProperties;
 
 const OPTIONS = [
+    {
+        id: 'd',
+        name: 'D · Presente polido',
+        note: 'B mais calma: losangos, fita de cetim, laço grande, neve leve atrás do Pokémon e pisca-pisca na fita.',
+    },
+    {
+        id: 'd2',
+        name: 'D2 · Presente com janela',
+        note: 'A D com a janela da arte em céu azul-noite dentro do embrulho.',
+    },
     {
         id: 'a',
         name: 'A · Noite de Natal',
@@ -252,6 +365,13 @@ const OPTIONS = [
     },
     { id: 'c', name: 'C · Gelo e luzes', note: 'Gelo translúcido, pisca-pisca colorido na borda e flocos nos cantos.' },
 ] as const;
+const CLASS: Record<(typeof OPTIONS)[number]['id'], string> = {
+    a: 'xv-a',
+    b: 'xv-b',
+    c: 'xv-c',
+    d: 'xv-d',
+    d2: 'xv-d xv-d2',
+};
 
 /** Uma carta de cada metal, já com o +2 da edição na nota. */
 const SAMPLES = [86, 25, 144].map((id): { inst: PokemonInstance; metal: Metal } => {
@@ -265,14 +385,18 @@ const SAMPLES = [86, 25, 144].map((id): { inst: PokemonInstance; metal: Metal } 
 const METAL_NAME: Record<Metal, string> = { bronze: 'Bronze', prata: 'Prata', ouro: 'Ouro' };
 
 export function NatalCards() {
+    // a etiqueta da D: "Natal" no lugar de "Evento · Gelo" (só aqui na galeria, por CSS)
+    const { lang } = useT();
+    // D e D2 (a mistura que o Miguel pediu) vêm primeiro: no celular a grade rola e elas aparecem sem rolar
+    const style = { ...ART, '--xm-tag': lang === 'en' ? '"CHRISTMAS"' : '"NATAL"' } as CSSProperties;
     return (
-        <section className="panel" id="natal" style={ART}>
-            <h2>Cartas de Natal (3 opções, fora do jogo)</h2>
+        <section className="panel" id="natal" style={style}>
+            <h2>Cartas de Natal (fora do jogo)</h2>
             <p className="muted">
                 Carta Evento do Natal (tipo Gelo). Nota e atributos do mesmo tamanho; o metal pela nota aparece na cor
                 da nota, na moldura e na fita. Movimento lento; com Reduzir movimento fica parado.
             </p>
-            <div className="xm-grid">
+            <div className="xm-grid" style={{ '--xm-cols': OPTIONS.length } as CSSProperties}>
                 {OPTIONS.map((o) => (
                     <h3 key={o.id} className="xm-head">
                         {o.name} <small className="muted">{o.note}</small>
@@ -282,8 +406,10 @@ export function NatalCards() {
                     OPTIONS.map((o) => (
                         <figure key={`${o.id}-${inst.speciesId}`} className="cg-item">
                             <div
-                                className={`xm-card xv-${o.id} xm-${metal}`}
-                                style={{ '--xm-bow': BOW[metal] } as CSSProperties}
+                                className={`xm-card ${CLASS[o.id]} xm-${metal}`}
+                                style={
+                                    { '--xm-bow': o.id.startsWith('d') ? BOW_D[metal] : BOW[metal] } as CSSProperties
+                                }
                             >
                                 <PokeCard2 inst={inst} variant="metal" />
                             </div>
