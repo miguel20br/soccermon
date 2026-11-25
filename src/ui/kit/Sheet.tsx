@@ -32,6 +32,10 @@ export function Sheet({
     const { t } = useT();
     // o voltar do Android fecha a folha (como o X), em vez de sair da tela com ela aberta
     useBackLayer(open, onClose);
+    // o `onClose` muda a cada render de quem abre a folha: na dependência do efeito, cada letra digitada num campo da
+    // folha devolvia o foco pra folha (o campo perdia o foco e o onBlur do nome do clube gravava "Pallet FC", 25/11)
+    const close = useRef(onClose);
+    close.current = onClose;
     useEffect(() => {
         if (!open) return;
         // o foco entra na folha: o 1º botão marcado com data-autofocus, senão a própria folha
@@ -40,11 +44,11 @@ export function Sheet({
         const onKey = (e: KeyboardEvent) => {
             if (e.key !== 'Escape') return;
             const open = document.querySelectorAll('.k-sheet-back:not(.is-leaving) > .k-sheet');
-            if (open[open.length - 1] === box.current) onClose();
+            if (open[open.length - 1] === box.current) close.current();
         };
         window.addEventListener('keydown', onKey);
         return () => window.removeEventListener('keydown', onKey);
-    }, [open, onClose]);
+    }, [open]);
     if (!open) return null;
     const stop = (e: { stopPropagation: () => void }) => e.stopPropagation();
     return createPortal(
