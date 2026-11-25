@@ -479,6 +479,13 @@ button.pf-trainer:focus-visible,
     text-align: center;
     line-height: 1.2;
 }
+/* 320: com 4 abas (a Coleção ganhou Sinergias) "Pokédex", "Golpedex" e "Synergies" saíam cortados com reticências */
+@media (max-width: 360px) {
+    .pf-tabs.k-tabs > [role="tab"] {
+        padding-inline: 1px;
+        font-size: 11px;
+    }
+}
 .pf-chip:focus-visible,
 .pf-chip:focus-visible,
 .pf-type:focus-visible,
