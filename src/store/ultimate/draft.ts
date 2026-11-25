@@ -221,6 +221,7 @@ export function draftFinish(u: UltimateSave, m: UltimateMatch): UltimateSave {
     return {
         ...u,
         live: null,
+        fichas: u.fichas + (prize?.fichas ?? 0),
         extraPacks: u.extraPacks + (prize?.packs ?? 0),
         bigPacks: u.bigPacks + (prize?.big ?? 0),
         draft: { ...u.draft, best: Math.max(u.draft.best, wins), run: { ...run, games, prize } },

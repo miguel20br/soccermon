@@ -55,6 +55,6 @@ export function natalOpponents(base: TeamSetup[], seed: string): TeamSetup[] {
     });
 }
 
-/** Ganhou a Copa de Natal nos dois dias: o título "Natal 2026". */
+/** Ganhou a Copa de Natal em qualquer um dos dois dias: o título "Natal 2026". */
 export const natalCupWon = (daily: { day: string; champion: boolean }[]): boolean =>
-    NATAL_CUP_DAYS.every((d) => daily.some((e) => e.day === d && e.champion));
+    NATAL_CUP_DAYS.some((d) => daily.some((e) => e.day === d && e.champion));

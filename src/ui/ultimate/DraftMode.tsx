@@ -37,7 +37,11 @@ const GAMES = Array.from({ length: DRAFT_GAMES }, (_, k) => k);
 function usePrizeText() {
     const { tn } = useT();
     return (p: DraftPrize) =>
-        [p.packs ? tn('ultimate.pass.reward.packs', p.packs) : '', p.big ? tn('ultimate.pass.reward.big', p.big) : '']
+        [
+            p.fichas ? tn('ultimate.pass.reward.fichas', p.fichas) : '',
+            p.packs ? tn('ultimate.pass.reward.packs', p.packs) : '',
+            p.big ? tn('ultimate.pass.reward.big', p.big) : '',
+        ]
             .filter(Boolean)
             .join(' · ');
 }

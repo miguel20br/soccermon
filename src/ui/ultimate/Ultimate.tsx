@@ -65,6 +65,14 @@ export function Ultimate() {
     const live = !!u.live;
     // biome-ignore lint/correctness/useExhaustiveDependencies: `n` e `live` são o gatilho da virada
     useEffect(() => roll(), [n, live, roll]);
+    // 25/12 (Brasília): presente de Natal, uma vez por save, com aviso
+    const gift = useGame((s) => s.ultimateGift);
+    const [gifted, setGifted] = useState(false);
+    const today0 = dailyDay(new Date(now));
+    // biome-ignore lint/correctness/useExhaustiveDependencies: o dia é o gatilho
+    useEffect(() => {
+        if (gift()) setGifted(true);
+    }, [today0, gift]);
     // troca de aba volta pro topo (a barra embaixo é fixa; a página nova nasce do começo)
     // biome-ignore lint/correctness/useExhaustiveDependencies: `tab` é o gatilho
     useEffect(() => {
@@ -221,6 +229,15 @@ export function Ultimate() {
                 confirm={t('ultimate.pending.lastDayGo')}
                 calm
                 onConfirm={toPending}
+            />
+            <ConfirmSheet
+                open={gifted}
+                onClose={() => setGifted(false)}
+                title={t('ultimate.gift.title')}
+                text={t('ultimate.gift.text')}
+                confirm={t('ultimate.gift.go')}
+                calm
+                onConfirm={() => setTab('shop')}
             />
             <EvolutionOverlay />
         </div>

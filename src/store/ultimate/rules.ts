@@ -293,19 +293,19 @@ export type FirstStepId = (typeof FIRST_STEPS)[number]['id'];
  * formação e DRAFT_BENCH reservas), sempre 1 de DRAFT_OPTIONS do pool inteiro. DRAFT_GAMES partidas contra a IA, do
  * Fácil ao Mestre; perdeu (ou empatou sem vencer nos pênaltis), acabou. O time não entra no Clube.
  *
- * PROPOSTA, FALTA O OK DO MIGUEL. A entrada custa DRAFT_FICHAS (= 1 Pacote Mini na loja, FICHAS_PACK_PRICE) e a
- * primeira da semana (segunda, Brasília) é grátis. Zero vitória devolve a entrada em 1 Mini: o Draft nunca vira uma
- * loja de pacote mais barata que a Loja.
+ * Miguel deixou com o Claude em 25/11. A entrada custa DRAFT_FICHAS (= 1 Pacote Mini na loja, FICHAS_PACK_PRICE) e a
+ * primeira da semana (segunda, Brasília) é grátis. Zero vitória devolve só 50 Fichas e 1 vitória 1 Mini: perder de
+ * propósito não vira farm.
  */
 export const DRAFT_FICHAS = 150;
 export const DRAFT_OPTIONS = 5;
 export const DRAFT_BENCH = 3;
 export const DRAFT_GAMES = 4;
-/** Prêmio por vitórias (índice = vitórias, 0 a DRAFT_GAMES): Pacotes Mini e Grandes. */
-export const DRAFT_PRIZES: { packs: number; big: number }[] = [
-    { packs: 1, big: 0 },
-    { packs: 2, big: 0 },
-    { packs: 1, big: 1 },
-    { packs: 0, big: 2 },
-    { packs: 1, big: 3 },
+/** Prêmio por vitórias (índice = vitórias, 0 a DRAFT_GAMES): Fichas, Pacotes Mini e Grandes. */
+export const DRAFT_PRIZES: { fichas: number; packs: number; big: number }[] = [
+    { fichas: 50, packs: 0, big: 0 },
+    { fichas: 0, packs: 1, big: 0 },
+    { fichas: 0, packs: 2, big: 0 },
+    { fichas: 0, packs: 1, big: 1 },
+    { fichas: 0, packs: 0, big: 3 },
 ];

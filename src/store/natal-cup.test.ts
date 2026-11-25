@@ -22,13 +22,10 @@ describe('Copa de Natal', () => {
         expect(opps.every((o) => o.lineup.length === 5 && o.bench.length === 2)).toBe(true);
         expect(natalOpponents(buildCupOpponents(seed), seed)).toEqual(opps);
     });
-    it('título só ganhando os dois dias', () => {
-        expect(natalCupWon([{ day: '2026-12-24', champion: true }])).toBe(false);
-        expect(
-            natalCupWon([
-                { day: '2026-12-24', champion: true },
-                { day: '2026-12-25', champion: true },
-            ]),
-        ).toBe(true);
+    it('título ganhando em qualquer um dos dois dias', () => {
+        expect(natalCupWon([{ day: '2026-12-24', champion: false }])).toBe(false);
+        expect(natalCupWon([{ day: '2026-12-23', champion: true }])).toBe(false);
+        expect(natalCupWon([{ day: '2026-12-24', champion: true }])).toBe(true);
+        expect(natalCupWon([{ day: '2026-12-25', champion: true }])).toBe(true);
     });
 });
