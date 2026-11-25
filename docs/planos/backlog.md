@@ -78,3 +78,4 @@ O que mexe no motor ou em visual de carta ainda passa pelos números ou pela gal
 - **Saiu:** mascote do clube (o avatar já faz o papel).
 - **19, modo jogável:** prévia feita (branch `feat-modo-jogavel`, `?lab=jogavel`), fora da 0.9.54. O Miguel viu "MUITO potencial"; pra seguir: mais dribles e chutes, partida mais curta, mais complexidade.
 - **12 e 13 do backlog (troca e ranking):** plano e código atrás de bandeira na branch `feat-troca-ranking` (`docs/planos/troca-e-ranking.md`), migração e Edge Function `ut` NÃO aplicadas. Recomendação: ligar na Temporada 2 (01/06/2027).
+- **Cartas do draft legíveis (decisão 11 de 18/11):** 3 opções na galeria (branch `feat-cartas-legiveis`); em 25/11 o Miguel preferiu manter a carta atual ("o jeito atual tá ótimo já"). Branch não entra.
