@@ -88,14 +88,14 @@ export const CUSTOM_TITLES: Readonly<
     torcidaFarmando: { pt: 'Torcida do Farmando Dungeons', en: 'Farmando Dungeons Supporter' },
     torcidaBreno: { pt: 'Torcida do Breno Menezes', en: 'Breno Menezes Supporter' },
     torcidaLeeGengar: { pt: 'Torcida do LeeGengar', en: 'LeeGengar Supporter' },
-    // Natal (natal.md): sai a partir de 15/12 pelo 2º degrau do desafio ou pela Copa de Natal nos dois dias
+    // Natal (natal.md): sai pelo degrau 4 do Desafio de Natal (3.000 gols) ou ganhando a Copa de Natal nos dois dias
     natal2026: {
         pt: 'Natal 2026',
         en: 'Christmas 2026',
         look: 'ice',
         how: {
-            pt: 'Copa de Natal (24 e 25/12) ou desafio de Natal',
-            en: 'Christmas Cup (Dec 24 and 25) or the Christmas challenge',
+            pt: 'Copa de Natal (24 e 25/12) ou degrau 4 do Desafio de Natal',
+            en: 'Christmas Cup (Dec 24 and 25) or step 4 of the Christmas Challenge',
         },
     },
 };

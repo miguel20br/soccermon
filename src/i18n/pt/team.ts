@@ -107,6 +107,7 @@ export const team = {
         peekHint: 'toque pra ver a carta completa',
         /** Botão embaixo da carta (painel da partida, escalação). */
         full: 'Ver carta completa',
+        pick: 'Golpes',
         fullSub: 'golpes e atributos',
         fullAria: 'Ver a carta completa de {name}: golpes, atributos e habilidade',
         legendary: 'Lendário',
@@ -207,6 +208,7 @@ export const team = {
         uses: '{n} uso|{n} usos',
         perMatch: ' por partida',
         pickTitle: 'Escolher golpes',
+        pickStatus: 'Status',
         pickHint: 'Toque numa vaga e depois no golpe que entra. A assinatura fica.',
         pickLocked: 'assinatura',
         power: ' · poder {n}',

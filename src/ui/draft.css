@@ -477,6 +477,18 @@
         font-size: 11px;
     }
 }
+/* tela baixa em pé (320x568): sem os pontinhos e a frase do capitão, e o golpe máximo numa linha, pra não ficar atrás da barra de baixo */
+@media (max-height: 600px) and (orientation: portrait) {
+    .pick-stage .draft-head .steps,
+    .pick-stage .draft-title .muted,
+    .draft-pick3 .option-max small {
+        display: none;
+    }
+    .draft-pick3 .option-max {
+        flex-direction: row;
+        margin-top: 2px;
+    }
+}
 .draft-team-sheet .formation-board {
     width: min(100%, 380px);
     margin: 0 auto;

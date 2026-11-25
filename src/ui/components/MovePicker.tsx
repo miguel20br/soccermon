@@ -63,7 +63,7 @@ export function MovePicker({ inst }: { inst: PokemonInstance }) {
                     >
                         {moveName(m)}
                         <small>
-                            {MOVES[m].power > 0 ? MOVES[m].power : '-'} · {moveUses(inst, m)}x
+                            {MOVES[m].power > 0 ? MOVES[m].power : t('team.modal.pickStatus')} · {moveUses(inst, m)}x
                         </small>
                     </button>
                 ))}

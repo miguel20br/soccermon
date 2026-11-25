@@ -15,7 +15,7 @@ interface CardModalState {
     captain?: boolean;
     note?: string;
     /** Abre já rolada até essa parte (ex.: tocar num golpe no painel da partida). */
-    section?: 'moves';
+    section?: 'moves' | 'pick';
     actions: CardAction[];
     /** Embaixo das ações (o Álbum põe "Suas versões"). */
     extra?: ReactNode;
@@ -26,7 +26,7 @@ interface CardModalState {
             captain?: boolean;
             note?: string;
             actions?: CardAction[];
-            section?: 'moves';
+            section?: 'moves' | 'pick';
             extra?: ReactNode;
         },
     ): void;
@@ -49,3 +49,7 @@ export const useCardModal = create<CardModalState>((set) => ({
         }),
     close: () => set({ inst: null, actions: [], note: undefined, section: undefined, extra: undefined }),
 }));
+
+/** Dá pra escolher os golpes da carta: na escalação, antes de travar o time, e não na ficha de espécie (peek). */
+export const canPickMoves = (run: { status: string; lockedTeam?: unknown } | null | undefined, peek?: boolean) =>
+    !peek && run?.status === 'lineup' && !run.lockedTeam;
