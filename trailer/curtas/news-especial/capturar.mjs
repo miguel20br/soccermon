@@ -27,6 +27,58 @@ async function tomada(nome, { url, dpr = 2.6667, prep, alvo = TELA, seg, cada })
     const ctx = await browser.newContext({ viewport: { width: 405, height: 720 }, deviceScaleFactor: dpr, locale: 'pt-BR' });
     const page = await ctx.newPage();
     page.on('pageerror', (e) => console.error(`[${nome}] erro na página:`, e.message));
+    // v4: os sprites do VERSUS e das cartas são GIFs, e GIF anda no relógio real do Chromium (nem o page.clock nem o
+    // getAnimations() pegam): cada quadro da gravação (33 ms) leva ~0,5 s de verdade, então o idle saía ~15x mais
+    // rápido que no jogo (o VERSUS do v3: o Golem trocava de quadro em todo quadro do vídeo; no jogo, 9 por segundo). Aqui cada GIF é decodificado e troca de quadro no relógio da gravação (`__gifTick(ms)`, chamado em `anda`),
+    // na duração de cada quadro do GIF; a mesma ideia do scripts/walkout-capture.mjs e do scripts/trailer-capture.mjs.
+    await page.addInitScript(() => {
+        const gifs = new Map();
+        const carrega = (src) => {
+            if (!gifs.has(src))
+                gifs.set(src, (async () => {
+                    const dec = new ImageDecoder({ data: await (await fetch(src)).arrayBuffer(), type: 'image/gif' });
+                    await dec.tracks.ready;
+                    const c = document.createElement('canvas');
+                    const urls = [];
+                    const durs = [];
+                    for (let i = 0; i < dec.tracks.selectedTrack.frameCount; i++) {
+                        const { image } = await dec.decode({ frameIndex: i });
+                        c.width = image.displayWidth;
+                        c.height = image.displayHeight;
+                        const cx = c.getContext('2d');
+                        cx.clearRect(0, 0, c.width, c.height);
+                        cx.drawImage(image, 0, 0);
+                        urls.push(c.toDataURL());
+                        durs.push(Math.max(20, (image.duration ?? 100000) / 1000));
+                        image.close();
+                    }
+                    return { urls, durs, total: durs.reduce((a, b) => a + b, 0) };
+                })());
+            return gifs.get(src);
+        };
+        let agora = 0;
+        window.__gifTick = (ms) => {
+            agora += ms;
+            return Promise.all([...document.querySelectorAll('img')].map(async (im) => {
+                const attr = im.getAttribute('src') || '';
+                if (!attr.startsWith('data:') && attr !== im.dataset.gifSrc) {
+                    if (!/\.gif(\?|$)/.test(attr)) return;
+                    im.dataset.gifSrc = attr;
+                    im.dataset.gifT0 = String(agora);
+                }
+                if (!im.dataset.gifSrc) return;
+                const g = await carrega(new URL(im.dataset.gifSrc, location.href).href);
+                let t = (agora - Number(im.dataset.gifT0)) % g.total;
+                let i = 0;
+                while (i < g.durs.length - 1 && t >= g.durs[i]) t -= g.durs[i++];
+                if (im.dataset.gifFrame !== String(i)) {
+                    im.dataset.gifFrame = String(i);
+                    im.src = g.urls[i];
+                    await im.decode().catch(() => {});
+                }
+            }));
+        };
+    });
     await page.clock.install();
     await page.goto(`${BASE}/${url}`);
     await page.addStyleTag({ content: LIMPA });
@@ -41,6 +93,7 @@ async function tomada(nome, { url, dpr = 2.6667, prep, alvo = TELA, seg, cada })
                 an.__vt += d;
                 an.currentTime = an.__vt;
             }
+            return window.__gifTick(d);
         }, ms);
     };
     await prep({ page, anda });
@@ -49,12 +102,13 @@ async function tomada(nome, { url, dpr = 2.6667, prep, alvo = TELA, seg, cada })
         const dir = `${OUT}/${nome}`;
         mkdirSync(dir, { recursive: true });
         const n = Math.round(seg * FPS);
+        const t0 = Date.now();
         for (let i = 0; i < n; i++) {
             if (cada) await cada(i, page);
             await page.screenshot({ path: `${dir}/${String(i).padStart(4, '0')}.png`, clip: { x: alvo.x, y: alvo.y, width: alvo.w, height: alvo.h } });
             await anda(DT);
         }
-        console.log(`${nome}: ${n} quadros → ${dir}`);
+        console.log(`${nome}: ${n} quadros → ${dir} (${((Date.now() - t0) / n).toFixed(0)} ms de verdade por quadro de ${DT.toFixed(1)} ms)`);
     }
     await ctx.close();
 }
@@ -79,6 +133,12 @@ await tomada('pacote', {
     seg: Number(process.env.SEG ?? 4),
     prep: async ({ page }) => {
         await entraUT(page);
+        // v4: o salt fixo dá o mesmo pacote dos v1–v3 (Jigglypuff, o shiny do walkout no meio e Mankey); sem ele o
+        // sorteio muda a cada gravação
+        await page.evaluate(async () => {
+            const { useGame } = await import('/src/store/game-store.ts');
+            useGame.setState((s) => ({ ultimate: { ...s.ultimate, salt: 'amg' } }));
+        });
         await aba(page, 'Loja');
         await page.locator('.ut-shop button, button', { hasText: /^Abrir$/ }).first().click();
         await page.locator('.ut-tear').waitFor();
