@@ -1,4 +1,5 @@
 import type { CSSProperties } from 'react';
+import { species } from '../../engine/data';
 import { createInstance, type PokemonInstance, viewInstance } from '../../engine/instance';
 import { Rng } from '../../engine/rng';
 import { useT } from '../../i18n/react';
@@ -326,6 +327,138 @@ const NEVE_LEVE = pixels(
     { w: '#ffffff' },
 );
 
+// ---------------------------------------------------------------- D-polida (a D escolhida pelo Miguel, com acabamento)
+/** Losangos com um pontinho dourado nos cruzamentos (as pontas dos losangos encostam na beirada do ladrilho). */
+const LOSANGO_DP = pixels(
+    Array.from({ length: 16 }, (_, y) =>
+        Array.from({ length: 16 }, (_, x) => {
+            const dot = (x === 7 && y === 0) || (x === 0 && y === 7);
+            return dot ? 'y' : Math.abs(x - 7.5) + Math.abs(y - 7.5) <= 7 ? 'k' : '.';
+        }).join(''),
+    ),
+    { k: '#a51624', y: '#c4913f' },
+);
+/** Metal da D-polida: bronze puxado pro cobre, prata fria, ouro de sempre. */
+const METAL_DP: Record<Metal, Pal> = {
+    bronze: { o: '#3a1a08', h: '#ffd0a6', m: '#cf7d45', l: '#8b431d', d: '#5a2810' },
+    prata: { o: '#232c3a', h: '#f4f8ff', m: '#b8c4d6', l: '#6a7a92', d: '#445166' },
+    ouro: { o: '#3d2c00', h: '#fff3b8', m: '#e8c24a', l: '#a87e12', d: '#6e5208' },
+};
+const BOW_DP = Object.fromEntries(
+    (Object.keys(METAL_DP) as Metal[]).map((m) => [m, pixels(LACO_D, METAL_DP[m])]),
+) as Record<Metal, string>;
+/**
+ * Pisca-pisca pendurado: fio fino caindo em curva entre os bocais, lâmpada em pixel com bocal e, acesa, um halo
+ * pequeno na cor dela (pixels meio transparentes em volta). 4 lâmpadas por ladrilho; A = vermelha e verde, B = amarela e azul.
+ */
+const LAMPADA = ['.ss.', '.SS.', '.wc.', 'wccC', 'cccC', '.cC.', '..C.'];
+const fioDp = (lit: 'base' | 'a' | 'b') => {
+    const W = 96;
+    const g = Array.from({ length: 11 }, () => Array.from({ length: W }, () => '.'));
+    if (lit === 'base')
+        for (let x = 0; x < W; x++)
+            g[1 + Math.round(2.4 * Math.sin((Math.PI * (((x - 13.5 + W) % 24) + 0.5)) / 24))][x] = 'k';
+    ['r', 'y', 'g', 'b'].forEach((c, i) => {
+        const on = lit === 'base' || (lit === 'a') === (i % 2 === 0);
+        if (!on) return;
+        const x0 = i * 24 + 12;
+        const art = LAMPADA.map((r) => r.replaceAll('c', c).replaceAll('C', c.toUpperCase()));
+        if (lit !== 'base')
+            // halo: tudo a até 2 pixels do vidro (fora dele) ganha a cor meio transparente
+            for (let y = 0; y < 11; y++)
+                for (let x = x0 - 3; x < x0 + 7; x++) {
+                    const near = art.some((r, ay) =>
+                        [...r].some(
+                            (ch, ax) => ay >= 2 && ch !== '.' && Math.abs(ax + x0 - x) + Math.abs(ay + 1 - y) <= 2,
+                        ),
+                    );
+                    if (near) g[y][x] = String(i + 1);
+                }
+        art.forEach((r, ay) => {
+            [...r].forEach((ch, ax) => {
+                if (ch !== '.' && (lit === 'base' || ay >= 2)) g[ay + 1][x0 + ax] = ch;
+            });
+        });
+    });
+    return g.map((r) => r.join(''));
+};
+const HALO: Pal = { 1: '#ff5a5566', 2: '#ffe06666', 3: '#62f08a66', 4: '#6cc8ff66' };
+const FIO_DP_BASE = pixels(fioDp('base'), {
+    k: '#4a2a14',
+    s: '#6d6a60',
+    S: '#a9a397',
+    ...Object.fromEntries(Object.entries(BULB_ON).map(([k, c]) => [k, k === 'w' ? '#c9b8a8' : off(c)])),
+});
+const FIO_DP_A = pixels(fioDp('a'), { ...BULB_ON, ...HALO });
+const FIO_DP_B = pixels(fioDp('b'), { ...BULB_ON, ...HALO });
+/** Neve fina em 2 camadas: atrás, pontos de 1 pixel (alguns azulados); na frente, 2 pixels e umas cruzes de 3. */
+const NEVE_TRAS = pixels(
+    [
+        '....w...........................',
+        '..................b.............',
+        '..........w...................w.',
+        '.........................w......',
+        '..b.............................',
+        '..............w.................',
+        '.......................b........',
+        '.....w..........................',
+        '..........................w.....',
+        '...........b....................',
+        '.w..............................',
+        '...................w............',
+        '........................b.....w.',
+        '.......w........................',
+        '..............b.................',
+        '...b....................w.......',
+        '...........................b....',
+        '.........w......................',
+        '.....................w..........',
+        'w...............................',
+        '..............w............b....',
+        '......b.........................',
+        '...................b............',
+        '.............................w..',
+    ],
+    { w: '#ffffff', b: '#cfe0ff' },
+);
+const NEVE_FRENTE = pixels(
+    [
+        '................................',
+        '...ww...........................',
+        '...ww...................w.......',
+        '.......................www......',
+        '........................w.......',
+        '...........ww...................',
+        '...........ww...................',
+        '................................',
+        '..............................ww',
+        '..w...........................ww',
+        '................................',
+        '...................ww...........',
+        '...................ww...........',
+        '.......w........................',
+        '......www.......................',
+        '.......w....................w...',
+        '................................',
+        '.............ww.................',
+        '.............ww.................',
+        '.........................ww.....',
+        '.........................ww.....',
+        '................................',
+        '.ww.............................',
+        '.ww.................w...........',
+        '...................www..........',
+        '....................w...........',
+        '................................',
+        '.........ww.....................',
+        '.........ww.................w...',
+        '................................',
+        '..........................ww....',
+        '..........................ww....',
+    ],
+    { w: '#ffffff' },
+);
+
 const ART = {
     '--xm-festao': FESTAO,
     '--xm-neve-fina': NEVE_FINA,
@@ -340,6 +473,12 @@ const ART = {
     '--xm-fio-a': FIO_A,
     '--xm-fio-b': FIO_B,
     '--xm-neve-leve': NEVE_LEVE,
+    '--xm-losango-dp': LOSANGO_DP,
+    '--xm-fio-dp': FIO_DP_BASE,
+    '--xm-fio-dp-a': FIO_DP_A,
+    '--xm-fio-dp-b': FIO_DP_B,
+    '--xm-neve-tras': NEVE_TRAS,
+    '--xm-neve-frente': NEVE_FRENTE,
 } as CSSProperties;
 
 const OPTIONS = [
@@ -383,6 +522,15 @@ const SAMPLES = [86, 25, 144].map((id): { inst: PokemonInstance; metal: Metal } 
     return { inst, metal: metalOf(viewInstance(inst).overall) };
 });
 const METAL_NAME: Record<Metal, string> = { bronze: 'Bronze', prata: 'Prata', ouro: 'Ouro' };
+/** D x D-polida: os 3 metais e os Pokémon vermelhos e alaranjados que somem no papel (Charizard, Magmar, Voltorb). */
+const COMPARE = [86, 100, 144, 6, 126].map((id) => {
+    const inst: PokemonInstance = {
+        ...createInstance(id, new Rng(`natal-${id}`)),
+        shiny: false,
+        special: { kind: 'evento', type: 'Ice' },
+    };
+    return { inst, metal: metalOf(viewInstance(inst).overall), name: species(id).name };
+});
 
 export function NatalCards() {
     // a etiqueta da D: "Natal" no lugar de "Evento · Gelo" (só aqui na galeria, por CSS)
@@ -415,6 +563,28 @@ export function NatalCards() {
                             </div>
                             <figcaption className="muted">
                                 {o.id.toUpperCase()} · {METAL_NAME[metal]}
+                            </figcaption>
+                        </figure>
+                    )),
+                )}
+            </div>
+            <h3 className="xm-cmp-title">D x D-polida (a escolhida, com acabamento)</h3>
+            <p className="muted">
+                Halo escuro suave atrás do Pokémon, neve fina em 2 camadas, pisca-pisca pendurado com halo na cor da
+                lâmpada, fita do nome em cetim, pontinhos dourados no papel, bordinha de metal e brilho no laço.
+            </p>
+            <div id="natal-dp" className="xm-grid" style={{ '--xm-cols': COMPARE.length } as CSSProperties}>
+                {(['d', 'dp'] as const).flatMap((v) =>
+                    COMPARE.map(({ inst, metal, name }) => (
+                        <figure key={`${v}-${inst.speciesId}`} className="cg-item">
+                            <div
+                                className={`xm-card xv-d${v === 'dp' ? ' xv-dp' : ''} xm-${metal}`}
+                                style={{ '--xm-bow': (v === 'dp' ? BOW_DP : BOW_D)[metal] } as CSSProperties}
+                            >
+                                <PokeCard2 inst={inst} variant="metal" />
+                            </div>
+                            <figcaption className="muted">
+                                {v === 'dp' ? 'D-polida' : 'D'} · {name} ({METAL_NAME[metal]})
                             </figcaption>
                         </figure>
                     )),

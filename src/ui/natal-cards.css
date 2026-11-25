@@ -480,6 +480,150 @@
     mask-image: linear-gradient(#000 75%, transparent 100%);
 }
 
+/* ---------- D-polida: a D com acabamento (Miguel escolheu a D em 25/11) ---------- */
+.xm-cmp-title {
+    margin: 22px 0 4px;
+    font-size: 14px;
+}
+/* metal: cobre no bronze, prata fria */
+.xm-card.xv-dp.xm-bronze {
+    --mt-hi: #ffd0a6;
+    --mt: #cf7d45;
+    --mt-lo: #8b431d;
+}
+.xm-card.xv-dp.xm-prata {
+    --mt-hi: #f4f8ff;
+    --mt: #b8c4d6;
+    --mt-lo: #6a7a92;
+}
+/* papel com pontinhos dourados nos cruzamentos e bordinha de metal fina (luz, metal, sombra) */
+.xm-card.xv-dp .pc2.pc2-metal.ed-evento {
+    background:
+        linear-gradient(transparent 64%, rgba(48, 0, 8, 0.5) 74%),
+        var(--xm-losango-dp) 0 0 / 2.6em 2.6em,
+        linear-gradient(170deg, #c6232f 0%, #b31c28 50%, #94121e 100%);
+    box-shadow:
+        0 0.25em 0 rgba(0, 0, 0, 0.35),
+        inset 0 0 0 0.07em var(--mt-lo),
+        inset 0 0 0 0.15em var(--mt),
+        inset 0 0 0 0.2em var(--mt-hi);
+}
+/* sem o quadrado claro do símbolo do tipo atrás do Pokémon: no lugar, um halo escuro suave que separa ele do papel */
+.xm-card.xv-dp .pc2.pc2-metal.ed-evento .m-mark {
+    opacity: 0;
+}
+.xm-card.xv-dp .pc2.pc2-metal.ed-evento .pr-ev {
+    background: radial-gradient(
+        ellipse 62% 54% at 50% 58%,
+        rgba(32, 0, 8, 0.62),
+        rgba(32, 0, 8, 0.38) 50%,
+        transparent 78%
+    );
+    -webkit-mask-image: linear-gradient(#000 78%, transparent 100%);
+    mask-image: linear-gradient(#000 78%, transparent 100%);
+}
+/* neve fina: 2 camadas no mesmo ciclo (a da frente, de ladrilho maior, cai mais rápido) e uma deriva lenta pro lado */
+.xm-card.xv-dp .pc2.pc2-metal.ed-evento .pr-ev::before {
+    inset: 0 -0.6em;
+    background:
+        var(--xm-neve-frente) 0 0 / 3.84em 3.84em,
+        var(--xm-neve-tras) 1em 0 / 3.84em 2.88em;
+    opacity: 0.9;
+    animation:
+        xm-neve-dp 26s linear infinite,
+        xm-deriva 9s ease-in-out infinite alternate;
+}
+@keyframes xm-neve-dp {
+    to {
+        background-position:
+            0 7.68em,
+            1em 5.76em;
+    }
+}
+@keyframes xm-deriva {
+    from {
+        translate: -0.3em 0;
+    }
+    to {
+        translate: 0.3em 0;
+    }
+}
+/* fita do nome em cetim igual à vertical (as duas com a mesma receita), e o pisca-pisca pendurado */
+.xm-card.xv-dp .pc2-metal .m-top::before {
+    background:
+        linear-gradient(180deg, transparent 40%, rgba(255, 255, 255, 0.55) 50%, transparent 60%) 0 0 / 300% 300%
+        no-repeat,
+        linear-gradient(
+            90deg,
+            color-mix(in srgb, var(--mt-lo) 70%, #000) 0 6%,
+            var(--mt-lo) 6% 14%,
+            var(--mt) 14% 30%,
+            var(--mt-hi) 30% 40%,
+            var(--mt) 40% 62%,
+            color-mix(in srgb, var(--mt) 50%, var(--mt-lo)) 62% 86%,
+            var(--mt-lo) 86% 94%,
+            color-mix(in srgb, var(--mt-lo) 70%, #000) 94%
+        );
+}
+.xm-card.xv-dp .pc2-metal .m-name {
+    padding-top: 1.05em;
+    background-image:
+        var(--xm-fio-dp), linear-gradient(90deg, transparent 40%, rgba(255, 255, 255, 0.5) 50%, transparent 60%),
+        linear-gradient(
+            180deg,
+            color-mix(in srgb, var(--mt-lo) 70%, #000) 0 4%,
+            var(--mt-lo) 4% 10%,
+            var(--mt) 10% 30%,
+            var(--mt-hi) 30% 38%,
+            var(--mt) 38% 62%,
+            color-mix(in srgb, var(--mt) 50%, var(--mt-lo)) 62% 88%,
+            var(--mt-lo) 88% 96%,
+            color-mix(in srgb, var(--mt-lo) 70%, #000) 96%
+        );
+    background-size:
+        auto 1.1em,
+        300% 100%,
+        auto;
+}
+.xm-card.xv-dp .pc2-metal .m-name::before,
+.xm-card.xv-dp .pc2-metal .m-name::after {
+    height: 1.1em;
+    background-image: var(--xm-fio-dp-a);
+    filter: none;
+    animation: xm-pisca 4.4s ease-in-out infinite alternate;
+}
+.xm-card.xv-dp .pc2-metal .m-name::before {
+    background-image: var(--xm-fio-dp-b);
+    animation-delay: -4.4s;
+}
+/* laço: um brilho passa por ele de vez em quando (cópia do laço como máscara, por cima) */
+.xm-card.xv-dp .pc2-metal::before {
+    content: "";
+    position: absolute;
+    top: 0.05em;
+    right: 0.55em;
+    width: 4.2em;
+    height: 3em;
+    z-index: 10;
+    background: linear-gradient(115deg, transparent 40%, rgba(255, 255, 255, 0.85) 50%, transparent 60%) no-repeat;
+    background-size: 300% 100%;
+    background-position: 100% 0;
+    -webkit-mask: var(--xm-bow) center / contain no-repeat;
+    mask: var(--xm-bow) center / contain no-repeat;
+    animation: xm-laco 8s ease-in-out infinite;
+    pointer-events: none;
+}
+@keyframes xm-laco {
+    0%,
+    70% {
+        background-position: 100% 0;
+    }
+    90%,
+    100% {
+        background-position: 0 0;
+    }
+}
+
 @media (max-width: 700px) {
     /* 5 opções lado a lado: no celular a grade rola pro lado dentro do painel (a página não) */
     .xm-grid {
