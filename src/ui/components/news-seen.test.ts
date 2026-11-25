@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { readSeen } from './AboutFooter';
+import { readSeen, versionNum } from './AboutFooter';
 
 describe('pontinho das Novidades', () => {
     afterEach(() => vi.unstubAllGlobals());
@@ -18,5 +18,12 @@ describe('pontinho das Novidades', () => {
             throw new Error('bloqueado');
         });
         expect(readSeen()).toBeNull();
+    });
+
+    it('versão nova passa de qualquer versão de 4 partes vista antes (0.9.53.1 < 0.9.54 < 0.10.0)', () => {
+        expect(versionNum('0.9.53.1')).toBeLessThan(versionNum('0.9.54'));
+        expect(versionNum('0.9.54')).toBeLessThan(versionNum('0.10.0'));
+        // o que ficou guardado no jeito antigo (0.9.53.1 = 9053001) também fica pra trás
+        expect(9053001).toBeLessThan(versionNum('0.10.0'));
     });
 });

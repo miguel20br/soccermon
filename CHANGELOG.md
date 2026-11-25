@@ -1,12 +1,14 @@
 # Novidades
 
-## 0.9.54 · Natal, sinergias secretas e Desafios de Montagem (2026-11-30)
+## 0.10.0 · Draft do Time Ultimate, Copa de Natal e sinergias secretas (2026-11-30)
 
 ### Natal (de 30/11 a 06/01)
 - Neve e luzes de Natal nos menus e na quadra da partida
 - Treinadores de gorro, festão nas telas e o logo com gorrinho
 - Três músicas de menu de Natal em rodízio (Noite Feliz, Trenó e Luzes da árvore) e uma música de partida de Natal
 - Título novo "Natal 2026", com efeito de gelo, ganho no evento de Natal
+- Copa de Natal em 24 e 25/12: rivais de Gelo e o Snorlax de capitão na final
+- Gorro de Natal nos Pokémon do Estádio, da Arena e do pódio
 
 ### Copa
 - A escolha do capitão mostra o golpe máximo de cada Pokémon
@@ -21,11 +23,15 @@
 - Sinergias secretas: 6 combinações escondidas contra o rival, reveladas em campo; Registro de Sinergias na Coleção
 
 ### Time Ultimate
+- Draft: monte um time na hora, escolhendo 1 de 5 por vaga, e jogue 4 partidas por pacotes
 - Desafios de Montagem: troque cartas por pacotes e Picks montando times com regra
 - Duelo com o time do Time Ultimate: cada um joga com o próprio time, sem draft
 
 ### Perfil
 - Seletor de título novo, com prévia do efeito
+- Cartão do perfil com nível e enfeites
+- Legado do Time Ultimate no Perfil: a melhor carta e cada temporada
+- Título no VERSUS e na imagem de Compartilhar
 - Caminho do treinador nas Metas da Sede, com o prêmio de cada missão
 
 ## 0.9.53.1 · Comemorações próprias e cut-in de dupla (2026-11-23)

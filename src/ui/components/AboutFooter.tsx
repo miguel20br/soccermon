@@ -33,8 +33,12 @@ function LangToggle() {
     );
 }
 
-/** "0.9.27" vira 9027: a última versão aberta nas Novidades fica guardada como número (`local-count`). */
-const versionNum = (v: string) => v.split('.').reduce((a, x) => a * 1000 + (Number(x) || 0), 0);
+/**
+ * "0.9.27" vira 9027000: a última versão aberta nas Novidades fica guardada como número (`local-count`). Sempre 4 partes
+ * (a 0.9.53.1 dava 9053001 e passava da 0.9.54, 9054, e da 0.10.0: o pontinho nunca mais acendia pra quem a abriu).
+ */
+export const versionNum = (v: string) =>
+    [...v.split('.'), '0', '0', '0', '0'].slice(0, 4).reduce((a, x) => a * 1000 + (Number(x) || 0), 0);
 const NEWS_SEEN = 'soccermon.newsSeen';
 /** Última versão aberta; sem a chave (quem nunca abriu) é 0 e o pontinho acende; null só sem onde guardar. */
 export function readSeen(): number | null {

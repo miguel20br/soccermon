@@ -9,9 +9,9 @@ export interface PatchNotes {
 
 export const PATCH_NOTES: PatchNotes[] = [
     {
-        version: '0.9.54',
+        version: '0.10.0',
         date: '2026-11-30',
-        title: 'Natal, sinergias secretas e Desafios de Montagem',
+        title: 'Draft do Time Ultimate, Copa de Natal e sinergias secretas',
         sections: [
             {
                 title: 'Natal (de 30/11 a 06/01)',
@@ -20,6 +20,8 @@ export const PATCH_NOTES: PatchNotes[] = [
                     'Treinadores de gorro, festão nas telas e o logo com gorrinho',
                     'Três músicas de menu de Natal em rodízio (Noite Feliz, Trenó e Luzes da árvore) e uma música de partida de Natal',
                     'Título novo "Natal 2026", com efeito de gelo, ganho no evento de Natal',
+                    'Copa de Natal em 24 e 25/12: rivais de Gelo e o Snorlax de capitão na final',
+                    'Gorro de Natal nos Pokémon do Estádio, da Arena e do pódio',
                 ],
             },
             {
@@ -43,6 +45,7 @@ export const PATCH_NOTES: PatchNotes[] = [
             {
                 title: 'Time Ultimate',
                 lines: [
+                    'Draft: monte um time na hora, escolhendo 1 de 5 por vaga, e jogue 4 partidas por pacotes',
                     'Desafios de Montagem: troque cartas por pacotes e Picks montando times com regra',
                     'Duelo com o time do Time Ultimate: cada um joga com o próprio time, sem draft',
                 ],
@@ -51,6 +54,9 @@ export const PATCH_NOTES: PatchNotes[] = [
                 title: 'Perfil',
                 lines: [
                     'Seletor de título novo, com prévia do efeito',
+                    'Cartão do perfil com nível e enfeites',
+                    'Legado do Time Ultimate no Perfil: a melhor carta e cada temporada',
+                    'Título no VERSUS e na imagem de Compartilhar',
                     'Caminho do treinador nas Metas da Sede, com o prêmio de cada missão',
                 ],
             },
@@ -3118,9 +3124,9 @@ export const PATCH_NOTES: PatchNotes[] = [
 /** Notes in English (same versions; a version missing here falls back to Portuguese). */
 export const PATCH_NOTES_EN: PatchNotes[] = [
     {
-        version: '0.9.54',
+        version: '0.10.0',
         date: '2026-11-30',
-        title: 'Christmas, secret synergies and Build Challenges',
+        title: 'Ultimate Team Draft, Christmas Cup and secret synergies',
         sections: [
             {
                 title: 'Christmas (Nov 30 to Jan 6)',
@@ -3129,6 +3135,8 @@ export const PATCH_NOTES_EN: PatchNotes[] = [
                     'Trainers in Santa hats, garlands on the screens and the logo with a little hat',
                     'Three Christmas menu songs in rotation (Silent Night, Sleigh and Tree Lights) and a Christmas match song',
                     'New "Christmas 2026" title with an ice effect, earned in the Christmas event',
+                    'Christmas Cup on Dec 24 and 25: Ice-type rivals and Snorlax as captain in the final',
+                    'Santa hats on the Pokémon in the Stadium, the Arena and the podium',
                 ],
             },
             {
@@ -3152,6 +3160,7 @@ export const PATCH_NOTES_EN: PatchNotes[] = [
             {
                 title: 'Ultimate Team',
                 lines: [
+                    'Draft: build a team on the spot, picking 1 of 5 per slot, and play 4 matches for packs',
                     'Build Challenges: trade cards for packs and Picks by building teams that follow a rule',
                     'Duel with your Ultimate Team: each player brings their own team, no draft',
                 ],
@@ -3160,6 +3169,9 @@ export const PATCH_NOTES_EN: PatchNotes[] = [
                 title: 'Profile',
                 lines: [
                     'New title picker with a preview of the effect',
+                    'Profile card with level and ornaments',
+                    'Ultimate Team Legacy on the Profile: your best card and every season',
+                    'Title on the VERSUS screen and on the Share image',
                     "Trainer path in the Club's Goals, with the reward for each mission",
                 ],
             },
