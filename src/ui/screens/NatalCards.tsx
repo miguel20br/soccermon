@@ -267,7 +267,7 @@ const METAL_NAME: Record<Metal, string> = { bronze: 'Bronze', prata: 'Prata', ou
 export function NatalCards() {
     return (
         <section className="panel" id="natal" style={ART}>
-            <h2>Cartas de Natal · 3 opções pro Miguel escolher, fora do jogo</h2>
+            <h2>Cartas de Natal (3 opções, fora do jogo)</h2>
             <p className="muted">
                 Carta Evento do Natal (tipo Gelo). Nota e atributos do mesmo tamanho; o metal pela nota aparece na cor
                 da nota, na moldura e na fita. Movimento lento; com Reduzir movimento fica parado.
