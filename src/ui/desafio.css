@@ -225,7 +225,7 @@
     text-align: right;
 }
 .dn-step-goal .cb-num {
-    font-size: 13px;
+    font-size: var(--gfs, 13px);
     white-space: nowrap;
 }
 .dn-chip {
@@ -459,7 +459,7 @@
 .rr-name {
     margin: 0;
     font-family: "Galmuri14", "Galmuri11", monospace;
-    font-size: 26px;
+    font-size: var(--gfs, 26px);
     font-weight: 400;
     color: var(--yellow);
     line-height: 1.15;
