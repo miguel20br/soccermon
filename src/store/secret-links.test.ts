@@ -18,7 +18,9 @@ import {
     matchSecrets,
     rivalSecrets,
     SECRET_LINKS,
+    SECRET_TOTAL,
     secretOf,
+    TEAM_SECRETS,
 } from './secret-links';
 
 const p = (idx: number, team: 0 | 1, speciesId: number) => ({ idx, team, speciesId }) as PlayerSummary;
@@ -91,6 +93,36 @@ describe('sinergias secretas: detecção (só tela)', () => {
         expect(matchSecrets(result(ros2, [evo, meet])).map((h) => h.id)).toEqual(['aberturaRG']);
     });
 
+    it('as do mesmo time (fase 2): reveladas no combo ou no gol de dupla, com a secreta ligada no time de agora', () => {
+        // Charmander (4) e Charizard (6): Mestre e Aprendiz
+        const roster = [p(0, 0, 4), p(1, 0, 6), p(2, 0, 19), p(3, 1, 25), p(4, 1, 7)];
+        const goal = ev({ type: 'goal', by: 0, assist: 1, team: 0, ownGoal: false });
+        const r = matchSecrets(result(roster, [goal]));
+        expect(r).toMatchObject([{ id: 'mestreAprendiz', a: 1, b: 0, species: [6, 4], team: true }]);
+        expect(r[0].event).toBe(goal);
+        // gol sem assistência, gol contra ou dupla que não é da secreta não revela
+        expect(matchSecrets(result(roster, [ev({ type: 'goal', by: 0, assist: null, team: 0 })]))).toEqual([]);
+        expect(matchSecrets(result(roster, [{ ...goal, ownGoal: true } as MatchEvent]))).toEqual([]);
+        expect(matchSecrets(result(roster, [ev({ type: 'goal', by: 0, assist: 2, team: 0 })]))).toEqual([]);
+        // combo de secreta revela também; o Charizard saindo antes desliga
+        const combo = ev({ type: 'combo', by: 0, partner: 1, link: 'mestre4' });
+        expect(matchSecrets(result(roster, [combo])).map((h) => h.id)).toEqual(['mestreAprendiz']);
+        const sub = ev({ type: 'sub', team: 0, outIdx: 1, inSpeciesId: 20 });
+        expect(matchSecrets(result(roster, [sub, goal]))).toEqual([]);
+        // toda secreta do mesmo time tem nome, descrição e charada nos dois idiomas, sem emoji
+        expect(TEAM_SECRETS).toHaveLength(21);
+        for (const l of TEAM_SECRETS)
+            for (const d of [pt, en]) {
+                const txt = d.common.secretLink[l.secret!];
+                for (const v of [txt.name, txt.desc, txt.riddle]) {
+                    expect(v.length).toBeGreaterThan(3);
+                    expect(v).not.toMatch(/\p{Extended_Pictographic}/u);
+                }
+            }
+        // descoberta guardada no perfil como as rivalidades
+        expect(freshCombos([], ['mestreAprendiz', 'rivalAzul'])).toEqual(['mestreAprendiz', 'rivalAzul']);
+    });
+
     it('revelação longa só na 1ª vez de sempre (nem no replay)', () => {
         expect(longReveal('clone', [], false)).toBe(true);
         expect(longReveal('clone', undefined, false)).toBe(true);
@@ -137,7 +169,8 @@ describe('sinergias secretas: profile.combosFound', () => {
 
     it('medalha em degraus pelas descobertas', () => {
         const m = medalById('sinergias')!;
-        expect(m.steps.at(-1)).toBe(SECRET_LINKS.length);
+        expect(SECRET_TOTAL).toBe(SECRET_LINKS.length + 21);
+        expect(m.steps.at(-1)).toBe(SECRET_TOTAL);
         expect(m.value({ combos: ['clone', 'x'] } as never)).toBe(1);
         expect(m.value({} as never)).toBe(0);
         expect(pt.profile.medals.names.sinergias).toBeTruthy();

@@ -13,7 +13,7 @@ import {
     seenCount,
     topSeal,
 } from './profile';
-import { combosFoundOf, SECRET_LINKS } from './secret-links';
+import { combosFoundOf, SECRET_TOTAL } from './secret-links';
 
 /**
  * Medalhas com degraus (bronze, prata, ouro, platina), padrão Pokémon GO. Só cosmético e 100% retroativo: cada
@@ -85,10 +85,10 @@ export const MEDALS: Medal[] = [
     { id: 'colecoes', steps: [1, 3, 6, 9], value: (v) => COLLECTION_IDS.filter((id) => v.done.has(id)).length },
     { id: 'missoes', steps: [10, 20, 35, MISSIONS.length], value: (v) => v.done.size },
     { id: 'duelista', steps: [1, 10, 50, 200], value: (v) => duelWins(v.records, v.duels) },
-    // sinergias secretas (PROPOSTA, 0.9.54): degraus pelas 6 rivalidades de agora; a platina é achar todas
+    // sinergias secretas (PROPOSTA): 1, 5, 15 e todas (as 6 rivalidades + as 21 do mesmo time; pesquisa §5)
     {
         id: 'sinergias',
-        steps: [1, 2, 4, SECRET_LINKS.length],
+        steps: [1, 5, 15, SECRET_TOTAL],
         value: (v) => combosFoundOf({ combosFound: v.combos }).length,
     },
 ];

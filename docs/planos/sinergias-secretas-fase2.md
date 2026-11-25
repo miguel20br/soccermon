@@ -1,5 +1,5 @@
 ---
-description: Fase 2 das sinergias secretas (as com bônus em campo): lista, bônus proposto e números de antes e depois pro Miguel decidir. Nada aplicado.
+description: Fase 2 das sinergias secretas (as com bônus em campo): lista, bônus, decisões de 25/11 e números de antes e depois. Na branch feat-sinergias-fase2 (motor 34), esperando o Miguel jogar a prévia.
 ---
 
 # Sinergias secretas, fase 2: as com bônus em campo (proposta, 23/11/2026)
@@ -7,13 +7,43 @@ description: Fase 2 das sinergias secretas (as com bônus em campo): lista, bôn
 A fase 1 (branch `feat-sinergias-secretas`) entregou só tela: as 6 rivalidades, o "???" na escalação, a revelação em
 quadra, o Registro de Sinergias, a medalha e o "Sinergia descoberta" no resultado. As secretas abaixo **mudam a
 partida** (bônus em tudo + combo de passe e chute, o mesmo pacote das 14 de história), então passam pelo motor:
-`ENGINE_VERSION`, republicar a `liga` e o ok do Miguel. **Nada disto está no código.** Catálogo e gatilhos:
-[pesquisa §3](pesquisas/sinergias-e-animacoes.md).
+`ENGINE_VERSION`, republicar a `liga` e o ok do Miguel. Catálogo e gatilhos:
+[pesquisa §3](pesquisas/sinergias-e-animacoes.md). **Implementada em 25/11 na branch `feat-sinergias-fase2`** (seção
+abaixo); o Miguel joga a prévia antes de subir.
+
+## Implementado (25/11/2026, motor 34)
+
+O Miguel pediu a opinião do Claude nas 4 decisões e vai jogar a prévia:
+
+1. Régua escalonada como na tabela: +3/+4 nas comuns, +5 nas de 2 famílias, +6 nas de 3 membros certos, +8 nas raras.
+2. Mestre e Aprendiz: +3%.
+3. Rival Azul pede **3** das 6 famílias (não 2), com +4%.
+4. Combo de passe e chute só nas de membros certos. Rival Azul, Jardim, Ninjas, Mente, Quiz, Gelo de Lorelei, Torre,
+   Cabo Link, Mestre e Aprendiz e Família Completa só têm o bônus (`noCombo`).
+
+No código: `LinkDef.secret` (id do Registro) e `noCombo` em `src/engine/links.ts`; Mestre e Aprendiz (53) e Família
+Completa (16) saem de `evolvesTo`. Carta = campo: o bônus entra em `modifiers.ts` e o painel diz "Sinergia secreta: +N%"
+sem o nome; o chip vira "??? +N%" até a descoberta. Fora da ajuda, do `linksOf` da carta e do `nearLinks` do UT. A
+descoberta (`matchSecrets`) vale no combo ou no gol de dupla (passe de um, gol do outro, os dois da mesma secreta, com
+ela ligada no time de agora). Registro: 6 rivalidades + 21 do mesmo time = 27; medalha em 1, 5, 15 e 27 (pesquisa §5).
+Bundle da `liga` gerado com `npm run edge:liga` (o `engine.js` é ignorado pelo `.gitignore`); o deploy é no lançamento.
+
+| n=400 | Gols/jogo | Favorito vence | Times com alguma secreta ligada |
+|---|---|---|---|
+| `calibrate`, motor 33 (antes) | 7,42 | 63,7% (Δ≥3) | - |
+| `calibrate`, motor 34 (depois) | 7,51 | 63,4% (Δ≥3) | - |
+| `secretas-bonus --geral`, sem as secretas | 7,19 | 60,3% (1+ acima) | - |
+| `secretas-bonus --geral`, proposta de 23/11 (Rival Azul com 2) | 7,22 | 60,9% | 22,4% |
+| `secretas-bonus --geral`, com as 21 aprovadas | 7,26 | 59,4% | 14,4% |
+
+Gols/jogo já estavam acima da meta (5–7) antes das secretas, no motor 33; elas somam uns +0,1, dentro do ruído. O
+favorito do `calibrate` segue na meta (60–65%); o do `--geral` caiu 0,9 ponto, também dentro do ruído de n=400 (±2,5).
+Rival Azul com 3 derrubou os times com secreta de 22% pra 14%. Nada foi ajustado por causa disso: decisão do Miguel.
 
 ## Como medi
 
-`scripts/balance/secretas-bonus.ts` põe as secretas em `LINKS` só na memória do script (o motor não muda) e compara
-as mesmas partidas com e sem elas. Rodado com `scripts/pesado.sh`.
+`scripts/balance/secretas-bonus.ts` tira e põe as secretas em `LINKS` só na memória do script e compara as mesmas
+partidas sem e com elas (até 23/11 o script tinha a lista dele; desde a implementação lê a do motor). Rodado com `scripts/pesado.sh`.
 
 - **Geral** (`--geral`, n=200, draft da IA dos dois lados, a IA não conhece as secretas):
 

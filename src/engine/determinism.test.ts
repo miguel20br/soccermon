@@ -19,8 +19,8 @@ const EXPECTED_HASHES = [
     '6e5c859a',
     // motor 27: o rival evolui com a mesma barra do jogador (esta partida tinha evolução do rival)
     '30eb124a',
-    // motor 29: a Linha de 3 arma pelo fixo (esta partida passa pela 3-1)
-    'ce7f5118',
+    // motor 29: a Linha de 3 arma pelo fixo (esta partida passa pela 3-1); motor 34: liga uma sinergia secreta
+    '1e1ce4e4',
     '50785a42',
     // daqui até as assinaturas, as partidas com golpe máximo pedido (motor 17: golpe máximo universal e a bicuda do goleiro
     // capitão, que vale só pro chute que ele alcança; motor 18: a queda do N2/N3 e os efeitos do tipo quando a bola chega;
@@ -33,7 +33,8 @@ const EXPECTED_HASHES = [
     // assinaturas do golpe máximo (motor 13): Mew, Dragonite e Ditto (motor 18: a defesa do golpe máximo espalma pra
     // escanteio ou na trave, nunca encaixa; 02/11: o N1 por tipo)
     'ee1b153f',
-    '0590ff29',
+    // motor 34: liga uma sinergia secreta
+    'a4c2ba79',
     '6fadd490',
     '95384375',
 ];
