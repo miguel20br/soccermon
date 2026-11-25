@@ -11,6 +11,7 @@ import { isNatalCup } from '../../store/natal-cup';
 import { bannerInk, clubColorHex } from '../../store/profile';
 import { markSeen, useHydrated } from '../coach/Coach';
 import { cupStep } from '../components/AccountLink';
+import { DesafioStrip, useDesafioLed } from '../components/DesafioNatal';
 import { Logo } from '../components/LogoHits';
 import { HudIcon } from '../components/MatchHud';
 import { PixelTrophy } from '../components/PixelTrophy';
@@ -214,8 +215,10 @@ export function Stands({
     const liga = ligaTeaser();
     const day = dailyDay();
     const [, mm, dd] = day.split('-');
+    const desafio = useDesafioLed();
     const news = [
         isNatalCup(day) ? t('home.amb.ledNatal', { dd, mm }).toUpperCase() : week,
+        desafio,
         !playedToday && t('home.amb.ledDaily'),
         liga && t('home.amb.ledLiga', { d: liga.d }),
     ];
@@ -617,6 +620,8 @@ export function Estadio({
                     {/* "Fulano te chamou pro Duelo" (na Home o aviso por cima não aparece: fica aqui, onde todo mundo chega) */}
                     <FriendChallenge />
                     <ParkedRuns />
+                    {/* Desafio de Natal (07/12 a 05/01): a barra com cara de letreiro; antes, a contagem */}
+                    {hydrated && !firstVisit && <DesafioStrip variant="led" />}
                     <PlayBar main={main} sheet={plan.sheet.map(mode)} onPick={setChosen} />
                     {/* quem ainda não jogou hoje também acha o ranking (depois de jogar, o botão principal já leva). Fica
                         sempre montado e por cima da quadra: aparecer não empurra as placas pra cima */}

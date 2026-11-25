@@ -30,7 +30,7 @@ import { Home, type UtTab } from './Home';
 import { type UtOpened, UtPackMoment } from './PackMoment';
 import { UtPickMoment, usePickName } from './PickMoment';
 import { Play } from './Play';
-import { PackImg, packArt } from './pack-art';
+import { PACK_NAME_KEY, PackImg, packArt } from './pack-art';
 import { SeasonBar } from './Season';
 import { Shop } from './Shop';
 import './ultimate.css';
@@ -65,13 +65,12 @@ export function Ultimate() {
     const live = !!u.live;
     // biome-ignore lint/correctness/useExhaustiveDependencies: `n` e `live` são o gatilho da virada
     useEffect(() => roll(), [n, live, roll]);
-    // 25/12 (Brasília): presente de Natal, uma vez por save, com aviso
+    // 25/12 (Brasília): presente de Natal, uma vez por save, na tela de prêmio (RewardReveal)
     const gift = useGame((s) => s.ultimateGift);
-    const [gifted, setGifted] = useState(false);
     const today0 = dailyDay(new Date(now));
     // biome-ignore lint/correctness/useExhaustiveDependencies: o dia é o gatilho
     useEffect(() => {
-        if (gift()) setGifted(true);
+        gift();
     }, [today0, gift]);
     // troca de aba volta pro topo (a barra embaixo é fixa; a página nova nasce do começo)
     // biome-ignore lint/correctness/useExhaustiveDependencies: `tab` é o gatilho
@@ -95,11 +94,11 @@ export function Ultimate() {
             return;
         }
         // cada pacote leva o seu tipo: o PackMoment abre um de cada vez com a arte e o nome dele
-        const packs = (['big', 'mini'] as const).flatMap((k) =>
+        const packs = (['evbig', 'big', 'evmini', 'mini'] as const).flatMap((k) =>
             (openMany(k)?.packs ?? []).map((p) => ({ ...p, kind: k })),
         );
         const after = useGame.getState().ultimate;
-        const left = packsReady(after, utNow()) + after.bigPacks;
+        const left = packsReady(after, utNow()) + after.bigPacks + after.evMini + after.evBig;
         setPack(packs.length ? { packs, kind: 'mini', full: left > 0 && pendingFull(after) } : null);
     };
     const toClub = (s: ClubSeg) => {
@@ -230,15 +229,6 @@ export function Ultimate() {
                 calm
                 onConfirm={toPending}
             />
-            <ConfirmSheet
-                open={gifted}
-                onClose={() => setGifted(false)}
-                title={t('ultimate.gift.title')}
-                text={t('ultimate.gift.text')}
-                confirm={t('ultimate.gift.go')}
-                calm
-                onConfirm={() => setTab('shop')}
-            />
             <EvolutionOverlay />
         </div>
     );
@@ -261,7 +251,7 @@ function Packs({ onOpen, onPick }: { onOpen: (kind?: PackKind, n?: number) => vo
     const n = stackCount(u, now);
     const next = nextPackIn(u, now);
     const mini = packsReady(u, now);
-    const packN = mini + u.bigPacks;
+    const packN = mini + u.bigPacks + u.evMini + u.evBig;
     const ahead = eventAhead(now);
     return (
         <>
@@ -328,6 +318,20 @@ function Packs({ onOpen, onPick }: { onOpen: (kind?: PackKind, n?: number) => vo
                                                     : t('ultimate.stack.next', { time: hms(next), max: PACK_MAX })}
                                             </small>
                                         </StackRow>
+                                    )}
+                                    {/* os de Evento do Desafio de Natal: toda carta sai Evento */}
+                                    {(['evbig', 'evmini'] as const).map(
+                                        (k) =>
+                                            u[k === 'evbig' ? 'evBig' : 'evMini'] > 0 && (
+                                                <StackRow
+                                                    key={k}
+                                                    kind={k}
+                                                    n={u[k === 'evbig' ? 'evBig' : 'evMini']}
+                                                    title={t(PACK_NAME_KEY[k])}
+                                                    hint={t('ultimate.stack.evHint')}
+                                                    onOpen={onOpen}
+                                                />
+                                            ),
                                     )}
                                     {u.bigPacks > 0 && (
                                         <StackRow

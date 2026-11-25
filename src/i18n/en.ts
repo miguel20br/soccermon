@@ -11,6 +11,7 @@ import { liga } from './en/liga';
 import { longCup } from './en/longCup';
 import { match } from './en/match';
 import { moments } from './en/moments';
+import { natal } from './en/natal';
 import { profile } from './en/profile';
 import { result } from './en/result';
 import { reward } from './en/reward';
@@ -49,5 +50,6 @@ export const en: Dict = {
     longCup,
     bracket,
     ultimate,
+    natal,
     showdown,
 };

@@ -29,6 +29,9 @@ export const parseOrnaments = (v: unknown): string[] =>
         ? v.filter((x): x is string => typeof x === 'string' && /^[a-z0-9:_-]{1,24}$/i.test(x)).slice(0, 6)
         : [];
 
+/** O enfeite raro do Desafio de Natal (último degrau). */
+export const RARE_ORNAMENT = 'estrela-natal';
+
 /** A fileira de enfeites do cartão (some sem enfeite). */
 export function OrnamentRow({ ids, className }: { ids: string[]; className?: string }) {
     const { t, d } = useT();
@@ -37,9 +40,11 @@ export function OrnamentRow({ ids, className }: { ids: string[]; className?: str
         <ul className={`pf-orn${className ? ` ${className}` : ''}`} aria-label={t('ultimate.legacy.ornaments')}>
             {ids.map((id) => {
                 const champ = /^champ:(\d{1,3})$/.exec(id);
+                // a Estrela de Natal (último degrau do Desafio de Natal) é o enfeite raro: estrela e brilho dourado
+                const rare = id === RARE_ORNAMENT;
                 return (
-                    <li key={id} className="pf-orn-chip">
-                        <HudIcon kind={champ ? 'crown' : 'sparkle'} />
+                    <li key={id} className={`pf-orn-chip${rare ? ' is-rare' : ''}`}>
+                        <HudIcon kind={champ ? 'crown' : rare ? 'star' : 'sparkle'} />
                         {champ ? t('ultimate.legacy.championShort', { n: champ[1] }) : (d.ultimate.events[id] ?? id)}
                     </li>
                 );

@@ -8,6 +8,7 @@ import { FutCard } from '../components/FutCard';
 import { HudIcon } from '../components/MatchHud';
 import { MomentStage } from '../kit/MomentStage';
 import { preloadWalkout, Walkout } from '../kit/WalkoutStage';
+import { PACK_NAME_KEY } from './pack-art';
 
 /** Quanto o dedo anda (fração da largura do pacote) pra rasgar a tampa. */
 const TEAR_AT = 0.4;
@@ -94,7 +95,7 @@ export function UtPackMoment({
 }) {
     const { t, tn } = useT();
     const many = open.packs.length > 1;
-    const name = (k: PackKind) => (k === 'big' ? t('ultimate.packs.big') : t('ultimate.packs.mini'));
+    const name = (k: PackKind) => t(PACK_NAME_KEY[k]);
     const kindOf = (p: UtOpened['packs'][number]) => p.kind ?? open.kind;
     const mixed = open.packs.some((p) => kindOf(p) !== kindOf(open.packs[0]));
     const { packs, best } = walkoutLast(open.packs);

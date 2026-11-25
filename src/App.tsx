@@ -16,6 +16,7 @@ import { CupBar } from './ui/components/CupBar';
 import { LogoHits } from './ui/components/LogoHits';
 import { useMenuBack } from './ui/components/MenuHead';
 import { MenuIcon } from './ui/components/MenuIcon';
+import { RewardReveal } from './ui/components/RewardReveal';
 import { TopActions } from './ui/components/TopActions';
 import { UnlockNotice } from './ui/components/UnlockNotice';
 import { runDevDemo } from './ui/dev-demo';
@@ -440,6 +441,7 @@ export default function App() {
             <FriendVitrine />
             <AccountLink />
             <UnlockNotice />
+            <RewardReveal />
             {diskFull && !['match', 'liga-match', 'ultimate-match'].includes(screen) && (
                 <Toast tone="bad">{t('common.ui.diskFull')}</Toast>
             )}

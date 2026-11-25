@@ -6,6 +6,7 @@ import App from './App';
 import { startAnalytics } from './analytics/track';
 import { startChunkReload } from './chunk-reload';
 import { startCloudSync } from './cloud/cloud';
+import { startDesafio } from './cloud/desafio';
 import { importFromOldDomain, moveToNewDomain } from './cloud/domain-move';
 import { startFriendsLive } from './friends/api';
 import { installTexIdFix } from './game/texid-fix';
@@ -57,6 +58,8 @@ startInstall();
 startCloudSync();
 // Copa do Dia: cada partida vai pro ranking do dia (só com conta Google)
 startLeagueSync();
+// Desafio de Natal (07/12 a 05/01): os gols de cada partida somam na meta de todo mundo (só com conta Google)
+startDesafio();
 // amigos: online e avisos na hora (só com conta Google e alguém na lista)
 startFriendsLive();
 // volume por canal e "reduzir movimento" (Configurações)

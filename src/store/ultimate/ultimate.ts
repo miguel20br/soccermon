@@ -201,6 +201,9 @@ export interface UltimateSave {
     extraPacks: number;
     /** Pacotes Grandes ganhos (objetivos da semana, passe, líderes). */
     bigPacks: number;
+    /** Pacotes de Evento (Mini e Grande) do Desafio de Natal: toda carta sai Evento (desafio-natal.ts). */
+    evMini: number;
+    evBig: number;
     /** Cartas e Picks comprados com Fichas (numera a semente da próxima). */
     bought: number;
     /** De quando conta o relógio do próximo pacote (ms). Cheio, não conta. */
@@ -258,6 +261,8 @@ export const newUltimate = (salt = Math.floor(Math.random() * 1e9).toString(36),
     packAt: now,
     extraPacks: 0,
     bigPacks: 0,
+    evMini: 0,
+    evBig: 0,
     bought: 0,
     opened: 0,
     team: {
@@ -331,6 +336,8 @@ export function ultimateOf(raw: unknown): UltimateSave {
         packAt: typeof raw.packAt === 'number' && Number.isFinite(raw.packAt) ? raw.packAt : base.packAt,
         extraPacks: num(raw.extraPacks),
         bigPacks: num(raw.bigPacks),
+        evMini: num(raw.evMini),
+        evBig: num(raw.evBig),
         bought: num(raw.bought),
         opened: num(raw.opened),
         team: {
@@ -600,14 +607,18 @@ const rollMetal = (rng: Rng): Metal => {
     return 'bronze';
 };
 
-export type PackKind = 'mini' | 'big';
+/** `evmini`/`evbig`: os pacotes de Evento do Desafio de Natal (o tamanho do Mini e do Grande, toda carta Evento). */
+export type PackKind = 'mini' | 'big' | 'evmini' | 'evbig';
+const isBig = (k: PackKind) => k === 'big' || k === 'evbig';
+/** O evento das cartas dos pacotes de Evento (só o do Natal, por enquanto). */
+const EV_PACK_EVENT = 'natal-2026';
 
 /**
  * Os metais do pacote: cada carta pela chance; com menos de `floorN` do piso (Mini 1, Grande BIG_FLOOR_N), as últimas
  * abaixo dele viram o piso.
  */
 export function packMetals(rng: Rng, kind: PackKind = 'mini'): Metal[] {
-    const [size, floorN] = kind === 'big' ? [BIG_PACK_SIZE, BIG_FLOOR_N] : [PACK_SIZE, 1];
+    const [size, floorN] = isBig(kind) ? [BIG_PACK_SIZE, BIG_FLOOR_N] : [PACK_SIZE, 1];
     const metals = Array.from({ length: size }, () => rollMetal(rng));
     let short = floorN - metals.filter((m) => rank(m) >= rank(FLOOR_METAL)).length;
     for (let i = metals.length - 1; i >= 0 && short > 0; i--)
@@ -634,8 +645,13 @@ export function rollPack(
     kind: PackKind = 'mini',
     now?: number,
 ): PokemonInstance[] {
-    const rng = new Rng(u.salt, `ut-${kind === 'big' ? 'big' : 'pack'}-${u.opened}`);
-    const event = now === undefined ? null : eventAt(now);
+    const rng = new Rng(u.salt, `ut-${kind === 'mini' ? 'pack' : kind}-${u.opened}`);
+    const forced = kind === 'evmini' || kind === 'evbig';
+    const event = forced
+        ? (EVENTS.find((e) => e.id === EV_PACK_EVENT) ?? null)
+        : now === undefined
+          ? null
+          : eventAt(now);
     const owned = new Set(u.cards.map((c) => c.speciesId));
     const avoidOwned = u.cards.length < TEAM_SIZE;
     const needKeeper = avoidOwned && !u.cards.some(isKeeper);
@@ -651,6 +667,7 @@ export function rollPack(
             metalPools()[metal].filter((id) => !taken.has(id)),
             event,
             (id) => `ut${u.opened}-${i}-${id}`,
+            forced,
         );
         taken.add(card.speciesId);
         return card;
@@ -791,9 +808,8 @@ export function openPack(
     kind: PackKind = 'mini',
 ): { u: UltimateSave; pack: PackOpen } | null {
     const clock = refill(u, now);
-    const big = kind === 'big';
-    const free = !big && clock.packs >= 1;
-    if ((big ? u.bigPacks < 1 : !free && u.extraPacks < 1) || pendingFull(u)) return null;
+    const free = kind === 'mini' && clock.packs >= 1;
+    if (packsOf(u, now, kind) < 1 || pendingFull(u)) return null;
     const cards = rollPack(u, kind, now);
     const repeat = cards.map((c) => isRepeat(u.cards, c));
     const fresh = cards.filter((_, i) => !repeat[i]);
@@ -808,8 +824,10 @@ export function openPack(
                 fichas: u.fichas + OPEN_FICHAS,
                 packs: free ? clock.packs - 1 : clock.packs,
                 packAt: clock.packAt,
-                extraPacks: free || big ? u.extraPacks : u.extraPacks - 1,
-                bigPacks: big ? u.bigPacks - 1 : u.bigPacks,
+                extraPacks: kind === 'mini' && !free ? u.extraPacks - 1 : u.extraPacks,
+                bigPacks: kind === 'big' ? u.bigPacks - 1 : u.bigPacks,
+                evMini: kind === 'evmini' ? u.evMini - 1 : u.evMini,
+                evBig: kind === 'evbig' ? u.evBig - 1 : u.evBig,
                 opened: u.opened + 1,
             },
             'pack',
@@ -819,14 +837,15 @@ export function openPack(
 }
 
 /** Tudo em Meus pacotes (Mini do relógio e ganhos, Grandes): o número da aba Loja e do bloco do Início. */
-export const stackCount = (u: UltimateSave, now: number) => packsReady(u, now) + u.bigPacks + u.picks.length;
+export const stackCount = (u: UltimateSave, now: number) =>
+    packsReady(u, now) + u.bigPacks + u.evMini + u.evBig + u.picks.length;
 
 /** Pacotes de um tipo guardados agora (Mini: os do relógio + os ganhos). */
 export const packsOf = (
-    u: Pick<UltimateSave, 'packs' | 'packAt' | 'extraPacks' | 'bigPacks'>,
+    u: Pick<UltimateSave, 'packs' | 'packAt' | 'extraPacks' | 'bigPacks' | 'evMini' | 'evBig'>,
     now: number,
     kind: PackKind,
-) => (kind === 'big' ? u.bigPacks : packsReady(u, now));
+) => (kind === 'big' ? u.bigPacks : kind === 'evmini' ? u.evMini : kind === 'evbig' ? u.evBig : packsReady(u, now));
 
 /**
  * Abrir todos (ultimate-fc.md): `openPack` em laço, até `n` pacotes do tipo. Mesma semente por `opened`, então abrir 4 de

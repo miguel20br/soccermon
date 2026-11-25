@@ -7,12 +7,21 @@ import type { Metal } from '../rarity';
  * texto na língua): o tipo do pacote, o metal do Pick com Fichas, ou o Pick guardado.
  */
 export function packArt(x: PackKind | Metal | UtPick): string {
+    if (x === 'evmini' || x === 'evbig') return 'evento-natal-2026';
     if (typeof x === 'string') return x === 'big' ? 'grande' : x;
     if (x.from === 'start') return 'craque';
     if (x.event) return `evento-${x.event}`;
     if (x.from === 'gym') return x.type ? `lider-${x.type.toLowerCase()}` : 'lider';
     return x.min;
 }
+
+/** A chave do nome de cada tipo de pacote (Loja, abertura e a tela de prêmio). */
+export const PACK_NAME_KEY = {
+    mini: 'ultimate.packs.mini',
+    big: 'ultimate.packs.big',
+    evmini: 'ultimate.packs.evMini',
+    evbig: 'ultimate.packs.evBig',
+} as const;
 
 /** A arte do pacote em 1x (126x174); o CSS amplia em escala inteira com `pixelated`. Fora do bundle (public/). */
 export function PackImg({ art }: { art: string }) {

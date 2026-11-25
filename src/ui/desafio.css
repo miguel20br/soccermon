@@ -1,0 +1,570 @@
+/* Desafio de Natal (components/DesafioNatal.tsx) e a tela de prêmio (components/RewardReveal.tsx). */
+
+/* ---------- a faixa: Home (pequena) e Estádio (letreiro de LED) ---------- */
+.dn-strip {
+    position: relative;
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    align-items: center;
+    gap: 8px;
+    width: min(460px, 100%);
+    margin: 0 auto;
+    padding: 6px 10px 6px 14px;
+    border: 3px solid var(--bc-edge);
+    border-radius: 8px;
+    background: var(--bc-ink);
+    box-shadow:
+        inset 0 0 0 2px #39447a,
+        0 3px 0 var(--bc-edge);
+    color: var(--text);
+    text-align: left;
+    font: inherit;
+    cursor: pointer;
+    transition: transform var(--dur-ui) var(--ease-out);
+    animation: dn-in 260ms var(--ease-out) both;
+}
+.dn-strip::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 5px;
+    border-radius: 5px 0 0 5px;
+    background: linear-gradient(180deg, var(--red) 0 50%, var(--green) 50%);
+}
+.dn-strip:active {
+    transform: translateY(2px);
+}
+.dn-strip-ic {
+    color: var(--yellow);
+}
+.dn-strip-go {
+    width: 14px;
+    height: 14px;
+    color: var(--muted);
+}
+.dn-strip-txt {
+    font-size: 12px;
+    font-weight: 700;
+}
+.dn-strip-body {
+    display: grid;
+    gap: 3px;
+    min-width: 0;
+}
+.dn-strip-top {
+    display: flex;
+    justify-content: space-between;
+    gap: 8px;
+    font-size: 12px;
+}
+.dn-strip-top b {
+    font-weight: 700;
+    white-space: nowrap;
+}
+.dn-strip-top .cb-num {
+    color: var(--yellow);
+    white-space: nowrap;
+}
+.dn-strip-mine {
+    min-height: 1em;
+    overflow: hidden;
+    color: var(--muted);
+    font-size: 11px;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+/* Estádio: com cara do letreiro (fundo do LED, texto âmbar e a grade de pontos por cima) */
+.dn-strip.is-led {
+    background: #070a1a;
+    box-shadow: 0 3px 0 var(--bc-edge);
+}
+.dn-strip.is-led::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: 5px;
+    background: repeating-linear-gradient(90deg, transparent 0 2px, rgb(7 10 26 / 45%) 2px 3px);
+    pointer-events: none;
+}
+.dn-strip.is-led :is(.dn-strip-top, .dn-strip-txt) {
+    color: rgb(255 203 5 / 85%);
+    letter-spacing: 1px;
+    text-transform: uppercase;
+}
+@keyframes dn-in {
+    from {
+        opacity: 0;
+        transform: translateY(6px);
+    }
+}
+
+/* ---------- a barra com as 8 marcas ---------- */
+.dn-bar {
+    position: relative;
+    display: block;
+    height: 10px;
+    overflow: hidden;
+    border: 2px solid var(--bc-edge);
+    border-radius: 4px;
+    background: #050816;
+}
+.dn-fill {
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    background: linear-gradient(90deg, var(--red), var(--yellow));
+    transition: width 300ms var(--ease-out);
+}
+.dn-tick {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: var(--at);
+    width: 2px;
+    margin-left: -2px;
+    background: rgb(255 255 255 / 28%);
+}
+.dn-tick.on {
+    background: var(--bc-edge);
+}
+
+/* ---------- o painel dos degraus ---------- */
+.dn-panel {
+    width: min(560px, 100%);
+}
+.dn-intro {
+    margin: 0 0 10px;
+    color: var(--muted);
+    font-size: 12px;
+    line-height: 1.5;
+}
+.dn-head {
+    display: grid;
+    gap: 6px;
+    padding: 10px 12px;
+}
+.dn-count {
+    font-size: 14px;
+    color: var(--yellow);
+}
+.dn-mine {
+    color: var(--muted);
+    font-size: 12px;
+}
+.dn-mine.ok {
+    color: var(--green);
+}
+.dn-steps {
+    display: grid;
+    gap: 6px;
+    margin: 12px 0 0;
+    padding: 0;
+    list-style: none;
+}
+.dn-step {
+    display: grid;
+    grid-template-columns: 64px 1fr auto;
+    align-items: center;
+    gap: 10px;
+    padding: 6px 10px 6px 6px;
+    border: 2px solid var(--bc-edge);
+    border-radius: 8px;
+    background: var(--panel);
+    animation: dn-in 240ms var(--ease-out) both;
+    animation-delay: calc(var(--i, 0) * 30ms);
+    transition:
+        opacity var(--dur-ui) var(--ease-out),
+        border-color var(--dur-ui) var(--ease-out);
+}
+.dn-step.is-next {
+    border-color: var(--yellow);
+    box-shadow: 0 0 0 2px rgb(255 203 5 / 25%);
+}
+.dn-step.is-locked {
+    opacity: 0.72;
+}
+.dn-step.is-locked .dn-step-art {
+    filter: grayscale(0.7);
+}
+.dn-step-art {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 2px;
+    height: 64px;
+}
+.dn-step-info {
+    display: grid;
+    gap: 2px;
+    min-width: 0;
+}
+.dn-step-info > small {
+    color: var(--muted);
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+}
+.dn-step-prize {
+    display: grid;
+}
+.dn-step-prize b {
+    font-size: 13px;
+}
+.dn-step-prize small {
+    color: var(--muted);
+    font-size: 11px;
+}
+.dn-step-goal {
+    display: grid;
+    justify-items: end;
+    gap: 4px;
+    text-align: right;
+}
+.dn-step-goal .cb-num {
+    font-size: 13px;
+    white-space: nowrap;
+}
+.dn-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    padding: 1px 6px;
+    border-radius: 4px;
+    background: var(--bc-ink);
+    color: var(--muted);
+    font-size: 10px;
+    font-weight: 700;
+    white-space: nowrap;
+}
+.dn-chip .hud-icon {
+    width: 12px;
+    height: 12px;
+}
+.is-done .dn-chip {
+    background: var(--green);
+    color: var(--bc-ink);
+}
+.is-next .dn-chip {
+    background: var(--yellow);
+    color: var(--bc-ink);
+}
+@media (max-width: 400px) {
+    .dn-step {
+        grid-template-columns: 48px 1fr auto;
+        gap: 8px;
+    }
+    .dn-step-art {
+        height: 52px;
+    }
+}
+
+/* ---------- o desenho do prêmio (painel: pequeno; tela de prêmio: grande) ---------- */
+.dn-art {
+    position: relative;
+    display: inline-grid;
+    place-items: center;
+    flex: none;
+}
+.dn-packimg {
+    display: block;
+    height: 60px;
+    width: auto;
+    image-rendering: auto;
+}
+.dn-back {
+    position: absolute;
+    transform: translate(6px, -3px) rotate(8deg);
+    filter: brightness(0.7);
+}
+.dn-art-pack > .dn-packimg:not(.dn-back) {
+    position: relative;
+}
+.dn-art-pack.is-gold > .dn-packimg:not(.dn-back) {
+    filter: drop-shadow(0 0 4px #ffd54a) drop-shadow(0 0 2px #ffd54a);
+}
+.dn-art-x {
+    position: absolute;
+    right: -6px;
+    bottom: -2px;
+    font-size: 12px;
+    color: var(--yellow);
+}
+.dn-art-coin {
+    width: 46px;
+    height: 46px;
+    border: 3px solid var(--bc-edge);
+    border-radius: 50%;
+    background: radial-gradient(circle at 35% 30%, #fff3b0, var(--yellow) 55%, #c98a00);
+    color: var(--bc-ink);
+}
+.dn-art-coin b {
+    font-size: 13px;
+}
+.dn-art-orn {
+    width: 46px;
+    height: 46px;
+    border: 3px solid var(--bc-edge);
+    border-radius: 50%;
+    background: radial-gradient(circle at 35% 30%, #6fe08a, var(--green) 50%, #1e7a3a);
+    color: #fff;
+}
+.dn-art-orn .hud-icon {
+    width: 24px;
+    height: 24px;
+}
+.dn-art-orn.is-rare {
+    background: radial-gradient(circle at 35% 30%, #fff3b0, #ffd54a 50%, #b07800);
+    color: #4a2d00;
+    box-shadow: 0 0 10px rgb(255 213 74 / 70%);
+}
+.dn-art-title {
+    max-width: 64px;
+}
+.dn-title-plate {
+    display: inline-block;
+    padding: 3px 6px;
+    border: 2px solid var(--bc-edge);
+    border-radius: 4px;
+    background: var(--bc-ink);
+    font-size: 10px;
+    font-weight: 700;
+    text-align: center;
+    line-height: 1.2;
+}
+
+/* ---------- a tela de prêmio ---------- */
+.rr-back {
+    position: fixed;
+    inset: 0;
+    z-index: 600;
+    display: grid;
+    place-items: center;
+    overflow: hidden;
+    padding: 16px;
+    background: rgb(5 8 20 / 88%);
+    animation: rr-fade 240ms var(--ease-out) both;
+}
+.rr-hit {
+    position: absolute;
+    inset: 0;
+    border: 0;
+    background: none;
+    cursor: pointer;
+}
+.rr-hit:focus-visible {
+    outline: none;
+}
+/* raios atrás do prêmio, girando devagar (só decoração) */
+.rr-rays {
+    position: absolute;
+    left: 50%;
+    top: 40%;
+    width: 900px;
+    height: 900px;
+    margin: -450px 0 0 -450px;
+    background: repeating-conic-gradient(rgb(255 203 5 / 10%) 0 10deg, transparent 10deg 20deg);
+    mask: radial-gradient(circle, #000 0 20%, transparent 60%);
+    animation: rr-spin 40s linear infinite;
+    pointer-events: none;
+}
+.rr-card {
+    position: relative;
+    display: grid;
+    justify-items: center;
+    gap: 8px;
+    width: min(440px, 100%);
+    text-align: center;
+    pointer-events: none;
+    animation: rr-pop 260ms var(--ease-pop) both;
+    transition:
+        opacity 220ms var(--ease-out),
+        transform 220ms var(--ease-out);
+}
+.rr-back.out .rr-card {
+    opacity: 0;
+    transform: scale(0.92) translateY(-8px);
+}
+.rr-art {
+    position: relative;
+    display: grid;
+    place-items: center;
+    min-height: 190px;
+    margin: 6px 0;
+}
+.rr-art::before {
+    content: "";
+    position: absolute;
+    width: 240px;
+    height: 240px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgb(255 213 74 / 45%), transparent 65%);
+    animation: rr-glow 900ms var(--ease-out) both;
+}
+.rr-art .dn-packimg {
+    height: 174px;
+    image-rendering: pixelated;
+}
+.rr-art .dn-back {
+    transform: translate(18px, -8px) rotate(8deg);
+}
+.rr-art .dn-art-x {
+    right: -18px;
+    font-size: 22px;
+}
+.rr-art :is(.dn-art-coin, .dn-art-orn) {
+    width: 132px;
+    height: 132px;
+    border-width: 4px;
+}
+.rr-art .dn-art-coin b {
+    font-size: 34px;
+}
+.rr-art .dn-art-orn .hud-icon {
+    width: 64px;
+    height: 64px;
+}
+.rr-art .dn-art-title {
+    max-width: none;
+}
+.rr-art .dn-title-plate {
+    padding: 14px 22px;
+    border-width: 3px;
+    font-size: 26px;
+}
+.rr-sparks {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+}
+.rr-sparks i {
+    position: absolute;
+    width: 6px;
+    height: 6px;
+    margin: -3px;
+    background: var(--yellow);
+    opacity: 0;
+    animation: rr-spark 760ms var(--ease-out) 120ms both;
+}
+.rr-sparks i:nth-child(3n) {
+    background: #fff;
+}
+.rr-head {
+    font-size: 10px;
+}
+.rr-name {
+    margin: 0;
+    font-family: "Galmuri14", "Galmuri11", monospace;
+    font-size: 26px;
+    font-weight: 400;
+    color: var(--yellow);
+    line-height: 1.15;
+}
+.rr-hint {
+    margin: 0;
+    color: var(--muted);
+    font-size: 13px;
+}
+.rr-facts {
+    display: grid;
+    gap: 6px;
+    width: 100%;
+    margin: 6px 0 0;
+    padding: 10px 12px;
+    border: 3px solid var(--bc-edge);
+    border-radius: 8px;
+    background: var(--bc-ink);
+    list-style: none;
+    text-align: left;
+}
+.rr-facts li {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 8px;
+    align-items: start;
+    font-size: 12px;
+    line-height: 1.4;
+}
+.rr-facts .hud-icon {
+    width: 14px;
+    height: 14px;
+    margin-top: 1px;
+    color: var(--yellow);
+    stroke-width: 3;
+}
+.rr-tap {
+    margin-top: 8px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: var(--text);
+    animation: rr-blink 1.4s ease-in-out 600ms infinite;
+}
+@media (max-height: 700px) {
+    .rr-art {
+        min-height: 120px;
+    }
+    .rr-art .dn-packimg {
+        height: 116px;
+        image-rendering: auto;
+    }
+    .rr-art :is(.dn-art-coin, .dn-art-orn) {
+        width: 96px;
+        height: 96px;
+    }
+}
+@keyframes rr-fade {
+    from {
+        opacity: 0;
+    }
+}
+@keyframes rr-pop {
+    from {
+        opacity: 0;
+        transform: scale(0.6);
+    }
+}
+@keyframes rr-glow {
+    from {
+        opacity: 0;
+        transform: scale(0.3);
+    }
+}
+@keyframes rr-spark {
+    0% {
+        opacity: 1;
+        transform: rotate(var(--a)) translateX(10px) scale(1.4);
+    }
+    100% {
+        opacity: 0;
+        transform: rotate(var(--a)) translateX(var(--d)) scale(0.4);
+    }
+}
+@keyframes rr-spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+@keyframes rr-blink {
+    50% {
+        opacity: 0.45;
+    }
+}
+/* Reduzir movimento: sem raios girando, sem faíscas e sem escala; fica só o fade */
+:root[data-reduce-motion="true"] :is(.rr-rays, .rr-tap, .dn-fill) {
+    animation: none;
+    transition: none;
+}
+:root[data-reduce-motion="true"] .rr-sparks {
+    display: none;
+}
+:root[data-reduce-motion="true"] .rr-card {
+    animation-name: rr-fade;
+}
+:root[data-reduce-motion="true"] .rr-back.out .rr-card {
+    transform: none;
+}

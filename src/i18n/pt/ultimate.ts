@@ -134,6 +134,8 @@ export const ultimate = {
         openRule: 'Todo pacote aberto dá +{n} Fichas',
         extra: '+{n} ganho|+{n} ganhos',
         big: 'Pacote Grande',
+        evMini: 'Pacote Mini de Evento',
+        evBig: 'Pacote Grande de Evento',
         bigHint: '5 cartas, pelo menos 2 Prata ou melhor',
         bigHave: 'Você tem {n}|Você tem {n}',
         bigNone: 'Sai nos objetivos da semana e no passe',
@@ -149,6 +151,7 @@ export const ultimate = {
         toBuy: 'Ver a loja',
         miniHint: '3 cartas · 1 {metal} ou melhor',
         bigHint: '5 cartas · {n} {metal} ou melhor',
+        evHint: 'Toda carta sai Evento de Natal',
         miniShort: 'Mini',
         bigShort: 'Grande',
         next: 'Próximo em {time} (guarda até {max})',
@@ -208,7 +211,12 @@ export const ultimate = {
         preview: 'Começa em {time}',
         reset: 'No fim zeram time, cartas, Fichas e passe. Medalha, título e a Lenda ficam no Perfil.',
     },
-    events: { 'natal-2026': 'Natal' } as Record<string, string>,
+    /** Eventos e enfeites do Perfil (o id vai pela vitrine): os do Time Ultimate e os do Desafio de Natal. */
+    events: {
+        'natal-2026': 'Natal',
+        'desafio-natal': 'Desafio de Natal',
+        'estrela-natal': 'Estrela de Natal',
+    } as Record<string, string>,
     event: {
         title: 'Evento: {name}',
         ends: 'Termina em {time}',

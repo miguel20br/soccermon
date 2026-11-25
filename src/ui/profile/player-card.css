@@ -246,6 +246,21 @@
     height: 13px;
     flex: none;
 }
+/* Estrela de Natal (enfeite raro do Desafio de Natal): fundo dourado com um brilho que passa devagar */
+.pf-orn-chip.is-rare {
+    border-color: #8a5a00;
+    background: linear-gradient(110deg, #ffd54a 0%, #fff3b0 45%, #ffd54a 60%) 0 0 / 220% 100%;
+    color: #4a2d00;
+    animation: pf-orn-shine 2.8s linear infinite;
+}
+@keyframes pf-orn-shine {
+    to {
+        background-position: -220% 0;
+    }
+}
+:root[data-reduce-motion="true"] .pf-orn-chip.is-rare {
+    animation: none;
+}
 /* título do cartão maior (15 px): é o que os outros leem embaixo do nome */
 .pf-head .pf-title-line,
 .pcard-head .pf-title-line {

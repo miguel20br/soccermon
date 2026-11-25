@@ -264,7 +264,7 @@ function Highlights({ onTab }: { onTab: (t: UtTab) => void }) {
     const u = useGame((s) => s.ultimate);
     const now = useNow();
     const name = usePickName();
-    const packs = packsReady(u, now) + u.bigPacks;
+    const packs = packsReady(u, now) + u.bigPacks + u.evMini + u.evBig;
     const event = eventAhead(now);
     const live = event && now >= event.start;
     const slides: Slide[] = [

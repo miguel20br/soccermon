@@ -134,6 +134,8 @@ export const ultimate: typeof pt = {
         openRule: 'Every pack you open gives +{n} Coins',
         extra: '+{n} earned|+{n} earned',
         big: 'Big Pack',
+        evMini: 'Event Mini Pack',
+        evBig: 'Event Big Pack',
         bigHint: '5 cards, at least 2 Silver or better',
         bigHave: 'You have {n}|You have {n}',
         bigNone: 'Earned from weekly goals and the season pass',
@@ -148,6 +150,7 @@ export const ultimate: typeof pt = {
         toBuy: 'See the store',
         miniHint: '3 cards · 1 {metal} or better',
         bigHint: '5 cards · {n} {metal} or better',
+        evHint: 'Every card is a Christmas Event card',
         miniShort: 'Mini',
         bigShort: 'Big',
         next: 'Next in {time} (holds up to {max})',
@@ -205,7 +208,12 @@ export const ultimate: typeof pt = {
         preview: 'Starts in {time}',
         reset: 'At the end your team, cards, Coins and pass reset. The medal, the title and the Legend stay on your Profile.',
     },
-    events: { 'natal-2026': 'Christmas' } as Record<string, string>,
+    /** Eventos e enfeites do Perfil (o id vai pela vitrine): os do Time Ultimate e os do Desafio de Natal. */
+    events: {
+        'natal-2026': 'Christmas',
+        'desafio-natal': 'Christmas Challenge',
+        'estrela-natal': 'Christmas Star',
+    } as Record<string, string>,
     event: {
         title: 'Event: {name}',
         ends: 'Ends in {time}',

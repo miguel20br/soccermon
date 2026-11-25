@@ -247,3 +247,66 @@ Não reabri todas hoje; conferir antes de citar.
 ## Plano técnico do desafio comunitário (24/11/2026, sem código)
 
 Precisa de uma migração e de uma Edge Function, as duas só com o ok do Miguel: nada foi criado. Tabela `natal_gols(dia date primary key, gols bigint not null default 0)` mais `natal_marcou(user_id uuid, dia date, gols int, primary key (user_id, dia))`, com RLS (cada um lê e escreve só a própria linha de `natal_marcou`; `natal_gols` só leitura pública). Ao fim de cada partida terminada entre 15/12 e 05/01 o cliente chama uma RPC `natal_gols_somar(gols)` (security definer) que limita os gols ao teto por partida e por conta por dia, grava em `natal_marcou` e soma a diferença em `natal_gols`; a barra do letreiro, da Home e do News lê `natal_gols` (uma linha por dia, soma no cliente, cache de 1 min). Quem tem `natal_marcou` com pelo menos 1 gol abre o prêmio do degrau batido na próxima entrada (enfeite, título `natal2026` via `redeemedTitles`, Pacote Mini de Evento), sem código. Sem Supabase o desafio aparece como "só online". As 3 metas saem do `npm run stats` e o Miguel vê antes de valer. Fora do repo: nada de segredo, e o jogo local segue igual.
+
+## Desafio de Natal: implementado (25/11/2026, branch `feat-desafio-natal`)
+
+O Miguel aprovou em 25/11 pra 0.10.0 e pediu **8 degraus com prêmios melhores**, tela de prêmio e painel informativo.
+Datas: **07/12/2026 00:00 a 05/01/2027 23:59** (Brasília). Antes de abrir, a faixa mostra "Desafio de Natal abre em N
+dias". `?desafio=aberto` força aberto no dev e nas prévias; `?utnow=2026-12-20` muda o relógio (o mesmo do Time Ultimate).
+
+### Números da meta (constante única: `DEGRAUS` em `src/store/desafio-natal.ts`)
+
+Conta com o `npm run stats -- --dias 30` e uma consulta de gols no mesmo banco (26/10 a 24/11):
+
+- **Gols do jogador em 30 dias:** 42.313 (`gf` do `match_end`, só soccermon.com) = 1.410 por dia. Últimos 14 dias:
+  13.678 = 977 por dia (o ritmo caiu depois do pico de fim de outubro).
+- **Só conta Google soma.** As 52 contas com save na nuvem têm 24.069 gols na carreira, contra 56.493 gols de todo
+  mundo desde 15/10 nos eventos: ~43% dos gols vêm de quem tem conta. Com desconto pelas contas de teste, **~40%**.
+- **Base de 30 dias que soma:** 0,40 x 42.313 ≈ **16.900 gols**. Regra de bolso (60%): **10.000 no último degrau**.
+- **1º degrau quase certo:** no ritmo devagar, quem tem conta faz ~390 gols por dia (977 x 0,4): **500** fecha em 1 a
+  2 dias. O desafio, o Natal e o Time Ultimate puxam login, então a base deve subir; se a barra parar, baixar os
+  números é trocar a constante.
+
+| Degrau | Meta (gols) | Prêmio |
+|---|---|---|
+| 1 | 500 | Enfeite de Natal no cartão do Perfil |
+| 2 | 1.000 | 300 Fichas |
+| 3 | 2.000 | Pacote Mini de Evento (3 cartas, todas Evento de Natal) |
+| 4 | 3.000 | Título "Natal 2026" (quem já ganhou na Copa de Natal não recebe de novo) |
+| 5 | 4.500 | Pick de Natal (1 de 3 Evento, Prata ou melhor) |
+| 6 | 6.000 | 2 Pacotes Grandes |
+| 7 | 8.000 | Pick de Natal Ouro (1 de 3 Evento Ouro garantida) |
+| 8 | 10.000 | Estrela de Natal (enfeite raro, dourado) + Pacote Grande de Evento |
+
+### Como ficou
+
+- **Quem ganha:** quem marcou pelo menos 1 gol no período (`natal_marcou`). O prêmio de cada degrau batido abre sozinho
+  na próxima entrada, uma vez por save (`ultimate.gifts` com `desafio-natal-N`), só depois do save acertar com a nuvem,
+  e até o fim da Temporada 1 do Time Ultimate (01/06/2027).
+- **Contagem:** gols do jogador em toda partida terminada: Copa, Copa do Dia, Rota (o resultado da copa), Time Ultimate
+  (Batalhas, líderes e Draft) e **Duelo** (partida nova e de agora; anulada não conta). `src/cloud/desafio.ts` chama a
+  RPC `natal_gols_somar(gols)`. Sem login, sem Supabase ou offline: "Só online", e o jogo segue igual. A fila de envio é
+  da aba (fechou sem rede, aquela partida não soma).
+- **Anti-trapaça sem exagero:** 30 gols por partida, 300 gols e 200 partidas por conta por dia; o que passa não soma.
+  Não usa o `game_events` (é anônimo, não dá pra cruzar com a conta).
+- **Visibilidade:** faixa pequena no menu de modos (Home), faixa com cara de letreiro no Estádio, texto no LED da
+  torcida, "você marcou N gols" junto da barra. Tocar abre o painel dos 8 degraus (prêmio desenhado, meta, batido /
+  faltam X / bloqueado). Leitura com cache de 1 min; a soma vem por GET direto (sem o supabase-js na Home).
+- **Tela de prêmio (`RewardReveal`):** cada prêmio grande no centro, um por vez, com o que é, por que ganhou, de onde
+  veio e onde está. A mesma tela mostra o Presente de Natal do dia 25 e o título da Copa de Natal.
+- **Pacote de Evento:** tipo novo de pacote no Time Ultimate (`evmini`/`evbig`, campos `evMini`/`evBig` no save, sem
+  migração: save antigo lê 0), com a arte do Pick de Natal.
+
+### Banco (não aplicado)
+
+Migração `supabase/migrations/20261125120000_desafio_natal.sql`, testada num Postgres 17 puro com
+`supabase/tests/desafio_natal.test.sql` (prazo, só conta Google, tetos, RLS, leitura pública). Depende de
+`hoje_brasilia()` e `conta_google()` da migração da Copa do Dia (já no ar). **Aplicar em produção só com o ok do
+Miguel**, no lançamento, da raiz do repo:
+
+```bash
+psql "$(grep '^POSTGRES_URL_NON_POOLING=' .env.local | cut -d= -f2- | tr -d '"')" -v ON_ERROR_STOP=1 \
+    -f supabase/migrations/20261125120000_desafio_natal.sql
+```
+
+Sem a migração, o jogo mostra a barra como "Só online" e nada quebra.

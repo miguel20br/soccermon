@@ -11,6 +11,7 @@ import { liga } from './pt/liga';
 import { longCup } from './pt/longCup';
 import { match } from './pt/match';
 import { moments } from './pt/moments';
+import { natal } from './pt/natal';
 import { profile } from './pt/profile';
 import { result } from './pt/result';
 import { reward } from './pt/reward';
@@ -53,6 +54,7 @@ export const pt = {
     longCup,
     bracket,
     ultimate,
+    natal,
     showdown,
 };
 

@@ -126,6 +126,7 @@ import {
     seenCount,
     tagFromName,
 } from './profile';
+import { pushReveals } from './reveal';
 import { ACE_ROUND_UP, casaOf } from './rota-map';
 import { safeStorage } from './save-health';
 import { screenTransition } from './screen-transition';
@@ -1402,8 +1403,12 @@ export const useGame = create<GameStore>()(
                 },
                 ultimateGift: (now = utNow()) => {
                     const u = natalGift(getState().ultimate, now);
-                    if (u) setState({ ultimate: u });
-                    return !!u;
+                    if (!u) return false;
+                    setState({ ultimate: u });
+                    // a tela de prêmio (RewardReveal): o Pick de Natal grande no centro
+                    const pick = u.picks.at(-1);
+                    if (pick) pushReveals([{ item: { kind: 'pick', pick }, source: { kind: 'gift' } }]);
+                    return true;
                 },
                 ultimateBuyCard: (speciesId) => {
                     const r = buyCard(getState().ultimate, speciesId);
@@ -2136,8 +2141,11 @@ export const useGame = create<GameStore>()(
                         isNatalCup(run.daily) &&
                         natalCupWon(dailyNext) &&
                         !pr.redeemedTitles.includes(NATAL_TITLE)
-                    )
+                    ) {
                         setState({ profile: { ...pr, redeemedTitles: [...pr.redeemedTitles, NATAL_TITLE] } });
+                        // a tela de prêmio mostra o título na volta pra Home (RewardReveal)
+                        pushReveals([{ item: { kind: 'title', id: NATAL_TITLE }, source: { kind: 'natalCup' } }]);
+                    }
                 },
 
                 markParaded: () => {

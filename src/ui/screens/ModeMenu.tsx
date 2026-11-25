@@ -20,6 +20,7 @@ import { TopBar } from '../ambientes/TopBar';
 import { clubWild } from '../ambientes/wild';
 import { KantoBadge } from '../components/BadgeCase';
 import { PackArt } from '../components/CardPack';
+import { DesafioStrip } from '../components/DesafioNatal';
 import { Logo } from '../components/LogoHits';
 import { HudIcon } from '../components/MatchHud';
 import { PokeCard2 } from '../components/PokeCard2';
@@ -568,6 +569,8 @@ export function ModeSlices({
     return (
         <div className={`mm-c mm-${look} mm-tvs`}>
             <Head />
+            {/* Desafio de Natal: a faixa pequena (antes de 07/12, a contagem); tocar abre os 8 degraus */}
+            <DesafioStrip variant="home" />
             <div ref={stack} className={`mm-c-stack mm-sel-${sel}${playable('ultimate') ? ' mm-ut-open' : ''}`}>
                 {ORDER.map((m, n) => (
                     <button
