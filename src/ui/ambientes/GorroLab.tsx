@@ -5,7 +5,8 @@ import { FieldSprite } from './FieldSprite';
 /**
  * Galeria do gorro de Natal (`?lab=gorro`, só dev e prévia): cada espécie com âncora, de frente, de lado (direita e
  * esquerda) e de costas, pra conferir a cabeça antes de aprovar a âncora em `src/data/gorro-ancoras.json`.
- * `&ids=25,143` filtra as espécies, `&escala=6` aumenta (zoom pra conferir pixel a pixel) e `&mexe=1` toca o Idle.
+ * `&ids=25,143` filtra as espécies (uma por linha), `&escala=6` aumenta (zoom pra conferir pixel a pixel) e
+ * `&mexe=1` toca o Idle.
  */
 const DIRS = [0, 2, 6, 4];
 export function GorroLab({ onExit }: { onExit: () => void }) {
@@ -20,7 +21,8 @@ export function GorroLab({ onExit }: { onExit: () => void }) {
             <div
                 style={{
                     display: 'grid',
-                    gridTemplateColumns: `repeat(auto-fill, minmax(${scale * 100}px, 1fr))`,
+                    // com `ids` (zoom), uma espécie por linha: Gyarados e Articuno não cabem lado a lado
+                    gridTemplateColumns: only ? '1fr' : `repeat(auto-fill, minmax(${scale * 100}px, 1fr))`,
                     gap: 8,
                 }}
             >
@@ -31,7 +33,7 @@ export function GorroLab({ onExit }: { onExit: () => void }) {
                         style={{ padding: 8, position: 'relative', overflow: 'visible' }}
                     >
                         <small>#{id}</small>
-                        <div style={{ display: 'flex', gap: 4, height: scale * 64, alignItems: 'flex-end' }}>
+                        <div style={{ display: 'flex', gap: 4, height: scale * 72, alignItems: 'flex-end' }}>
                             {DIRS.map((d) => (
                                 <span key={d} style={{ position: 'relative', flex: 1, height: '100%' }}>
                                     <span
