@@ -23,7 +23,7 @@ export const PATCH_NOTES: PatchNotes[] = [
                     'Copa de Natal em 24 e 25/12: rivais de Gelo e o Snorlax de capitão na final',
                     'Desafio de Natal de 07/12 a 05/01: os gols de todo mundo somam numa meta com 8 degraus de prêmios',
                     'No dia 25/12, uma carta Evento garantida de presente no Time Ultimate',
-                    'Gorro de Natal nos Pokémon do Estádio, da Arena e do pódio',
+                    'Gorro de Natal em pixel art em 39 Pokémon, no Estádio, na Arena e no pódio',
                 ],
             },
             {
@@ -3142,7 +3142,7 @@ export const PATCH_NOTES_EN: PatchNotes[] = [
                     'Christmas Cup on Dec 24 and 25: Ice-type rivals and Snorlax as captain in the final',
                     "Christmas Challenge from Dec 7 to Jan 5: everyone's goals add up to one target with 8 reward steps",
                     'On Dec 25, a guaranteed Event card as a gift in Ultimate Team',
-                    'Santa hats on the Pokémon in the Stadium, the Arena and the podium',
+                    'Pixel art Santa hats on 39 Pokémon in the Stadium, the Arena and the podium',
                 ],
             },
             {

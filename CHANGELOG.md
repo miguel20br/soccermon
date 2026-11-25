@@ -10,7 +10,7 @@
 - Copa de Natal em 24 e 25/12: rivais de Gelo e o Snorlax de capitão na final
 - Desafio de Natal de 07/12 a 05/01: os gols de todo mundo somam numa meta com 8 degraus de prêmios
 - No dia 25/12, uma carta Evento garantida de presente no Time Ultimate
-- Gorro de Natal nos Pokémon do Estádio, da Arena e do pódio
+- Gorro de Natal em pixel art em 39 Pokémon, no Estádio, na Arena e no pódio
 
 ### Copa
 - A escolha do capitão mostra o golpe máximo de cada Pokémon
