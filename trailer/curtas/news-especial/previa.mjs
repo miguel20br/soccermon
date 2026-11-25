@@ -1,7 +1,7 @@
 // Prévia em quadros parados da edição especial Time Ultimate, sem render de vídeo: abre a cena num Chromium headless,
 // pausa a linha do tempo em cada instante e monta as folhas com o tempo escrito embaixo de cada quadro.
 //   scripts/pesado.sh node trailer/curtas/news-especial/previa.mjs <pasta de saída>
-//   → <pasta>/news-especial-v2-previa.png, news-especial-v2-safezones.png e news-especial-v2-capa.png (CAPA_MS no Buffer)
+//   → <pasta>/news-especial-v3-previa.png, news-especial-v3-safezones.png e news-especial-v3-capa.png (CAPA_MS no Buffer)
 import { createRequire } from 'node:module';
 import { BEATS, CARTELAS, FALAS, M } from './linha.mjs';
 
@@ -24,7 +24,7 @@ const QUADROS = [
   ['escalada 1', CARTELAS[0] + 0.6], ['escalada 2', CARTELAS[1] + 0.6], ['escalada 3', CARTELAS[2] + 0.6], ['escalada 4', CARTELAS[3] + 0.6],
   ['PLANTÃO f4 close', M.clube - 0.1], ['f4 VT Clube', meio(F.f4)], ['f5 Machoke', meio(F.f5)], ['f6 Não volta', meio(F.f6)], beat('bChoro', 0.9), beat('bRua', 0.6),
   ['AO VIVO f8', meio(F.f8)], ['f9 clipe', meio(F.f9)], beat('bKarp1', 0.2), beat('bKarp1', 0.8), ['f10 Magikarp', meio(F.f10)], beat('bKarp2', 0.9),
-  ['f11 Fichas', M.fichas + 0.3], ['f11 fim', meio(F.f11)], ['LÍDERES f12', M.insig[3]], ['f12 fim', meio(F.f12)], ['VEM AÍ f13 p1', F.f13.paginas[0].fim + 0.3], ['f13 gelo', meio(F.f13)], beat('bNeve', 0.3),
+  ['f11 Fichas', M.fichas + 0.3], ['f11 fim', meio(F.f11)], ['LÍDERES f12', M.insig[3]], ['f12 fim', meio(F.f12)], ['VEM AÍ f13 p1', F.f13.paginas[0].fim + 0.3], ['f13 cartas', meio(F.f13)], beat('bNeve', 0.3),
   ['f14 boa noite', meio(F.f14)], ['tela final 0,6', M.final + 0.6], ['tela final 2,2', M.final + 2.2],
 ];
 // as safe zones (1080 x 1920, valores conservadores de TikTok, Reels e Shorts): a faixa de cima (abas e busca), a de
@@ -43,6 +43,13 @@ const abre = async (q = '') => {
   await page.goto(`file://${HTML}${q}`);
   await page.waitForFunction(() => window.__timelines?.root && document.fonts.status === 'loaded');
   await page.evaluate(() => Promise.all([...document.images].map((i) => i.decode().catch(() => {}))));
+  // v3: os clipes do jogo carregados antes do 1º seek (sem isso o gancho e a capa saíam no quadro 0 do clipe)
+  await page.evaluate(() => Promise.all([...document.querySelectorAll('video')].map((v) => (v.readyState >= 2 ? 0 : new Promise((r) => {
+    v.preload = 'auto';
+    v.addEventListener('loadeddata', r, { once: true });
+    setTimeout(r, 8000);
+    v.load();
+  })))));
 };
 const foto = async (t) => {
   await page.evaluate((t) => { window.__timelines.root.seek(t, false); }, t); // as chaves: sem elas o evaluate serializa a timeline
@@ -55,6 +62,8 @@ const foto = async (t) => {
       if (!dentro) continue;
       v.currentTime = t - +start + +mediaStart;
       await new Promise((r) => { v.onseeked = r; setTimeout(r, 1500); });
+      // v3: e o quadro novo pintado (sem isso a folha saía com o quadro do seek anterior)
+      await new Promise((r) => { v.requestVideoFrameCallback?.(() => r()); setTimeout(r, 400); });
     }
   }, t);
   await page.waitForTimeout(120);
@@ -84,7 +93,7 @@ const folha = async (lista, cols, arq, W = 360, H = 640) => {
   await sharp({ create: { width: G + cols * (W + G), height: G + linhas * (R + G), channels: 4, background: '#0e1430' } }).composite(camadas).png().toFile(arq);
   console.log(`ok: ${arq}`);
 };
-await folha(fotos, 8, `${SAIDA}/news-especial-v2-previa.png`);
+await folha(fotos, 8, `${SAIDA}/news-especial-v3-previa.png`);
 
 // as safe zones desenhadas por cima de cada quadro (em 1080 x 1920 e reduzido pra 540 x 960)
 const Z = ZONAS;
@@ -97,7 +106,7 @@ const zonas = Buffer.from(`<svg xmlns="http://www.w3.org/2000/svg" width="1080" 
     <text x="${1080 - Z.direita + 12}" y="${Z.direitaDe + 50}" font-size="28">${Z.direita} px</text><text x="${1080 - Z.direita + 12}" y="${Z.direitaDe + 86}" font-size="24">botões</text></g></svg>`);
 const safeImgs = [];
 for (const [rot, b] of safe) safeImgs.push([rot, await sharp(await sharp(b).composite([{ input: zonas }]).png().toBuffer()).resize(540, 960).png().toBuffer()]);
-await folha(safeImgs, 3, `${SAIDA}/news-especial-v2-safezones.png`, 540, 960);
+await folha(safeImgs, 3, `${SAIDA}/news-especial-v3-safezones.png`, 540, 960);
 
-await sharp(capa).png().toFile(`${SAIDA}/news-especial-v2-capa.png`);
-console.log(`ok: ${SAIDA}/news-especial-v2-capa.png (CAPA_MS=${Math.round(CAPA_S * 1000)})`);
+await sharp(capa).png().toFile(`${SAIDA}/news-especial-v3-capa.png`);
+console.log(`ok: ${SAIDA}/news-especial-v3-capa.png (CAPA_MS=${Math.round(CAPA_S * 1000)})`);

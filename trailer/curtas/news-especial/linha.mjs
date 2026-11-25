@@ -122,8 +122,9 @@ const f11 = fala('f11', 'meowth', '52-joyous', 'Bom, ainda bem que eu posso vend
 bloco('materia', 'OS 8 LÍDERES');
 const f12 = fala('f12', 'machoke', '67-determined', 'E dá pra enfrentar os oito líderes de Kanto.', { manchete: true });
 bloco('vemai', 'VEM AÍ');
-const f13 = fala('f13', 'raichu', '26-inspired', ['No dia 15 teremos o evento de Natal,', 'pois as cartas Evento de gelo irão chegar aos pacotes.'], { manchete: true });
-beat('bNeve', 0.7, 'a carta Evento de gelo na neve');
+// v3 (Miguel, 26/11: "ele tá falando sobre alguma coisa de gelo"): sai o gelo, ficam as cartas especiais de Natal
+const f13 = fala('f13', 'raichu', '26-inspired', ['No dia 15 teremos o evento de Natal,', 'com cartas especiais de Natal nos pacotes.'], { manchete: true });
+beat('bNeve', 0.7, 'a carta do evento na neve');
 const f14 = fala('f14', 'raichu', '26-happy', 'Boa noite, e bons pacotes.');
 M.fecha = f14.s;
 bloco('final', null);
@@ -149,7 +150,7 @@ M.repetida = r3(M.bKarp2 + 0.7); // o selo REPETIDA carimba
 M.fichas = letra(f11, 'Fichas'); // a carta voa pra trás
 M.insig = [0, 1, 2, 3, 4, 5, 6, 7].map((k) => r3(letra(f12, 'enfrentar') + 0.22 * k)); // as 8 insígnias acendendo
 M.natal = letra(f13, 'Natal');
-M.gelo = letra(f13, 'gelo');
+M.cartas = letra(f13, 'cartas especiais'); // a carta brilha
 M.boaNoite = f14.a;
 export const VARRIDAS = [M.escalada, M.vemai];
 export const CORTES = [M.vinheta, M.abertura, M.plantao, M.clube, M.bRua, M.cheia, M.materia, M.vemai, M.final];

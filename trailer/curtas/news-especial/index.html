@@ -12,8 +12,10 @@
 <title>Soccermon News especial</title>
 <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
 <script src="midia/sprites.js"></script>
+<script src="midia/gorro-quadros.js"></script>
 <script src="midia/som/especial.js"></script>
 <script src="midia/som/especial-falas.js"></script>
+<script src="carta-natal.js"></script>
 <script src="comum.js"></script>
 <style>
 .cena { position: absolute; left: 0; top: 0; width: 1080px; height: 1920px; overflow: hidden; visibility: hidden; }
@@ -364,18 +366,18 @@ video.painel { position: absolute; z-index: 21; border-radius: 10px; }
 #p-lider .ins { position: relative; width: 170px; height: 176px; }
 #p-lider .ins img { position: absolute; inset: 0; width: 100%; height: 100%; }
 #p-lider .ins img.on { opacity: 0; filter: drop-shadow(0 0 18px rgb(255 230 120 / 90%)); }
-/* VEM AÍ: a carta Evento de gelo na neve */
+/* VEM AÍ: a carta do Evento de Natal na neve (a imagem vem do carta-natal.js) */
 #p-neve .carta-g { position: absolute; left: 290px; top: 330px; width: 500px; filter: drop-shadow(0 20px 0 rgb(0 0 0 / 45%)); }
 #p-neve .dia15 { position: absolute; left: 640px; top: 300px; padding: 8px 26px; border-radius: 18px; background: #e8423f; border: 10px solid #0e1430; color: #fff; font-size: 64px; letter-spacing: 3px; -webkit-text-stroke: 12px #0e1430; paint-order: stroke fill; transform: rotate(8deg); opacity: 0; z-index: 3; box-shadow: 0 12px 0 rgb(0 0 0 / 40%); }
-.floco { position: absolute; left: 0; top: 0; width: 18px; height: 18px; background: #fff; z-index: 4; box-shadow: 0 0 0 4px rgb(14 20 48 / 60%); }
+.floco { position: absolute; left: 0; top: 0; z-index: 4; }
 #neve-fundo { background: radial-gradient(circle at 50% 40%, #6fb8e0, #1a3a70 72%) !important; }
 /* a tela final: TIME ULTIMATE · JÁ NO AR */
 #fim .ut-fim { position: absolute; left: 190px; top: 560px; width: 700px; z-index: 6; filter: drop-shadow(0 12px 0 rgb(0 0 0 / 40%)); }
 </style>
 </head>
 <body>
-<div id="root" data-composition-id="root" data-width="1080" data-height="1920" data-start="0" data-duration="56.9">
-  <div id="cena" class="clip" data-start="0" data-duration="56.9">
+<div id="root" data-composition-id="root" data-width="1080" data-height="1920" data-start="0" data-duration="56.4">
+  <div id="cena" class="clip" data-start="0" data-duration="56.4">
     <!-- a vinheta de abertura (a C do News #2: a cartinha girando e virando o logo), com a faixa EDIÇÃO ESPECIAL -->
     <div id="vin" class="cena vinheta-n"><div class="raios" id="raios-vin"></div>
       <div class="vin-alt" id="vinA"><div class="bolapx" id="bolapx"></div></div>
@@ -415,7 +417,7 @@ video.painel { position: absolute; z-index: 21; border-radius: 10px; }
       <div class="cartela" id="c1"><div class="img walk"><img src="midia/ut/walk-carta.png" alt="" /></div><div class="txt">PACOTES E WALKOUT</div></div>
       <div class="cartela" id="c2"><div class="img quim" id="c2-img"></div><div class="txt">QUÍMICA</div></div>
       <div class="cartela" id="c3"><div class="img ins" id="c3-img"></div><div class="txt">8 GINÁSIOS</div></div>
-      <div class="cartela" id="c4"><div class="img gelo" id="c4-img"><img class="crt" src="midia/ut/carta-articuno-evento.png" alt="" /></div><div class="txt">EVENTO DE NATAL</div></div>
+      <div class="cartela" id="c4"><div class="img gelo" id="c4-img"><img class="crt carta-natal" alt="" /></div><div class="txt">EVENTO DE NATAL</div></div>
     </div>
     <!-- atrás dos painéis, o estúdio desfocado -->
     <div id="fundo" class="cena estudio"><div class="zoom" id="fundo-set" style="filter:blur(7px) brightness(0.5)"></div></div>
@@ -427,7 +429,7 @@ video.painel { position: absolute; z-index: 21; border-radius: 10px; }
   <div class="moldura" id="m-ref" style="left:48px;top:300px;width:444px;height:780px"></div>
   <div class="painel-n" id="p-karp"><img class="carta-k" id="karp1" src="midia/ut/carta-magikarp.png" alt="" style="left:120px;top:330px" /><img class="carta-k" id="karp2" src="midia/ut/carta-magikarp.png" alt="" style="left:170px;top:360px" /><div class="repetida" id="repetida">REPETIDA</div></div>
   <div class="painel-n" id="p-lider"><div class="ins-g" id="ins-g"></div></div>
-  <div class="painel-n" id="p-neve"><img class="carta-g" id="carta-g" src="midia/ut/carta-articuno-evento.png" alt="" /><div class="dia15" id="dia15">15/12</div></div>
+  <div class="painel-n" id="p-neve"><img class="carta-g carta-natal" id="carta-g" alt="" /><div class="dia15" id="dia15">15/12</div></div>
   </div>
   <div id="manchete"><div class="especial">EDIÇÃO ESPECIAL</div><div class="barra" id="barra"></div></div>
   <div id="bug"><img src="midia/logo-simbolo.svg" alt="" /></div>
@@ -442,8 +444,8 @@ video.painel { position: absolute; z-index: 21; border-radius: 10px; }
   <video id="v-pacote" class="painel" src="midia/ut/pacote.mp4" muted playsinline data-start="29.23" data-duration="1.2" data-media-start="0" style="left:60px;top:362px;width:420px;height:756px;object-fit:cover"></video>
   <video id="v-brock" class="painel" src="midia/ut/brock.mp4" muted playsinline data-start="41.5" data-duration="3.75" data-media-start="0" style="left:60px;top:362px;width:420px;height:756px;object-fit:cover"></video>
 
-  <audio id="a-musica" class="clip" src="midia/som/especial-14.wav" data-start="0" data-duration="56.9" data-media-start="0" data-fade-out="0.4"></audio>
-  <audio id="a-voz" class="clip" src="midia/som/especial-voz.wav" data-start="0" data-duration="56.9" data-media-start="0"></audio>
+  <audio id="a-musica" class="clip" src="midia/som/especial-14.wav" data-start="0" data-duration="56.4" data-media-start="0" data-fade-out="0.4"></audio>
+  <audio id="a-voz" class="clip" src="midia/som/especial-voz.wav" data-start="0" data-duration="56.4" data-media-start="0"></audio>
 
   <script>
     const { div, ator, anim, quadro, flash, estouro, telaFinal, piscada, quadra, treme, torcida, torcidaPulo, torcidaAnim } = C;
@@ -455,6 +457,7 @@ video.painel { position: absolute; z-index: 21; border-radius: 10px; }
     const F = Object.fromEntries(FALAS.map((f) => [f.id, f]));
     const tl = gsap.timeline({ paused: true });
     const $ = (id) => document.getElementById(id);
+    for (const im of document.querySelectorAll('img.carta-natal')) im.src = window.CARTA_NATAL.src; // v3: a carta do evento (carta-natal.js)
     const ver = (els, t, on = true) => tl.set(els, { autoAlpha: on ? 1 : 0 }, t);
     const CENAS = ['#vin', '#banc', '#rota', '#esc', '#fundo', '#fim'];
     // v9, nada teleporta: as trocas de cena e de painel são juntadas aqui e resolvidas no fim (resolveTrocas), em ordem de
@@ -947,7 +950,6 @@ video.painel { position: absolute; z-index: 21; border-radius: 10px; }
     const PS = ator(CAM, 5, { escala: 14, z: 12, x: PX, y: 1150, sombra: false });
     // v11: o Meowth também senta na bancada no "Temos que chutar!" (a cadeira na ponta direita; até lá ele não está)
     const MS = ator(CAM, 52, { escala: 14, z: 12, x: 1000, y: 1150, sombra: false });
-    anim(tl, MS, 'Idle', 0, 0, FIM);
     tl.set([MS.el, '#cad-meo'], { autoAlpha: 0 }, 0);
     anim(tl, PS, 'Idle', 0, 0, FIM, { vel: 0.6 });
     tl.set([PS.el, '#cad-psy'], { autoAlpha: 0 }, 0); // v5: sem convidado (o Charmeleon saiu com o vestiário)
@@ -982,32 +984,36 @@ video.painel { position: absolute; z-index: 21; border-radius: 10px; }
       GORRO.forEach((l, y) => [...(flip ? [...l].reverse().join('') : l)].forEach((c, x) => { if (c !== '.') r += `<rect x="${x}" y="${y}" width="1" height="1" fill="${GORRO_COR[c]}"/>`; }));
       return `<svg viewBox="0 0 13 10" width="100%" height="100%" shape-rendering="crispEdges" style="display:block">${r}</svg>`;
     };
-    /** A cabeça no quadro Idle (px do sprite) por direção: [coluna do meio da aba, linha da base] (gorro-ancoras.json; o
-     *  Machoke, que não tem âncora no jogo, medido na folha do terno: a base cobre a crista). */
-    const CABECA = { 26: { 0: [19, 12], 1: [17, 12], 7: [22, 12] }, 52: { 0: [15, 6], 1: [14, 5], 7: [16, 5] }, 67: { 0: [15, 9], 1: [17, 9], 7: [13, 9] } };
-    const CHAP = {};
-    /** Põe o gorro em `a` (um por direção usada; `dir(d, t)` troca a direção visível). */
-    const chapeu = (a, dirs = [0]) => {
-      const A = SPR[a.id].anims.Idle;
-      const s = a.escala;
-      const cab = CABECA[String(a.id).replace('t', '')];
-      const els = {};
-      for (const d of dirs) {
-        const flip = d !== 0 && d < 4;
-        const [hx, hy] = cab[d] ?? cab[0];
-        const x = hx - (flip ? 6 : 6);
-        const el = div(a.corpo, 'gorro', `position:absolute;left:${(-A.w / 2 + x) * s}px;top:${(-A.pe * A.h + hy - 9) * s}px;width:${13 * s}px;height:${10 * s}px;z-index:3`);
-        el.innerHTML = gorroSvg(flip);
-        gsap.set(el, { opacity: d === dirs[0] ? 1 : 0 });
-        els[d] = el;
-      }
-      const g = { dir: (d, t) => { for (const [k, el] of Object.entries(els)) tl.set(el, { opacity: +k === d ? 1 : 0 }, t); } };
-      CHAP[a.id] = g;
-      return g;
+    /** v3: a cabeça quadro a quadro (gorro-quadros.mjs → midia/gorro-quadros.js): [coluna do meio da aba, linha da base]
+     *  em px do quadro, por espécie, animação, direção e quadro. O gorro anda no mesmo tl.set que troca o quadro (anim). */
+    const cabeca = (id, nome, dir, i) => {
+      const Q = window.GORRO_Q[String(id).replace('t', '')];
+      const L = Q[nome]?.[dir] ?? Q.Idle[dir] ?? Q.Idle[0];
+      return L[i] ?? L[0];
     };
-    chapeu(RA, [0, 1]);
-    chapeu(MA, [0, 7]);
+    /** Põe o gorro em `a`: um só, que segue a cabeça em cada quadro de cada anim()/quadro() desse ator (o espelho é o
+     *  scaleX: o desenho espelhado é o mesmo, linha a linha ao contrário). */
+    const chapeu = (a) => {
+      const s = a.escala;
+      const el = div(a.corpo, 'gorro', `position:absolute;left:0;top:0;width:${13 * s}px;height:${10 * s}px;z-index:3`);
+      el.innerHTML = gorroSvg(false);
+      gsap.set(el, { transformOrigin: '50% 50%' });
+      a.segue = {
+        el,
+        pos: (id, nome, dir, i, flip) => {
+          const n = SPR[id].anims[nome] && window.GORRO_Q[String(id).replace('t', '')][nome] ? nome : 'Idle';
+          const A = SPR[id].anims[n];
+          const [hx0, hy] = cabeca(id, n, dir, n === nome ? i : 0);
+          const hx = flip ? A.w - 1 - hx0 : hx0;
+          const fl = (dir !== 0 && dir < 4) !== flip;
+          return { x: (-A.w / 2 + hx - 6) * s, y: (-A.pe * A.h + hy - 9) * s, scaleX: fl ? -1 : 1 };
+        },
+      };
+    };
+    chapeu(RA);
+    chapeu(MA);
     chapeu(MS);
+    anim(tl, MS, 'Idle', 0, 0, FIM);
     const VIRA = { [RA.id]: [], [MA.id]: [] };
     for (const f of FALAS) {
       if (f.quem === 'machoke') VIRA[RA.id].push([1, false, f.a + 0.6, f.z - 0.35]);
@@ -1030,8 +1036,6 @@ video.painel { position: absolute; z-index: 21; border-radius: 10px; }
         else vs.push([...v]);
       }
       for (const [dir, flip, de, ate] of vs) {
-        CHAP[a.id]?.dir(dir, de);
-        CHAP[a.id]?.dir(0, ate);
         pose(0, t, de);
         pose(dir, de, ate, { flip });
         vira(a, de);
@@ -1088,20 +1092,32 @@ video.painel { position: absolute; z-index: 21; border-radius: 10px; }
       }
       div(pai, 'balcao');
     };
-    /** Neve em pixel: `n` flocos caindo de t0 a t1 numa caixa w x h (a partir de `top`), em ondas, sem repetir o desenho. */
-    const neve = (pai, n, t0, t1, w, h, top = 0, z = 4, x0 = 0) => {
+    /** v3 · neve de pixel como a dos menus no Natal (Neve.tsx da v010): poucos flocos quadrados, brancos e azul-claros,
+     *  caindo devagar em linha reta com uma deriva leve de lado, em 2 camadas (o fundo menor, mais claro e mais lento).
+     *  Sem piscar: cada floco cai do alto da caixa (fora dela) até o pé (fora dela) e só volta pro alto lá fora, então
+     *  a caixa precisa cortar (overflow hidden) ou ir de borda a borda da tela. Posições fixas, sem sorteio. */
+    const neve = (pai, n, t0, t1, w, h, top = 0, z = 4) => {
+      const r = (k, i) => (((i + 1) * 7919 * k) % 997) / 997;
       for (let k = 0; k < n; k++) {
-        const f = div(pai, 'floco', `z-index:${z}`);
-        const x = x0 + ((k * 197) % 100) / 100 * w;
-        const s = 0.5 + ((k * 53) % 10) / 12;
-        const dur = 1.6 + ((k * 31) % 10) / 8;
-        gsap.set(f, { x, y: top - 40, scale: s, opacity: 0 });
-        for (let t = t0 - ((k * 0.37) % dur); t < t1; t += dur) {
-          const a = Math.max(t, t0);
-          const p0 = (a - t) / dur;
-          tl.fromTo(f, { y: top - 40 + p0 * (h + 80), x, opacity: 0.9 }, { y: top + h + 40, x: x + 40 * Math.sin(k), duration: Math.min(dur * (1 - p0), t1 - a), ease: 'none', immediateRender: false }, a);
+        const frente = k % 3 === 0;
+        const tam = frente ? 12 : 8; // 3 e 2 pixels de 4 px
+        const f = div(pai, 'floco', `z-index:${z};width:${tam}px;height:${tam}px;background:${frente ? '#ffffff' : '#d4ebff'};opacity:${frente ? 0.95 : 0.7}`);
+        const x = ((k * 61.8 + 7) % 100) / 100 * (w - tam);
+        const dur = (frente ? 7 : 11) + r(3, k) * 3; // s pra cruzar a caixa: 170 a 280 px/s
+        const y0 = top - 24;
+        const y1 = top + h + 24;
+        const fase = r(5, k); // onde o floco está em t0 (0 = no alto)
+        gsap.set(f, { x, y: y0 + fase * (y1 - y0) });
+        // a queda: o 1º trecho sai de onde ele está; os outros, do alto de fora da caixa
+        for (let t = t0, p0 = fase; t < t1; p0 = 0) {
+          const d = dur * (1 - p0);
+          tl.fromTo(f, { y: y0 + p0 * (y1 - y0) }, { y: y1, duration: d, ease: 'none', immediateRender: false }, t);
+          t += d;
         }
-        tl.set(f, { opacity: 0 }, t1);
+        // a deriva de lado: um vai e vem lento, contínuo
+        const dx = (frente ? 22 : 14) * (r(11, k) > 0.5 ? 1 : -1);
+        const per = 2.6 + r(7, k) * 1.6;
+        tl.fromTo(f, { x }, { x: x + dx, duration: per, ease: 'sine.inOut', yoyo: true, repeat: Math.ceil((t1 - t0) / per), immediateRender: false }, t0);
       }
     };
 
@@ -1132,11 +1148,9 @@ video.painel { position: absolute; z-index: 21; border-radius: 10px; }
       el.innerHTML = pix(ARVORE, { K: '#0e1430', G: '#2e8b3a', Y: '#ffcb05', R: '#e8423f', B: '#3a7bd5', T: '#7a4a2a' }, 14);
       tl.fromTo(el.querySelectorAll('rect[fill="#ffcb05"]'), { opacity: 1 }, { opacity: 0.4, duration: 0.5, ease: 'steps(1)', repeat: Math.floor(FIM / 0.5), yoyo: true, immediateRender: false }, 0);
     }
-    // a neve leve atrás de tudo (na parede: z auto dentro do cenário, então o telão, a bancada e a dupla ficam na frente)
-    neve(CAM.querySelector('.set-n'), 34, 0, FIM, 2200, 1150, -120, 'auto', -560);
-    // o vinheta e a tela final: neve caindo por cima, discreta
-    neve($('vin'), 22, M.vinheta, M.abertura + SAIDA, 1080, 1920, 0, 5);
-    neve($('fim'), 22, M.final - 0.1, FIM, 1080, 1920, 0, 5);
+    // v3: sem neve na parede do estúdio (dentro do estúdio ela ficava estranha); na vinheta e na tela final, por cima, discreta
+    neve($('vin'), 16, M.vinheta, M.abertura + SAIDA, 1080, 1920, 0, 5);
+    neve($('fim'), 16, M.final - 0.1, FIM, 1080, 1920, 0, 5);
     festao($('mesa-fim'), 0, 34, 840, 35);
 
     // ===================== ABERTURA: o Raichu abre a edição especial; o adesivo TIME ULTIMATE carimba no telão =====================
@@ -1188,9 +1202,9 @@ video.painel { position: absolute; z-index: 21; border-radius: 10px; }
         w.innerHTML = `<img src="midia/ut/insignia-${k}-off.png" alt="" style="position:absolute;inset:0" /><img src="midia/ut/insignia-${k}-on.png" alt="" style="position:absolute;inset:0" />`;
         tl.fromTo(w.lastChild, { opacity: 0 }, { opacity: 1, duration: 0.08, immediateRender: false }, CARTELAS[2] + 0.25 + 0.07 * k);
       }
-      // c4: a carta de gelo balança e a neve cai
+      // c4: a carta do evento balança e a neve cai
       tl.fromTo('#c4 .crt', { rotation: -4 }, { rotation: 4, duration: 0.5, ease: 'sine.inOut', yoyo: true, repeat: 2, immediateRender: false }, CARTELAS[3]);
-      neve($('c4-img'), 14, CARTELAS[3], ESC_FIM, 600, 520);
+      neve($('c4-img'), 8, CARTELAS[3], ESC_FIM, 580, 500);
       tl.to(['#c4', '#hoje'], { opacity: 0, duration: 0.2, ease: 'power2.in' }, ESC_FIM - 0.2);
     }
 
@@ -1345,11 +1359,11 @@ video.painel { position: absolute; z-index: 21; border-radius: 10px; }
       for (let t = M.insig[7] + 0.35; t < M.vemai - 0.2; t += 0.4) tl.fromTo(G.children, { scale: 1.14 }, { scale: 1, duration: 0.3, ease: 'power2.out', stagger: 0.03, immediateRender: false }, t);
     }
 
-    // ===================== VEM AÍ: a carta Evento de gelo na neve =====================
+    // ===================== VEM AÍ: a carta do Evento de Natal na neve (carta-natal.js) =====================
     corta('#fundo', M.vemai, { seco: true });
     paineis(M.vemai, '#p-neve');
     empurra(M.vemai, F.f14.s - M.vemai, 1.03);
-    neve($('p-neve'), 40, M.vemai, F.f14.s + SAIDA, 1080, 1200, 260);
+    neve($('p-neve'), 20, M.vemai, F.f14.s + SAIDA, 1080, 1920, 0);
     tl.fromTo('#carta-g', { y: 700, rotation: 10, opacity: 0 }, { y: 0, rotation: -3, opacity: 1, duration: 0.4, ease: 'back.out(1.4)', immediateRender: false }, M.vemai + 0.1);
     tl.to('#carta-g', { keyframes: { y: [0, -20, 0] }, duration: 1.2, ease: 'sine.inOut', repeat: 4 }, M.vemai + 0.5);
     // um balanço linear e contínuo da carta (sem parar: a neve sozinha não basta pro quadro não ficar parado)
@@ -1359,8 +1373,8 @@ video.painel { position: absolute; z-index: 21; border-radius: 10px; }
     tl.fromTo('#dia15', { scale: 2.2, rotation: -10 }, { scale: 1, rotation: 8, duration: 0.22, ease: 'back.out(2.5)', immediateRender: false }, M.natal - 0.4);
     const GELO0 = 'drop-shadow(0 20px 0 rgb(0 0 0 / 45%)) drop-shadow(0 0 0px rgb(160 230 255 / 0%))';
     const GELO1 = 'drop-shadow(0 20px 0 rgb(0 0 0 / 45%)) drop-shadow(0 0 36px rgb(160 230 255 / 95%))';
-    tl.fromTo('#carta-g', { filter: GELO0, scale: 1 }, { filter: GELO1, scale: 1.06, duration: 0.25, ease: 'back.out(2)', immediateRender: false }, M.gelo);
-    estouro(tl, $('p-neve'), 540, 700, M.gelo + 0.05, { tam: 420, dur: 0.35, cor: '#bfeaff' });
+    tl.fromTo('#carta-g', { filter: GELO0, scale: 1 }, { filter: GELO1, scale: 1.06, duration: 0.25, ease: 'back.out(2)', immediateRender: false }, M.cartas);
+    estouro(tl, $('p-neve'), 540, 700, M.cartas + 0.05, { tam: 420, dur: 0.35, cor: '#bfeaff' });
     // beat bNeve: a carta gira uma vez
     tl.fromTo('#carta-g', { rotationY: 0 }, { rotationY: 360, duration: 0.6, ease: 'power2.inOut', immediateRender: false }, M.bNeve + 0.05);
 

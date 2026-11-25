@@ -367,14 +367,14 @@ export default function especial() {
     // ===================== VEM AÍ (f13): sininhos de Natal e a subida =====================
     cama(M.vemai, F.f14.s, estudio, ['Ebmaj7', 'Abmaj7', 'Fm9', 'Bb7sus4']);
     manchete(M.vemai, 'Ebmaj7');
-    // sininhos de trenó (o shaker dobrado) e os sinos no "Natal" e no "gelo"
+    // sininhos de trenó (o shaker dobrado) e os sinos no "Natal" e nas "cartas especiais"
     LIM = [M.vemai, F.f14.s];
     drum(sk, Math.ceil(M.vemai * 2) / 4, 3, 'xxXxxxXxxxXxxxXx', { vel: 0.35 });
     LIM = [0, Number.POSITIVE_INFINITY];
     for (const [k, m] of [94, 99, 103].entries()) N(sino, M.natal + 0.11 * k, m, 2, 0.45);
     padChord(sinos, 0, 'Ebmaj7', 12, { low: 64, n: 3, vel: 0.9, at: R(M.natal) });
     drum(gz, Math.floor(M.natal * 2) / 4, 1, 'XoxoXoxoXoxoXxXx', { vel: 0.8 });
-    for (const [k, m] of [103, 99, 106].entries()) N(sino, M.gelo + 0.11 * k, m, 2, 0.45);
+    for (const [k, m] of [103, 99, 106].entries()) N(sino, M.cartas + 0.11 * k, m, 2, 0.45);
     // BEAT bNeve: a carta gira na neve (o arpejo de sino descendo)
     for (let k = 0; k < 5; k++) N(sino, M.bNeve + 0.1 * k, 106 - 3 * k, 1, 0.3);
 

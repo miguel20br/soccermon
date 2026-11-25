@@ -35,11 +35,30 @@ const GORROS = {
     longo: ['.........KKK.', '........KWWwK', '......KKKwwK.', '....KKHRrKK..', '...KHRRRrK...', '..KHRRRRRrK..', '.KHRRRRRRRrK.', 'KWWWWWWWWWWWK', 'KwwwwwwwwwwwK', '.KKKKKKKKKKK.'],
     curto: ['......KKK.', '.....KWWwK', '....KKwwK.', '..KKHRrK..', '.KHRRRRrK.', 'KWWWWWWWWK', 'KwwwwwwwwK', '.KKKKKKKK.'],
 };
-// canto de cima à esquerda do gorro em cada retrato (a base da aba no alto da cabeça, entre as orelhas do Raichu)
+// canto de cima à esquerda do gorro no retrato de referência (a base da aba no alto da cabeça, entre as orelhas do Raichu)
 const NO_RETRATO = { 26: ['longo', 14, 1], 67: ['longo', 15, 0], 52: ['longo', 13, -1] };
+// v3: a cabeça muda de lugar entre as expressões (o 52-sad tem a cabeça 5 px à direita do 52-joyous): o gorro do Meowth
+// segue a moeda da testa e o do Machoke a crista (o centro e a 1ª linha dos pixels dourados nas 16 de cima), contados
+// a partir do retrato de referência. Os retratos do Raichu têm o mesmo enquadramento: o gorro fica onde está.
+const REF = { 67: '67.png', 52: '52-joyous.png' };
 const M = new URL('./midia/', import.meta.url).pathname;
-for (const f of readdirSync(M).filter((f) => /^(26|52|67)(-[a-z]+)?\.png$/.test(f))) {
-    const [tipo, gx, gy] = NO_RETRATO[f.split(/[-.]/)[0]];
+const ouro = async (f) => {
+    const { data } = await sharp(`${M}${f}`).ensureAlpha().raw().toBuffer({ resolveWithObject: true });
+    let sx = 0, n = 0, top = 99;
+    for (let y = 0; y < 16; y++)
+        for (let x = 0; x < 40; x++) {
+            const [r, g, b] = data.subarray((y * 40 + x) * 4);
+            if (r > 170 && g > 120 && b < 110 && r - b > 90) [sx, n, top] = [sx + x, n + 1, Math.min(top, y)];
+        }
+    return [sx / n, top];
+};
+for (const f of readdirSync(M).filter((f) => /^(26|52|67)(-[a-z]+)?\.png$/.test(f) && !/-g\.png$/.test(f))) {
+    const id = f.split(/[-.]/)[0];
+    let [tipo, gx, gy] = NO_RETRATO[id];
+    if (REF[id]) {
+        const [[x0, y0], [x1, y1]] = [await ouro(REF[id]), await ouro(f)];
+        if (Math.abs(x1 - x0) <= 6) [gx, gy] = [gx + Math.round(x1 - x0), gy + Math.max(-1, Math.min(2, y1 - y0))];
+    }
     const g = GORROS[tipo];
     const { data, info } = await sharp(`${M}${f}`).ensureAlpha().raw().toBuffer({ resolveWithObject: true });
     g.forEach((l, y) => [...l].forEach((c, x) => {

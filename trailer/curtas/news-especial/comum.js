@@ -156,7 +156,9 @@ html, body { margin: 0; width: 1080px; height: 1920px; overflow: hidden; backgro
      */
     function anim(tl, a, nome, dir, t0, t1, { vel = 1, loop = true, de = 0, id = a.id, flip = false } = {}) {
         a.inicios ??= [];
-        for (const tw of tl.getTweensOf(a.spr)) if (tw.data <= t0 + 1e-6 && tw.startTime() >= t0 - 1e-6) tw.kill();
+        // v3: `a.segue` = { el, pos(id, nome, dir, i, flip) }: o que anda junto do quadro (o gorro na cabeça), no mesmo tl.set
+        const sg = a.segue;
+        for (const alvo of sg ? [a.spr, sg.el] : [a.spr]) for (const tw of tl.getTweensOf(alvo)) if (tw.data <= t0 + 1e-6 && tw.startTime() >= t0 - 1e-6) tw.kill();
         t1 = Math.min(t1, ...a.inicios.filter((u) => u > t0 + 1e-6));
         a.inicios.push(t0);
         const S = SPR[id];
@@ -180,6 +182,8 @@ html, body { margin: 0; width: 1080px; height: 1920px; overflow: hidden; backgro
             },
             t0,
         );
+        const segue = (i, t) => sg && tl.set(sg.el, { ...sg.pos(id, nome, dir, i, flip), data: t0 }, t);
+        segue(de, t0);
         let t = t0;
         let i = de;
         for (let n = 0; n < 2000; n++) {
@@ -191,6 +195,7 @@ html, body { margin: 0; width: 1080px; height: 1920px; overflow: hidden; backgro
                 i = 0;
             }
             tl.set(a.spr, { backgroundPosition: pos(i), data: t0 }, t);
+            segue(i, t);
         }
     }
     /** Um quadro parado. */
