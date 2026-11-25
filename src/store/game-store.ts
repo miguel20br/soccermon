@@ -145,6 +145,7 @@ import {
     evolveCard,
     finishMatch,
     firstStep,
+    natalGift,
     newUltimate,
     openMany,
     type PackKind,
@@ -497,6 +498,8 @@ export interface GameStore {
     ultimateOpenMany(kind: PackKind, n?: number, now?: number): { packs: PackOpen[]; full: boolean } | null;
     /** Virada da temporada (zera o modo e guarda o legado). */
     ultimateSeason(now?: number): void;
+    /** Presente de Natal (25/12): true = acabou de ganhar. */
+    ultimateGift(now?: number): boolean;
     ultimateTeam(patch: Partial<UltimateTeam>): void;
     /** Põe a carta `uid` na posição `i` do time (troca com quem já está no time, ou tira quem estava pra coleção). */
     ultimateSetMember(i: number, uid: string): void;
@@ -1397,6 +1400,11 @@ export const useGame = create<GameStore>()(
                     const r = rollSeason(getState().ultimate, now);
                     if (r.u !== getState().ultimate) setState({ ultimate: r.u });
                 },
+                ultimateGift: (now = utNow()) => {
+                    const u = natalGift(getState().ultimate, now);
+                    if (u) setState({ ultimate: u });
+                    return !!u;
+                },
                 ultimateBuyCard: (speciesId) => {
                     const r = buyCard(getState().ultimate, speciesId);
                     if (!r) return null;
@@ -2121,7 +2129,7 @@ export const useGame = create<GameStore>()(
                         }),
                         unlockQueue: [...getState().unlockQueue, ...fresh],
                     });
-                    // Copa de Natal ganha nos dois dias: título "Natal 2026" (de evento, em redeemedTitles)
+                    // Copa de Natal ganha em um dos dois dias: título "Natal 2026" (de evento, em redeemedTitles)
                     const pr = getState().profile;
                     if (
                         run.daily &&

@@ -36,10 +36,10 @@ describe('Draft do Time Ultimate', () => {
         const u = base(DRAFT_FICHAS);
         expect(draftCost(u, T0)).toBe(0);
         const a = draftClose(play(built(u), [0, 1]));
-        expect(a.fichas).toBe(DRAFT_FICHAS);
+        expect(a.fichas).toBe(DRAFT_FICHAS + DRAFT_PRIZES[0].fichas);
         expect(draftCost(a, T0)).toBe(DRAFT_FICHAS);
         const b = draftEnter(a, '2-2', T0)!;
-        expect(b.fichas).toBe(0);
+        expect(b.fichas).toBe(DRAFT_PRIZES[0].fichas);
         expect(draftEnter(draftClose(play(fill(b), [0, 1])), '2-2', T0)).toBeNull();
         expect(draftCost(a, T0 + WEEK)).toBe(0);
     });
@@ -90,6 +90,21 @@ describe('Draft do Time Ultimate', () => {
         expect(x.extraPacks).toBe(DRAFT_PRIZES[1].packs);
         expect(draftMatch(x, 'P', 0)).toBeNull();
         expect(draftClose(x).draft.run).toBeNull();
+    });
+
+    it('tabela de prêmios: 0 vitória 50 Fichas, 1 Mini, 2 Mini, 1 Mini + 1 Grande, 3 Grandes', () => {
+        expect(DRAFT_PRIZES).toEqual([
+            { fichas: 50, packs: 0, big: 0 },
+            { fichas: 0, packs: 1, big: 0 },
+            { fichas: 0, packs: 2, big: 0 },
+            { fichas: 0, packs: 1, big: 1 },
+            { fichas: 0, packs: 0, big: 3 },
+        ]);
+        const x = built();
+        const lost = play(x, [0, 1]);
+        expect(lost.draft.run!.prize).toEqual(DRAFT_PRIZES[0]);
+        expect(lost.fichas).toBe(x.fichas + 50);
+        expect(lost.extraPacks).toBe(x.extraPacks);
     });
 
     it('a partida do Draft não conta nas Batalhas (placar, Fichas, objetivos, passe)', () => {

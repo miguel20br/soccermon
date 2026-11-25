@@ -245,6 +245,8 @@ export interface UltimateSave {
     sbc: UtSbc;
     /** Draft: a campanha em andamento, a entrada grátis da semana e o recorde. */
     draft: UtDraft;
+    /** Presentes de data já dados nesta temporada (ex.: 'natal-2026'), um por save. */
+    gifts: string[];
 }
 
 export const newUltimate = (salt = Math.floor(Math.random() * 1e9).toString(36), now = Date.now()): UltimateSave => ({
@@ -289,6 +291,7 @@ export const newUltimate = (salt = Math.floor(Math.random() * 1e9).toString(36),
     picked: 0,
     sbc: newSbc(),
     draft: newDraft(),
+    gifts: [],
 });
 
 const num = (v: unknown, max = Number.MAX_SAFE_INTEGER) =>
@@ -409,6 +412,8 @@ export function ultimateOf(raw: unknown): UltimateSave {
         sbc: sbcOf(raw.sbc, new Set([...uids, ...pendingUids(raw.pending)])),
         // campo novo (0.9.54): sem ele, nasce sem campanha
         draft: draftOf(raw.draft),
+        // campo novo (0.10.0)
+        gifts: strs(raw.gifts).filter((g) => g === NATAL_GIFT),
     };
 }
 
@@ -1172,6 +1177,18 @@ export function finishMatch(u: UltimateSave, m: UltimateMatch, now: number): Ult
 }
 
 const gymOf = (id: string) => GYMS.find((g) => g.id === id);
+
+/** Presente de Natal (25/12, Brasília): na primeira vez que abre o Time Ultimate, um Pick de Natal em Meus pacotes. */
+export const NATAL_GIFT = 'natal-2026';
+export function natalGift(u: UltimateSave, now: number): UltimateSave | null {
+    const pick = EVENTS.find((e) => e.id === NATAL_GIFT)?.pick;
+    if (!pick || dailyDay(new Date(now)) !== '2026-12-25' || u.gifts.includes(NATAL_GIFT)) return null;
+    return {
+        ...u,
+        gifts: [...u.gifts, NATAL_GIFT],
+        picks: [...u.picks, { ...pick, uid: `gift-${NATAL_GIFT}`, from: 'event', ref: NATAL_GIFT }],
+    };
+}
 
 /** Prêmio pendente (null = não paga nada). */
 function prizeOf(

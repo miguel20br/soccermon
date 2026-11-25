@@ -16,6 +16,7 @@ import {
     lastPacks,
     mergeUltimate,
     metalPools,
+    natalGift,
     newInMetal,
     newUltimate,
     pickOptions,
@@ -184,5 +185,19 @@ describe('Pokémon Pick (ultimate-fc.md, decidido em 09/11)', () => {
         const a = newUltimate('m', T0);
         const b = choosePick(a, 'start', pickOptions(a, a.picks[0])[0].uid)!.u;
         expect(mergeUltimate(a, b).picked).toBe(1);
+    });
+});
+
+describe('presente de Natal (25/12)', () => {
+    const at = (d: string) => Date.parse(`${d}T15:00:00Z`);
+    it('dia 24 não dá, dia 25 dá uma vez, de novo não dá; toda opção sai Evento', () => {
+        const u = newUltimate('g', T0);
+        expect(natalGift(u, at('2026-12-24'))).toBeNull();
+        const v = natalGift(u, at('2026-12-25'))!;
+        const p = v.picks.at(-1)!;
+        expect(p).toMatchObject({ n: 3, min: 'prata', event: 'natal-2026', from: 'event' });
+        expect(pickOptions(v, p).every((c) => editionOf(c) === 'evento' || editionOf(c) === 'icone')).toBe(true);
+        expect(natalGift(v, at('2026-12-25'))).toBeNull();
+        expect(ultimateOf(JSON.parse(JSON.stringify(v))).gifts).toEqual(['natal-2026']);
     });
 });
