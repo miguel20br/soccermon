@@ -22,7 +22,7 @@ mkdirSync(OUT, { recursive: true });
 const browser = await chromium.launch({ headless: true });
 
 /** Abre `url` com o relógio parado, roda `prep` e grava `seg` segundos do recorte `alvo`; `cada(i, page)` roda antes de cada quadro. */
-async function tomada(nome, { url, dpr = 2.6667, prep, alvo = TELA, seg, cada }) {
+async function tomada(nome, { url, dpr = 2.6667, prep, alvo = TELA, seg, cada, transparente = false }) {
     if (so.length && !so.includes(nome)) return;
     const ctx = await browser.newContext({ viewport: { width: 405, height: 720 }, deviceScaleFactor: dpr, locale: 'pt-BR' });
     const page = await ctx.newPage();
@@ -66,7 +66,8 @@ async function tomada(nome, { url, dpr = 2.6667, prep, alvo = TELA, seg, cada })
                     im.dataset.gifSrc = attr;
                     im.dataset.gifT0 = String(agora);
                 }
-                if (!im.dataset.gifSrc) return;
+                // só o que aparece: a galeria tem centenas de GIFs (decodificar todos a cada quadro travava)
+                if (!im.dataset.gifSrc || !im.checkVisibility({ visibilityProperty: true })) return;
                 const g = await carrega(new URL(im.dataset.gifSrc, location.href).href);
                 let t = (agora - Number(im.dataset.gifT0)) % g.total;
                 let i = 0;
@@ -105,7 +106,7 @@ async function tomada(nome, { url, dpr = 2.6667, prep, alvo = TELA, seg, cada })
         const t0 = Date.now();
         for (let i = 0; i < n; i++) {
             if (cada) await cada(i, page);
-            await page.screenshot({ path: `${dir}/${String(i).padStart(4, '0')}.png`, clip: { x: alvo.x, y: alvo.y, width: alvo.w, height: alvo.h } });
+            await page.screenshot({ path: `${dir}/${String(i).padStart(4, '0')}.png`, clip: { x: alvo.x, y: alvo.y, width: alvo.w, height: alvo.h }, omitBackground: transparente });
             await anda(DT);
         }
         console.log(`${nome}: ${n} quadros → ${dir} (${((Date.now() - t0) / n).toFixed(0)} ms de verdade por quadro de ${DT.toFixed(1)} ms)`);
@@ -248,6 +249,32 @@ await tomada('cartas', {
             await page.screenshot({ path: `${OUT}/carta-${arq}.png`, clip: { x: bb.x, y: bb.y, width: bb.width, height: bb.height } });
         }
         console.log(`cartas → ${OUT}/carta-*.png`);
+    },
+});
+// v5: a carta de Natal do Articuno (a edição escolhida em 25/11) animada, com fundo transparente: neve, pisca-pisca e a
+// faixa de luz no relógio da gravação. O index.html troca o src quadro a quadro (midia/ut/natal/NNNN.png).
+const natal = { x: 0, y: 0, w: 1, h: 1 };
+await tomada('natal', {
+    url: '?cards=1',
+    dpr: Number(process.env.DPR ?? 2),
+    seg: Number(process.env.SEG ?? 6.6),
+    alvo: natal,
+    transparente: true,
+    prep: async ({ page }) => {
+        const c = page.locator('#natal .pc2').nth(2);
+        await c.waitFor({ timeout: 60000 });
+        await c.evaluate((e) => {
+            e.scrollIntoView({ block: 'center' });
+            // só a carta: o resto da página sem fundo nem texto (o PNG sai com os cantos transparentes)
+            const st = document.createElement('style');
+            st.textContent = 'html,body,body *:not(.pc2):not(.pc2 *){background:transparent!important;box-shadow:none!important;border-color:transparent!important;color:transparent!important;backdrop-filter:none!important}body *:not(.pc2):not(.pc2 *)::before,body *:not(.pc2):not(.pc2 *)::after{display:none!important}';
+            document.head.append(st);
+            document.querySelectorAll('.pc2').forEach((o) => o !== e && (o.style.visibility = 'hidden'));
+        });
+        await page.waitForTimeout(2500);
+        const b = await c.boundingBox();
+        Object.assign(natal, { x: b.x, y: b.y, w: b.width, h: b.height });
+        console.log('natal:', JSON.stringify(natal), await c.textContent());
     },
 });
 await browser.close();

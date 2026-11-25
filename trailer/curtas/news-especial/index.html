@@ -458,6 +458,13 @@ video.painel { position: absolute; z-index: 21; border-radius: 10px; }
     const tl = gsap.timeline({ paused: true });
     const $ = (id) => document.getElementById(id);
     for (const im of document.querySelectorAll('img.carta-natal')) im.src = window.CARTA_NATAL.src; // v3: a carta do evento (carta-natal.js)
+    // v5: a carta de Natal animada: os quadros ficam carregados e o src troca a cada quadro do vídeo entre t0 e t1
+    const QN = window.CARTA_NATAL.quadros;
+    const qn = (k) => `${QN.pasta}${String(k % QN.n).padStart(4, '0')}.png`;
+    if (QN) window.__natal = Array.from({ length: QN.n }, (_, k) => Object.assign(new Image(), { src: qn(k) }));
+    const cartaViva = (sel, t0, t1) => {
+      if (QN) for (let k = 0; t0 + k / 30 < t1; k++) tl.set(sel, { attr: { src: qn(k) } }, t0 + k / 30);
+    };
     const ver = (els, t, on = true) => tl.set(els, { autoAlpha: on ? 1 : 0 }, t);
     const CENAS = ['#vin', '#banc', '#rota', '#esc', '#fundo', '#fim'];
     // v9, nada teleporta: as trocas de cena e de painel são juntadas aqui e resolvidas no fim (resolveTrocas), em ordem de
@@ -1205,6 +1212,7 @@ video.painel { position: absolute; z-index: 21; border-radius: 10px; }
       // c4: a carta do evento balança e a neve cai
       tl.fromTo('#c4 .crt', { rotation: -4 }, { rotation: 4, duration: 0.5, ease: 'sine.inOut', yoyo: true, repeat: 2, immediateRender: false }, CARTELAS[3]);
       neve($('c4-img'), 8, CARTELAS[3], ESC_FIM, 580, 500);
+      cartaViva('#c4 .crt', CARTELAS[3], ESC_FIM);
       tl.to(['#c4', '#hoje'], { opacity: 0, duration: 0.2, ease: 'power2.in' }, ESC_FIM - 0.2);
     }
 
@@ -1364,6 +1372,7 @@ video.painel { position: absolute; z-index: 21; border-radius: 10px; }
     paineis(M.vemai, '#p-neve');
     empurra(M.vemai, F.f14.s - M.vemai, 1.03);
     neve($('p-neve'), 20, M.vemai, F.f14.s + SAIDA, 1080, 1920, 0);
+    cartaViva('#carta-g', M.vemai, F.f14.s + SAIDA);
     tl.fromTo('#carta-g', { y: 700, rotation: 10, opacity: 0 }, { y: 0, rotation: -3, opacity: 1, duration: 0.4, ease: 'back.out(1.4)', immediateRender: false }, M.vemai + 0.1);
     tl.to('#carta-g', { keyframes: { y: [0, -20, 0] }, duration: 1.2, ease: 'sine.inOut', repeat: 4 }, M.vemai + 0.5);
     // um balanço linear e contínuo da carta (sem parar: a neve sozinha não basta pro quadro não ficar parado)
