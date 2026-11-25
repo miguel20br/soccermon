@@ -23,6 +23,7 @@
 - Comemoração de gol própria pra mais 8: Jigglypuff, Slowpoke, Meowth, Charizard, Squirtle, Cubone, Voltorb e Kadabra (e as evoluções deles)
 - Sinergias secretas: 6 combinações escondidas contra o rival, reveladas em campo; Registro de Sinergias na Coleção
 - Mais 21 sinergias secretas no mesmo time, com bônus em campo: o chip "???" mostra o bônus e o nome aparece quando ela acontece em quadra
+- Pokédex: cada Pokémon mostra as sinergias de que participa (as secretas ficam em ???)
 
 ### Time Ultimate
 - Draft: monte um time na hora, escolhendo 1 de 5 por vaga, e jogue 4 partidas por pacotes

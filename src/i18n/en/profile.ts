@@ -206,6 +206,8 @@ export const profile: typeof pt = {
         sealHave: 'You have {n}.',
         sealMissing: '{name}: missing ({goal})',
         sealsHelp: 'The seal tracks your career with this species. It does not change the card.',
+        synergies: 'Synergies',
+        synergiesHidden: '{n} secret ones to discover',
         notPlayed: "Hasn't played for your team yet. Field it in a cup to start its career.",
     },
     stats: {

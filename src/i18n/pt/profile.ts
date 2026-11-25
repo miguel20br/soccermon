@@ -207,6 +207,8 @@ export const profile = {
         sealHave: 'Você tem {n}.',
         sealMissing: '{name}: falta ({goal})',
         sealsHelp: 'O selo é da sua carreira com a espécie. Não muda a carta.',
+        synergies: 'Sinergias',
+        synergiesHidden: '{n} secretas por descobrir',
         notPlayed: 'Ainda não jogou pelo seu time. Escale numa copa pra começar a carreira.',
     },
     stats: {

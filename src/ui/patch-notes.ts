@@ -42,6 +42,7 @@ export const PATCH_NOTES: PatchNotes[] = [
                     'Comemoração de gol própria pra mais 8: Jigglypuff, Slowpoke, Meowth, Charizard, Squirtle, Cubone, Voltorb e Kadabra (e as evoluções deles)',
                     'Sinergias secretas: 6 combinações escondidas contra o rival, reveladas em campo; Registro de Sinergias na Coleção',
                     'Mais 21 sinergias secretas no mesmo time, com bônus em campo: o chip "???" mostra o bônus e o nome aparece quando ela acontece em quadra',
+                    'Pokédex: cada Pokémon mostra as sinergias de que participa (as secretas ficam em ???)',
                 ],
             },
             {
@@ -3159,6 +3160,7 @@ export const PATCH_NOTES_EN: PatchNotes[] = [
                     'Signature goal celebrations for 8 more: Jigglypuff, Slowpoke, Meowth, Charizard, Squirtle, Cubone, Voltorb and Kadabra (and their evolutions)',
                     'Secret synergies: 6 hidden pairings against the rival, revealed on the court; Synergy Log in the Collection',
                     '21 more secret synergies on the same team, with a bonus on the court: the "???" chip shows the bonus and the name appears when it happens in a match',
+                    'Pokédex: every Pokémon shows the synergies it takes part in (secret ones stay as ???)',
                 ],
             },
             {
