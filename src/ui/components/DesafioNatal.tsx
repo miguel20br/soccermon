@@ -64,14 +64,15 @@ function Bar({ total }: { total: number }) {
     );
 }
 
-/** A linha do jogador: os gols dele, o "marque 1 gol" ou o "só online". */
+/** A linha do jogador: os gols dele, o "marque 1 gol" ou o "só online" (`short`: o da faixa, de uma linha). */
 function mineLine(
     v: DesafioView,
     t: ReturnType<typeof useT>['t'],
     tn: ReturnType<typeof useT>['tn'],
     lang: 'pt' | 'en',
+    short = false,
 ) {
-    if (!v.logged) return t('natal.online');
+    if (!v.logged) return t(short ? 'natal.onlineShort' : 'natal.online');
     if (v.meus === null) return '';
     return v.meus > 0 ? tn('natal.mine', v.meus, { n: fmtInt(v.meus, lang) }) : t('natal.needOne');
 }
@@ -111,7 +112,7 @@ export function DesafioStrip({ variant }: { variant: 'home' | 'led' }) {
                             </span>
                         </span>
                         <Bar total={total} />
-                        <small className="dn-strip-mine">{mineLine(v, t, tn, lang)}</small>
+                        <small className="dn-strip-mine">{mineLine(v, t, tn, lang, true)}</small>
                     </span>
                 )}
                 <HudIcon kind="next" className="dn-strip-go" />

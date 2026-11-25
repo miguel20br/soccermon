@@ -9,6 +9,7 @@ export const natal: typeof pt = {
     mine: 'You scored {n} goal|You scored {n} goals',
     needOne: 'Score 1 goal to get the rewards',
     online: 'Online only: sign in with Google to add your goals',
+    onlineShort: 'Sign in with Google to join',
     offline: 'Online only',
     open: 'See the rewards',
     led: 'Christmas Challenge {total} of {goal} goals',

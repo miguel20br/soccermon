@@ -8,6 +8,8 @@ export const natal = {
     mine: 'Você marcou {n} gol|Você marcou {n} gols',
     needOne: 'Marque 1 gol pra receber os prêmios',
     online: 'Só online: entre com Google pra somar seus gols',
+    /** Na faixa (uma linha só, cabe no 320). */
+    onlineShort: 'Entre com Google pra participar',
     offline: 'Só online',
     open: 'Ver os prêmios',
     /** Letreiro de LED do Estádio (vai em maiúsculas). */
