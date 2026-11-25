@@ -374,8 +374,8 @@ video.painel { position: absolute; z-index: 21; border-radius: 10px; }
 </style>
 </head>
 <body>
-<div id="root" data-composition-id="root" data-width="1080" data-height="1920" data-start="0" data-duration="55.9">
-  <div id="cena" class="clip" data-start="0" data-duration="55.9">
+<div id="root" data-composition-id="root" data-width="1080" data-height="1920" data-start="0" data-duration="56.9">
+  <div id="cena" class="clip" data-start="0" data-duration="56.9">
     <!-- a vinheta de abertura (a C do News #2: a cartinha girando e virando o logo), com a faixa EDIÇÃO ESPECIAL -->
     <div id="vin" class="cena vinheta-n"><div class="raios" id="raios-vin"></div>
       <div class="vin-alt" id="vinA"><div class="bolapx" id="bolapx"></div></div>
@@ -439,11 +439,11 @@ video.painel { position: absolute; z-index: 21; border-radius: 10px; }
 
   <!-- os clipes do jogo (v010, gravados headless); os tempos saem do linha.mjs (CLIPES) -->
   <video id="v-gancho" class="painel" src="midia/ut/gancho.mp4" muted playsinline data-start="0" data-duration="2" data-media-start="0" style="left:0;top:0;width:1080px;height:1920px;border-radius:0;z-index:84"></video>
-  <video id="v-pacote" class="painel" src="midia/ut/pacote.mp4" muted playsinline data-start="29.23" data-duration="3.8" data-media-start="0" style="left:60px;top:362px;width:420px;height:756px;object-fit:cover"></video>
-  <video id="v-brock" class="painel" src="midia/ut/brock.mp4" muted playsinline data-start="40.5" data-duration="3.75" data-media-start="0" style="left:60px;top:362px;width:420px;height:756px;object-fit:cover"></video>
+  <video id="v-pacote" class="painel" src="midia/ut/pacote.mp4" muted playsinline data-start="29.23" data-duration="1.2" data-media-start="0" style="left:60px;top:362px;width:420px;height:756px;object-fit:cover"></video>
+  <video id="v-brock" class="painel" src="midia/ut/brock.mp4" muted playsinline data-start="41.5" data-duration="3.75" data-media-start="0" style="left:60px;top:362px;width:420px;height:756px;object-fit:cover"></video>
 
-  <audio id="a-musica" class="clip" src="midia/som/especial-14.wav" data-start="0" data-duration="55.9" data-media-start="0" data-fade-out="0.4"></audio>
-  <audio id="a-voz" class="clip" src="midia/som/especial-voz.wav" data-start="0" data-duration="55.9" data-media-start="0"></audio>
+  <audio id="a-musica" class="clip" src="midia/som/especial-14.wav" data-start="0" data-duration="56.9" data-media-start="0" data-fade-out="0.4"></audio>
+  <audio id="a-voz" class="clip" src="midia/som/especial-voz.wav" data-start="0" data-duration="56.9" data-media-start="0"></audio>
 
   <script>
     const { div, ator, anim, quadro, flash, estouro, telaFinal, piscada, quadra, treme, torcida, torcidaPulo, torcidaAnim } = C;
@@ -644,10 +644,10 @@ video.painel { position: absolute; z-index: 21; border-radius: 10px; }
       if (ROSTO[r]) return ROSTO[r];
       if (r === 'todos') {
         ROSTO[r] = div(RET, 'todos');
-        ROSTO[r].innerHTML = ['26-joyous', '67-joyous', '52-joyous'].map((x) => `<img src="midia/${x}.png" alt="" />`).join('');
+        ROSTO[r].innerHTML = ['26-joyous', '67-joyous', '52-joyous'].map((x) => `<img src="midia/${x}-g.png" alt="" />`).join('');
       } else {
         ROSTO[r] = document.createElement('img');
-        ROSTO[r].src = `midia/${r}.png`;
+        ROSTO[r].src = /^(26|52|67)/.test(r) ? `midia/${r}-g.png` : `midia/${r}.png`; // v2: com o gorro
         RET.appendChild(ROSTO[r]);
       }
       return ROSTO[r];
@@ -972,6 +972,42 @@ video.painel { position: absolute; z-index: 21; border-radius: 10px; }
     // o Raichu no Idle do jogo, de frente; quem escuta vira pro parceiro (3/4) e volta antes de falar. O Machoke fica no
     // quadro 0 de cada direção (v9: os quadros da flexão do Idle, em 3/4, deixavam ele corcunda) e respira devagar. Cada
     // virada tem um leve achatamento de 0,2 s (não pula seco)
+    // ===================== v2 · o gorro de Natal (o do jogo: src/ui/ambientes/gorro-pixel.ts da v010) =====================
+    // matriz de pixels na escala do sprite (1 pixel do gorro = 1 pixel do sprite), paleta Gen 1/2, contorno de 1 px; a
+    // ponta cai pra direita, o espelho pra esquerda; a última linha é a base da aba, que encosta na cabeça
+    const GORRO_COR = { K: '#1a1020', H: '#f0505a', R: '#d6283c', r: '#8c162c', W: '#f6f6fa', w: '#b8c2d6' };
+    const GORRO = ['.........KKK.', '........KWWwK', '......KKKwwK.', '....KKHRrKK..', '...KHRRRrK...', '..KHRRRRRrK..', '.KHRRRRRRRrK.', 'KWWWWWWWWWWWK', 'KwwwwwwwwwwwK', '.KKKKKKKKKKK.'];
+    const gorroSvg = (flip) => {
+      let r = '';
+      GORRO.forEach((l, y) => [...(flip ? [...l].reverse().join('') : l)].forEach((c, x) => { if (c !== '.') r += `<rect x="${x}" y="${y}" width="1" height="1" fill="${GORRO_COR[c]}"/>`; }));
+      return `<svg viewBox="0 0 13 10" width="100%" height="100%" shape-rendering="crispEdges" style="display:block">${r}</svg>`;
+    };
+    /** A cabeça no quadro Idle (px do sprite) por direção: [coluna do meio da aba, linha da base] (gorro-ancoras.json; o
+     *  Machoke, que não tem âncora no jogo, medido na folha do terno: a base cobre a crista). */
+    const CABECA = { 26: { 0: [19, 12], 1: [17, 12], 7: [22, 12] }, 52: { 0: [15, 6], 1: [14, 5], 7: [16, 5] }, 67: { 0: [15, 9], 1: [17, 9], 7: [13, 9] } };
+    const CHAP = {};
+    /** Põe o gorro em `a` (um por direção usada; `dir(d, t)` troca a direção visível). */
+    const chapeu = (a, dirs = [0]) => {
+      const A = SPR[a.id].anims.Idle;
+      const s = a.escala;
+      const cab = CABECA[String(a.id).replace('t', '')];
+      const els = {};
+      for (const d of dirs) {
+        const flip = d !== 0 && d < 4;
+        const [hx, hy] = cab[d] ?? cab[0];
+        const x = hx - (flip ? 6 : 6);
+        const el = div(a.corpo, 'gorro', `position:absolute;left:${(-A.w / 2 + x) * s}px;top:${(-A.pe * A.h + hy - 9) * s}px;width:${13 * s}px;height:${10 * s}px;z-index:3`);
+        el.innerHTML = gorroSvg(flip);
+        gsap.set(el, { opacity: d === dirs[0] ? 1 : 0 });
+        els[d] = el;
+      }
+      const g = { dir: (d, t) => { for (const [k, el] of Object.entries(els)) tl.set(el, { opacity: +k === d ? 1 : 0 }, t); } };
+      CHAP[a.id] = g;
+      return g;
+    };
+    chapeu(RA, [0, 1]);
+    chapeu(MA, [0, 7]);
+    chapeu(MS);
     const VIRA = { [RA.id]: [], [MA.id]: [] };
     for (const f of FALAS) {
       if (f.quem === 'machoke') VIRA[RA.id].push([1, false, f.a + 0.6, f.z - 0.35]);
@@ -994,6 +1030,8 @@ video.painel { position: absolute; z-index: 21; border-radius: 10px; }
         else vs.push([...v]);
       }
       for (const [dir, flip, de, ate] of vs) {
+        CHAP[a.id]?.dir(dir, de);
+        CHAP[a.id]?.dir(0, ate);
         pose(0, t, de);
         pose(dir, de, ate, { flip });
         vira(a, de);
@@ -1051,10 +1089,10 @@ video.painel { position: absolute; z-index: 21; border-radius: 10px; }
       div(pai, 'balcao');
     };
     /** Neve em pixel: `n` flocos caindo de t0 a t1 numa caixa w x h (a partir de `top`), em ondas, sem repetir o desenho. */
-    const neve = (pai, n, t0, t1, w, h, top = 0) => {
+    const neve = (pai, n, t0, t1, w, h, top = 0, z = 4, x0 = 0) => {
       for (let k = 0; k < n; k++) {
-        const f = div(pai, 'floco');
-        const x = ((k * 197) % 100) / 100 * w;
+        const f = div(pai, 'floco', `z-index:${z}`);
+        const x = x0 + ((k * 197) % 100) / 100 * w;
         const s = 0.5 + ((k * 53) % 10) / 12;
         const dur = 1.6 + ((k * 31) % 10) / 8;
         gsap.set(f, { x, y: top - 40, scale: s, opacity: 0 });
@@ -1066,6 +1104,40 @@ video.painel { position: absolute; z-index: 21; border-radius: 10px; }
         tl.set(f, { opacity: 0 }, t1);
       }
     };
+
+    // ===================== v2 · o Natal no estúdio: festão com luzinhas na bancada e no telão, a árvore e a neve atrás =====================
+    const svgUrl = (svg) => `url("data:image/svg+xml;utf8,${encodeURIComponent(svg.replace(' style="display:block"', ''))}")`;
+    // o festão: uma "barriga" de 12 x 6 pixels repetida, verde com brilho e contorno
+    const FESTAO = ['K..........K', 'GK........KG', 'LGK......KGL', 'KLGGK..KGGLK', '.KGLGGGGLGK.', '...KKGGKK...'];
+    const FESTAO_URL = svgUrl(pix(FESTAO, { K: '#0e1430', G: '#2e8b3a', L: '#58c26b' }, 8));
+    const LUZ_COR = ['#e8423f', '#ffcb05', '#3a7bd5', '#58c26b'];
+    const LUZES = [[], []];
+    /** Um festão de `w` px em (x, y) dentro de `pai`, com uma luzinha no fundo de cada barriga (piscam em 2 grupos). */
+    const festao = (pai, x, y, w, z = 31) => {
+      const f = div(pai, '', `position:absolute;left:${x}px;top:${y}px;width:${w}px;height:48px;z-index:${z};background:${FESTAO_URL} 0 0 / 96px 48px repeat-x;image-rendering:pixelated`);
+      for (let k = 0; k * 96 + 48 < w; k++) {
+        const l = div(f, '', `position:absolute;left:${k * 96 + 40}px;top:40px;width:16px;height:20px;background:${LUZ_COR[k % 4]};border:4px solid #0e1430;border-radius:3px;box-shadow:0 0 14px 4px ${LUZ_COR[k % 4]}`);
+        LUZES[k % 2].push(l);
+      }
+      return f;
+    };
+    // na bancada, dos dois lados do logo do programa (o logo fica livre)
+    festao(CAM, -560, MESA + 34, 1056);
+    festao(CAM, 816, MESA + 34, 624);
+    festao(CAM, 150, 318, 780, 12);
+    // a árvore pequena no canto esquerdo, atrás da bancada
+    {
+      const ARVORE = ['......Y......', '.....YYY.....', '......K......', '.....KGK.....', '....KGGGK....', '...KGGRGGK...', '....KGGGK....', '...KGGGGGK...', '..KGBGGGYGK..', '...KGGGGGK...', '..KGGGGGGGK..', '.KGRGGGGGBGK.', '..KGGGGGGGK..', '.KGGGGGGGGGK.', 'KGGYGGGGGRGGK', 'KKKKKKKKKKKKK', '.....KTK.....', '.....KTK.....'];
+      const el = div(CAM, '', `position:absolute;left:30px;top:${MESA - 18 * 14 + 30}px;z-index:6`);
+      el.innerHTML = pix(ARVORE, { K: '#0e1430', G: '#2e8b3a', Y: '#ffcb05', R: '#e8423f', B: '#3a7bd5', T: '#7a4a2a' }, 14);
+      tl.fromTo(el.querySelectorAll('rect[fill="#ffcb05"]'), { opacity: 1 }, { opacity: 0.4, duration: 0.5, ease: 'steps(1)', repeat: Math.floor(FIM / 0.5), yoyo: true, immediateRender: false }, 0);
+    }
+    // a neve leve atrás de tudo (na parede: z auto dentro do cenário, então o telão, a bancada e a dupla ficam na frente)
+    neve(CAM.querySelector('.set-n'), 34, 0, FIM, 2200, 1150, -120, 'auto', -560);
+    // o vinheta e a tela final: neve caindo por cima, discreta
+    neve($('vin'), 22, M.vinheta, M.abertura + SAIDA, 1080, 1920, 0, 5);
+    neve($('fim'), 22, M.final - 0.1, FIM, 1080, 1920, 0, 5);
+    festao($('mesa-fim'), 0, 34, 840, 35);
 
     // ===================== ABERTURA: o Raichu abre a edição especial; o adesivo TIME ULTIMATE carimba no telão =====================
     estudio(M.abertura, 'RAICHU', '#t-marca', F.f1.paginas[1].ini - 0.1 - M.abertura);
@@ -1176,6 +1248,7 @@ video.painel { position: absolute; z-index: 21; border-radius: 10px; }
     loja(TVM);
     gsap.set(TVM, { scale: 0.62, x: 368 - 540 * 0.62, y: 340 - 1130 * 0.62 });
     const MT = ator(TVM, 52, { escala: 17, z: 20, x: 540, y: 1130, sombra: false });
+    chapeu(MT);
     anim(tl, MT, 'Idle', 0, 0, M.bRua + 0.5);
     anim(tl, MT, 'Pose', 0, M.bRua + 0.5, M.bRua + 1.1, { loop: false });
     anim(tl, MT, 'Idle', 0, M.bRua + 1.1, FIM);
@@ -1185,6 +1258,7 @@ video.painel { position: absolute; z-index: 21; border-radius: 10px; }
       loja(OVM);
       gsap.set(OVM, { scale: 0.5, x: 168 - 540 * 0.5, y: 225 - 1130 * 0.5 });
       const MO = ator(OVM, 52, { escala: 17, z: 20, x: 540, y: 1130, sombra: false });
+      chapeu(MO);
       anim(tl, MO, 'Idle', 0, 0, FIM);
       microfone(MO);
       anim(tl, MO, 'Pose', 0, F.f8.a + 1.2, F.f8.a + 1.8, { loop: false });
@@ -1196,6 +1270,7 @@ video.painel { position: absolute; z-index: 21; border-radius: 10px; }
     const MRY = 1200;
     loja(RC);
     const MR = ator(RC, 52, { escala: 19, z: 20, x: MRX, y: MRY });
+    chapeu(MR);
     microfone(MR, 1.12);
     anim(tl, MR, 'Idle', 0, 0, FIM);
     gsap.set(RC, { transformOrigin: `${MRX}px ${MRY}px` });
@@ -1208,21 +1283,26 @@ video.painel { position: absolute; z-index: 21; border-radius: 10px; }
       tl.to('#v-pacote', { opacity: 0, duration: SAIDA, ease: 'power2.in' }, M.karp1);
       tl.fromTo(RC, { scale: 1 }, { scale: 1.035, duration: M.materia - t0, ease: 'sine.out', immediateRender: false }, t0);
     }
-    for (const f of [F.f9, F.f10, F.f11]) pulinho(MR, f.a - 0.05, 22);
+    for (const f of [F.f10, F.f11]) pulinho(MR, f.a - 0.05, 22);
     // bKarp1 · o pacote rasga no clipe e sai a carta do Magikarp bronze: clarão e a carta pousa
     paineis(M.karp1, '#p-karp');
     tl.set('#karp2', { opacity: 0 }, 0);
     tl.fromTo('#karp1', { opacity: 0, y: -500, rotation: -18, scale: 1.2 }, { opacity: 1, y: 0, rotation: -4, scale: 1, duration: 0.32, ease: 'back.out(1.6)', immediateRender: false }, M.karp1);
     estouro(tl, $('p-karp'), 320, 620, M.karp1 + 0.3, { tam: 300, dur: 0.3 });
     flash(tl, M.karp1, 0.5, 0.2);
-    tl.to(MR.corpo, { keyframes: { y: [0, -40, 0] }, duration: 0.3, ease: 'sine.inOut' }, M.karp1 + 0.1);
-    // f10 · "…Esse é o Magikarp.": o Meowth murcha, gota de suor
-    tl.to(MR.corpo, { keyframes: { scaleY: [1, 0.9, 0.92] }, duration: 0.4, ease: 'sine.inOut' }, F.f10.a);
+    // f9 · "Tirei um Magikarp!": animado, pula duas vezes e faz a pose
+    tl.to(MR.corpo, { keyframes: { y: [0, -50, 0, -36, 0] }, duration: 0.6, ease: 'sine.inOut' }, M.tirei);
+    anim(tl, MR, 'Pose', 0, F.f9.a, F.f9.a + 0.6, { loop: false });
+    anim(tl, MR, 'Idle', 0, F.f9.a + 0.6, FIM);
+    faisca(RC, MRX - 120, MRY - 380, M.tirei + 0.05, 1.1);
+    faisca(RC, MRX + 110, MRY - 420, M.tirei + 0.15, 0.9);
+    // f10 · "E tirei... outro Magikarp?!": a decepção no "outro": murcha, gota de suor
+    tl.to(MR.corpo, { keyframes: { scaleY: [1, 0.88, 0.9] }, duration: 0.4, ease: 'sine.inOut' }, M.outro);
     tl.to(MR.corpo, { scaleY: 1, duration: 0.2 }, F.f10.z - 0.1);
     {
       const g = div(MR.corpo, 'gota');
-      tl.fromTo(g, { x: 120, y: -420, opacity: 0 }, { y: -390, opacity: 1, duration: 0.2, ease: 'power2.out', immediateRender: false }, F.f10.a + 0.3);
-      tl.to(g, { y: -330, opacity: 0, duration: 0.35, ease: 'power2.in' }, F.f10.a + 1.0);
+      tl.fromTo(g, { x: 120, y: -420, opacity: 0 }, { y: -390, opacity: 1, duration: 0.2, ease: 'power2.out', immediateRender: false }, M.outro + 0.2);
+      tl.to(g, { y: -330, opacity: 0, duration: 0.35, ease: 'power2.in' }, M.outro + 0.9);
     }
     // bKarp2 · o 2º pacote: outro Magikarp cai por cima e o selo REPETIDA carimba
     flash(tl, M.karp2 - 0.05, 0.4, 0.15);
@@ -1232,7 +1312,8 @@ video.painel { position: absolute; z-index: 21; border-radius: 10px; }
     tl.set('#repetida', { opacity: 1 }, M.repetida);
     tl.fromTo('#repetida', { scale: 2.4, rotation: -24 }, { scale: 1, rotation: -10, duration: 0.2, ease: 'back.out(2.5)', immediateRender: false }, M.repetida);
     treme(tl, '#repetida', M.repetida + 0.05, 0.5, 0.25);
-    // f11 · "Vendo por Fichas.": o Meowth joga a carta pra trás e as Fichas pulam
+    // f11 · "Bom, ainda bem que eu posso vender o repetido por Fichas!": anima de novo e joga a carta pra trás
+    tl.to(MR.corpo, { keyframes: { y: [0, -30, 0] }, duration: 0.35, ease: 'sine.inOut' }, F.f11.a + 0.1);
     anim(tl, MR, 'Pose', 0, M.fichas - 0.1, M.fichas + 0.5, { loop: false });
     anim(tl, MR, 'Idle', 0, M.fichas + 0.5, FIM);
     tl.to(['#karp2', '#repetida'], { x: 1150, y: -700, rotation: 400, duration: 0.55, ease: 'power2.in' }, M.fichas);
@@ -1271,6 +1352,8 @@ video.painel { position: absolute; z-index: 21; border-radius: 10px; }
     neve($('p-neve'), 40, M.vemai, F.f14.s + SAIDA, 1080, 1200, 260);
     tl.fromTo('#carta-g', { y: 700, rotation: 10, opacity: 0 }, { y: 0, rotation: -3, opacity: 1, duration: 0.4, ease: 'back.out(1.4)', immediateRender: false }, M.vemai + 0.1);
     tl.to('#carta-g', { keyframes: { y: [0, -20, 0] }, duration: 1.2, ease: 'sine.inOut', repeat: 4 }, M.vemai + 0.5);
+    // um balanço linear e contínuo da carta (sem parar: a neve sozinha não basta pro quadro não ficar parado)
+    tl.fromTo('#carta-g', { rotation: -3 }, { rotation: 3, duration: 0.8, ease: 'none', yoyo: true, repeat: Math.ceil((F.f14.s - M.vemai) / 0.8), immediateRender: false }, M.vemai + 0.5);
     tl.set('#dia15', { opacity: 0 }, 0);
     tl.set('#dia15', { opacity: 1 }, M.natal - 0.4);
     tl.fromTo('#dia15', { scale: 2.2, rotation: -10 }, { scale: 1, rotation: 8, duration: 0.22, ease: 'back.out(2.5)', immediateRender: false }, M.natal - 0.4);
@@ -1315,6 +1398,7 @@ video.painel { position: absolute; z-index: 21; border-radius: 10px; }
         naMesa(FC, '26t', 470, 9, 28, MESA_F),
         naMesa(FC, '67t', 720, 10, 22, MESA_F),
       ];
+      for (const x of turma) chapeu(x);
       turma.forEach((x, k) => {
         if (k === 2) quadro(tl, x, 'Idle', 0, 0, 0);
         else anim(tl, x, 'Idle', 0, 0, FIM);
@@ -1332,9 +1416,14 @@ video.painel { position: absolute; z-index: 21; border-radius: 10px; }
     // câmeras das cenas e dos painéis (o clipe do jogo vai junto com o #pan, pra não sair da moldura). Vai na propriedade
     // CSS `translate`, separada do transform que os planos e os empurrões já animam; a caixa, a manchete e o retrato ficam firmes
     const BALANCO = [[-8, -6], [8, -2], [5, 6], [-7, 3]];
-    for (const [alvos, k] of [[['#cam', '#rota-cam', '#esc .cartela', '#hoje', '#fim-cena'], 1], [['#pan', '#v-pacote', '#v-brock'], 0.8]]) {
+    for (const [alvos, k] of [[['#cam', '#rota-cam', '#esc .cartela', '#hoje', '#fim-cena'], 1], [['#pan', '#v-pacote', '#v-brock'], 1.2]]) {
       const kf = [...BALANCO.slice(1), BALANCO[0]].map(([x, y]) => ({ translate: `${x * k}px ${y * k}px`, duration: 0.6, ease: 'none' }));
       tl.fromTo(alvos, { translate: `${BALANCO[0][0] * k}px ${BALANCO[0][1] * k}px` }, { keyframes: kf, ease: 'none', repeat: Math.ceil(FIM / 2.4), immediateRender: false }, 0);
+    }
+    // as luzinhas piscam em 2 grupos, alternando a cada 0,5 s
+    for (let t = 0, k = 0; t < FIM; t += 0.5, k++) {
+      tl.set(LUZES[k % 2], { opacity: 1 }, t);
+      tl.set(LUZES[(k + 1) % 2], { opacity: 0.3 }, t);
     }
     resolveTrocas();
     resolveRostos();

@@ -1,7 +1,7 @@
 // Prévia em quadros parados da edição especial Time Ultimate, sem render de vídeo: abre a cena num Chromium headless,
 // pausa a linha do tempo em cada instante e monta as folhas com o tempo escrito embaixo de cada quadro.
 //   scripts/pesado.sh node trailer/curtas/news-especial/previa.mjs <pasta de saída>
-//   → <pasta>/news-especial-v1-previa.png, news-especial-v1-safezones.png e news-especial-v1-capa.png (CAPA_MS no Buffer)
+//   → <pasta>/news-especial-v2-previa.png, news-especial-v2-safezones.png e news-especial-v2-capa.png (CAPA_MS no Buffer)
 import { createRequire } from 'node:module';
 import { BEATS, CARTELAS, FALAS, M } from './linha.mjs';
 
@@ -84,7 +84,7 @@ const folha = async (lista, cols, arq, W = 360, H = 640) => {
   await sharp({ create: { width: G + cols * (W + G), height: G + linhas * (R + G), channels: 4, background: '#0e1430' } }).composite(camadas).png().toFile(arq);
   console.log(`ok: ${arq}`);
 };
-await folha(fotos, 8, `${SAIDA}/news-especial-v1-previa.png`);
+await folha(fotos, 8, `${SAIDA}/news-especial-v2-previa.png`);
 
 // as safe zones desenhadas por cima de cada quadro (em 1080 x 1920 e reduzido pra 540 x 960)
 const Z = ZONAS;
@@ -97,7 +97,7 @@ const zonas = Buffer.from(`<svg xmlns="http://www.w3.org/2000/svg" width="1080" 
     <text x="${1080 - Z.direita + 12}" y="${Z.direitaDe + 50}" font-size="28">${Z.direita} px</text><text x="${1080 - Z.direita + 12}" y="${Z.direitaDe + 86}" font-size="24">botões</text></g></svg>`);
 const safeImgs = [];
 for (const [rot, b] of safe) safeImgs.push([rot, await sharp(await sharp(b).composite([{ input: zonas }]).png().toBuffer()).resize(540, 960).png().toBuffer()]);
-await folha(safeImgs, 3, `${SAIDA}/news-especial-v1-safezones.png`, 540, 960);
+await folha(safeImgs, 3, `${SAIDA}/news-especial-v2-safezones.png`, 540, 960);
 
-await sharp(capa).png().toFile(`${SAIDA}/news-especial-v1-capa.png`);
-console.log(`ok: ${SAIDA}/news-especial-v1-capa.png (CAPA_MS=${Math.round(CAPA_S * 1000)})`);
+await sharp(capa).png().toFile(`${SAIDA}/news-especial-v2-capa.png`);
+console.log(`ok: ${SAIDA}/news-especial-v2-capa.png (CAPA_MS=${Math.round(CAPA_S * 1000)})`);

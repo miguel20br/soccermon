@@ -4,7 +4,8 @@
 //   pacote.mp4: o pacote fechado em vai e volta (PAC_LEAD quadros) e a gravação até o leque abrir (0–27)
 //   brock.mp4: o VERSUS contra o Pewter do Brock (15 em diante)
 import { execFileSync } from 'node:child_process';
-import { writeFileSync } from 'node:fs';
+import { readdirSync, writeFileSync } from 'node:fs';
+import { createRequire } from 'node:module';
 import { CLIPES, PAC_LEAD, SAIDA } from './linha.mjs';
 
 const D = new URL('./midia/ut/', import.meta.url).pathname;
@@ -25,3 +26,28 @@ const vai = [...seq(0, 17), ...seq(1, 16).reverse()];
 const lead = Array.from({ length: PAC_LEAD }, (_, k) => vai[k % vai.length]);
 mp4('pacote', [...lead, ...seq(0, Math.max(27, n('v-pacote') - PAC_LEAD))].map((i) => q('pacote', i)));
 mp4('brock', seq(15, 15 + n('v-brock')).map((i) => q('brock', i)));
+
+// v2: os retratos do Raichu, do Machoke e do Meowth com o gorro de Natal (o do jogo, gorro-pixel.ts da v010), pixel do
+// gorro = pixel do retrato (40 x 40): <retrato>-g.png
+const sharp = createRequire(import.meta.url)('sharp');
+const COR = { K: [26, 16, 32], H: [240, 80, 90], R: [214, 40, 60], r: [140, 22, 44], W: [246, 246, 250], w: [184, 194, 214] };
+const GORROS = {
+    longo: ['.........KKK.', '........KWWwK', '......KKKwwK.', '....KKHRrKK..', '...KHRRRrK...', '..KHRRRRRrK..', '.KHRRRRRRRrK.', 'KWWWWWWWWWWWK', 'KwwwwwwwwwwwK', '.KKKKKKKKKKK.'],
+    curto: ['......KKK.', '.....KWWwK', '....KKwwK.', '..KKHRrK..', '.KHRRRRrK.', 'KWWWWWWWWK', 'KwwwwwwwwK', '.KKKKKKKK.'],
+};
+// canto de cima à esquerda do gorro em cada retrato (a base da aba no alto da cabeça, entre as orelhas do Raichu)
+const NO_RETRATO = { 26: ['longo', 14, 1], 67: ['longo', 15, 0], 52: ['longo', 13, -1] };
+const M = new URL('./midia/', import.meta.url).pathname;
+for (const f of readdirSync(M).filter((f) => /^(26|52|67)(-[a-z]+)?\.png$/.test(f))) {
+    const [tipo, gx, gy] = NO_RETRATO[f.split(/[-.]/)[0]];
+    const g = GORROS[tipo];
+    const { data, info } = await sharp(`${M}${f}`).ensureAlpha().raw().toBuffer({ resolveWithObject: true });
+    g.forEach((l, y) => [...l].forEach((c, x) => {
+        if (c === '.' || gy + y < 0) return;
+        const i = ((gy + y) * info.width + gx + x) * 4;
+        [data[i], data[i + 1], data[i + 2]] = COR[c];
+        data[i + 3] = 255;
+    }));
+    await sharp(data, { raw: info }).png().toFile(`${M}${f.replace('.png', '-g.png')}`);
+}
+console.log('retratos com gorro: ok');

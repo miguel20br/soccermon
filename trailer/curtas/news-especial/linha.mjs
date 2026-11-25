@@ -42,10 +42,13 @@ function bloco(nome, manchete) {
     BLOCOS.push({ nome, manchete, s: r3(t) });
     M[nome] = r3(t);
 }
-function digita(texto, t0) {
+function digita(texto, t0, respiro = {}) {
     const cs = Array.from(texto);
     let u = t0;
+    // v2: `respiro` = { trecho: s }: a caixa segura s segundos antes da 1ª letra do trecho (o "E tirei... outro" do Meowth)
+    const antes = new Map(Object.entries(respiro).filter(([tr]) => texto.includes(tr)).map(([tr, d]) => [Array.from(texto.slice(0, texto.indexOf(tr))).length, d]));
     const chars = cs.map((c, i) => {
+        u += antes.get(i) ?? 0;
         const at = r3(u);
         u += DT + (/[!,.?:…]/.test(c) && i > 0 && i < cs.length - 1 && cs[i + 1] === ' ' ? PAUSA : 0);
         return at;
@@ -53,13 +56,13 @@ function digita(texto, t0) {
     return { chars, fim: r3(u) };
 }
 /** Uma fala: `rosto` é o retrato do PMD, ou [[rosto, letra], ...] pra trocar a expressão no meio (na letra n da 1ª página). */
-function fala(id, quem, rosto, texto, { manchete = false } = {}) {
+function fala(id, quem, rosto, texto, { manchete = false, respiro = {} } = {}) {
     fechaBeat();
     const s = t;
     let a = s + (manchete ? RESPIRO : TROCA);
     const pgs = [texto].flat();
     const paginas = pgs.map((tx, k) => {
-        const { chars, fim } = digita(tx, a);
+        const { chars, fim } = digita(tx, a, respiro);
         const ate = r3(k === pgs.length - 1 ? Math.max(fim + CHEIA, s + (manchete ? RESPIRO : TROCA) + MINIMO) : fim + PAGINA);
         const p = { texto: tx, ini: r3(a), chars, fim, ate };
         a = ate + TROCA;
@@ -110,11 +113,12 @@ beat('bChoro', 1.5, 'o Machoke de perto: os olhos enchem d\'água e ele abraça 
 beat('bRua', 0.8, 'a câmera vai pra Loja: o telão chia e abre no Meowth acenando');
 bloco('aovivo', 'AO VIVO');
 const f8 = fala('f8', 'raichu', '26', 'Ao vivo da Loja, nosso repórter Meowth.', { manchete: true });
-const f9 = fala('f9', 'meowth', '52-happy', 'Boa noite! Estou aqui com o meu primeiro pacote.');
-beat('bKarp1', 1.0, 'o pacote rasga (clipe do jogo) e sai um Magikarp bronze: a carta pousa');
-const f10 = fala('f10', 'meowth', '52-sigh', '…Esse é o Magikarp.');
+// v2 (Miguel, 25/11): animado, a decepção e a volta por cima; sai o "Boa noite! Estou aqui com o meu primeiro pacote."
+beat('bKarp1', 1.5, 'a Loja em tela cheia: o pacote rasga (clipe do jogo) e sai um Magikarp bronze: a carta pousa');
+const f9 = fala('f9', 'meowth', '52-joyous', 'Tirei um Magikarp!');
 beat('bKarp2', 1.1, 'o 2º pacote: outro Magikarp, o selo REPETIDA carimba');
-const f11 = fala('f11', 'meowth', '52-determined', 'Vendo por Fichas.');
+const f10 = fala('f10', 'meowth', [['52-surprised', 0], ['52-sad', 11]], 'E tirei... outro Magikarp?!', { respiro: { outro: 0.5 } });
+const f11 = fala('f11', 'meowth', '52-joyous', 'Bom, ainda bem que eu posso vender o repetido por Fichas!');
 bloco('materia', 'OS 8 LÍDERES');
 const f12 = fala('f12', 'machoke', '67-determined', 'E dá pra enfrentar os oito líderes de Kanto.', { manchete: true });
 bloco('vemai', 'VEM AÍ');
@@ -135,9 +139,11 @@ M.mato = letra(f5, 'mato');
 M.naoVolta = f6.a;
 M.lagrima = r3(M.bChoro + 0.25);
 M.abraco = r3(M.bChoro + 0.6);
-M.cheia = f9.s; // o Meowth em tela cheia, na Loja, com o clipe do pacote do lado
-M.rasga = r3(letra(f9, 'pacote'));
-M.karp1 = r3(M.bKarp1 + 0.3); // a 1ª carta pousa
+M.cheia = M.bKarp1; // o Meowth em tela cheia, na Loja, com o clipe do pacote do lado
+M.rasga = r3(M.bKarp1 + 0.6); // o arrasto do clipe (quadro 18 da gravação)
+M.karp1 = r3(M.bKarp1 + 0.95); // a 1ª carta pousa
+M.tirei = letra(f9, 'Magikarp'); // o Meowth comemora
+M.outro = letra(f10, 'outro'); // a decepção
 M.karp2 = r3(M.bKarp2 + 0.35); // a 2ª carta pousa
 M.repetida = r3(M.bKarp2 + 0.7); // o selo REPETIDA carimba
 M.fichas = letra(f11, 'Fichas'); // a carta voa pra trás
@@ -152,14 +158,14 @@ export const CLIPES = {
     // o gancho: o pacote rasgando e o clarão dourado do walkout, montado em gancho.mp4 (corte seco na vinheta: sem SAIDA)
     'v-gancho': { arq: 'midia/ut/gancho.mp4', s: 0, z: M.vinheta - SAIDA_, marca: 0, noClipe: 0 },
     // o Meowth rasga o pacote: o clipe abre na tela cheia com o pacote brilhando (PAC_LEAD quadros de vai e volta) e o
-    // arrasto (quadro 18 da gravação) cai no começo do bKarp1
+    // arrasto (quadro 18 da gravação) cai em M.rasga
     'v-pacote': { arq: 'midia/ut/pacote.mp4', s: M.cheia, z: M.karp1, marca: M.cheia, noClipe: 0 },
     // a Batalha de Treinador contra o Brock: o VERSUS e o começo da partida
     'v-brock': { arq: 'midia/ut/brock.mp4', s: M.materia, z: M.vemai, marca: M.materia, noClipe: 0 },
 };
 
 /** Quadros de vai e volta do pacote fechado antes da gravação (clipes.mjs monta o pacote.mp4 com eles). */
-export const PAC_LEAD = Math.round((M.bKarp1 - M.cheia) * 30) - 18;
+export const PAC_LEAD = Math.max(0, Math.round((M.rasga - M.cheia) * 30) - 18);
 
 /** As trocas de cena e os painéis levam 0,25 s (o clipe do EP 2 fica no ar até a troca terminar). */
 export const SAIDA = 0.25;

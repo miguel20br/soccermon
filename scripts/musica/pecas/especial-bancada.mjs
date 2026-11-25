@@ -1,4 +1,4 @@
-// Soccermon News: edição especial Time Ultimate (25/11/2026): a trilha do News #2 (news2-bancada.mjs) remontada na linha
+// Soccermon News: edição especial Time Ultimate (25/11/2026; v2 com guizos, sininhos, glockenspiel e sinos de Natal): a trilha do News #2 (news2-bancada.mjs) remontada na linha
 // do tempo da edição especial (trailer/curtas/news-especial/linha.mjs). Gancho: o pacote rasgando e o clarão dourado do
 // walkout; Loja no AO VIVO com a gag do Magikarp (a tuba); os líderes com uma nota por insígnia; VEM AÍ com sininhos de
 // Natal; tela final curta (2,4 s) sem o telefone.
@@ -25,7 +25,7 @@
 // news-voz.wav, por cima).
 import { LINHA } from '../../../trailer/curtas/news-especial/linha.mjs';
 import { aparece, plim as plimSino, rasga, sobe, varrida } from '../curtas.mjs';
-import { bass, drum, GANCHO, I, MAJOR, mel, padChord, Song, stabs, thirdBelow } from '../synth.mjs';
+import { bass, drum, GANCHO, I, ins, MAJOR, mel, padChord, Song, stabs, thirdBelow } from '../synth.mjs';
 import { som } from './livre-ginasio.mjs';
 import { telefone } from './news-esboco-c.mjs';
 
@@ -103,9 +103,33 @@ export default function especial() {
     const rs = S.part('rasga', rasga, { drum: true, gain: 0.6, pan: 0.1, rev: 0.12 });
     const ch = S.part('chiado', chiado, { drum: true, gain: 0.45, pan: 0.05 });
 
+    // v2 (Miguel, 25/11: trilha com cara de Natal): as camadas da Partida de Natal (partida-natal.mjs) por cima da bancada:
+    // guizos de trenó, SININHOS afinados (seno com FM) sacudindo em cacho, glockenspiel dobrando o tema e sinos nas manchetes
+    const gz = S.part('guizos', I.sleigh, { drum: true, pan: 0.4, gain: 1.3 });
+    const tln = S.part('sininhos', ins({ vol: 0.1, a: 0.001, r: 0.16, shape: 0, mod: 0.35, sv: 0.12, d: 0.03 }), {
+        pan: 0.35,
+        gain: 3.2,
+        rev: 0.25,
+    });
+    const glk = S.part('glockenspiel', I.bell, { pan: -0.15, gain: 1.5, rev: 0.3 });
+    const sinos = S.part('sinos', I.bell, { pan: -0.3, gain: 1.3, rev: 0.35 });
+    const CACHOS = [
+        [100, 103, 107],
+        [98, 102, 105],
+    ];
+    /** Os sininhos sacudindo no compasso `b` (cachos que se alternam a cada semicolcheia). */
+    const sacode = (b, pat, forca) => {
+        [...pat].forEach((c, r) => {
+            if (c === '.') return;
+            const vel = (c === 'X' ? 1 : c === 'x' ? 0.7 : 0.45) * forca;
+            CACHOS[r % 2].forEach((n, k) => {
+                tln.note(b * 16 + r, n, 1, vel * (1 - 0.15 * k));
+            });
+        });
+    };
     // a cama de cada bloco começa no corte e para no próximo: as faixas do groove cortam as notas fora de [t0, t1)
     let LIM = [0, Number.POSITIVE_INFINITY];
-    for (const p of [kk, sn, hh, oh, sk, bs, ep, clav, ag, tuba, pz, tq, cl]) {
+    for (const p of [kk, sn, hh, oh, sk, bs, ep, clav, ag, tuba, pz, tq, cl, gz, tln]) {
         const n0 = p.note;
         p.note = (t, ...a) => {
             if (t / 8 < LIM[0] - 1e-6 || t / 8 >= LIM[1] - 1e-6) return;
@@ -117,6 +141,8 @@ export default function especial() {
         drum(kk, b, 1, 'X.....x...X.....', { vel: 0.55 });
         drum(sn, b, 1, '....x.......x..o', { vel: 0.45 });
         drum(hh, b, 1, 'x.xxx.xxx.xxx.xx', { vel: 0.28 });
+        drum(gz, b, 1, 'xoxoXoxoxoxoXoxo', { vel: 0.5 });
+        sacode(b, 'x.o.X.o.x.o.X.o.', 0.5);
         bass(bs, b, c, '0:1 r:1 8:1 0:1 r:1 5:1 s:1 8:1 r:1 0:1 3:1 5:1 r:1 s:1 8:1 5:1', { vel: 0.6 });
         stabs(
             ep,
@@ -135,6 +161,8 @@ export default function especial() {
         drum(kk, b, 1, 'X.....x...X..x..', { vel: 0.6 });
         drum(sn, b, 1, '....x..o....x...', { vel: 0.45 });
         drum(hh, b, 1, 'x.xx.x.xx.xx.x.x', { vel: 0.28 });
+        drum(gz, b, 1, 'xoxoXoxoxoxoXoxo', { vel: 0.6 });
+        sacode(b, 'xoxoXoxoxoxoXoxo', 0.55);
         bass(bs, b, c, '0:2 r:1 0:1 8:1 r:1 5:2 0:1 r:1 s:2 8:1 5:1 3:2', { vel: 0.62 });
         stabs(clav, b, c, [2, 6, 10, 14], { low: 60, n: 3, vel: 0.5 });
         mel(ag, b, ['G5:2 r:1 D5:1 r:2 D5:2 G5:2 r:1 D5:1 r:2 D5:2'], { vel: 0.5 });
@@ -167,6 +195,7 @@ export default function especial() {
         N(pr, s, 0, 0, 0.55);
         N(kk, s, 0, 0, 0.9);
         stabs(met, 0, sym, [[R(s), 2]], { low: 60, n: 4, vel: 0.6 });
+        padChord(sinos, 0, sym, 8, { low: 64, n: 2, vel: 0.7, at: R(s) });
         plimJornal(s);
     };
     /** v11: o plim do jornal, a assinatura da casa (~0,5 s) junto com a manchete de cada bloco: um "tan-tan" no sino
@@ -218,6 +247,7 @@ export default function especial() {
         stabs(ep, 0, 'Ebmaj7', [[R(logo), 4]], { low: 55, n: 4, vel: 0.6 });
         padChord(cor, 0, 'Ebmaj7', 10, { low: 58, n: 4, vel: 0.5, at: R(logo) });
         bs.note(R(logo), 39, 2, 0.85);
+        for (const [k, m] of [75, 79, 82, 84].entries()) N(glk, logo + 0.02 + 0.13 * k, m + 12, 1, 0.7);
         for (const [k, m] of [75, 79, 82, 84].entries()) {
             N(lead, logo + 0.02 + 0.13 * k, m, 1, 0.85);
             N(leadP, logo + 0.02 + 0.13 * k, m, 1, 0.8);
@@ -262,6 +292,7 @@ export default function especial() {
             N(bs, s, [39, 36, 32, 34][k], 5, 0.65);
             const sh = [0, 2, 4, 5][k];
             for (const [i, m] of [75, 79, 82].entries()) {
+                N(glk, s + 0.125 * i, m + sh + 12, 1, 0.6);
                 N(lead, s + 0.125 * i, m + sh, 1, 0.7);
                 N(leadP, s + 0.125 * i, m + sh, 1, 0.6);
             }
@@ -296,30 +327,42 @@ export default function especial() {
     cama(M.aovivo, M.bKarp1, rua, ['Cm7', 'F7'], { cordas: 0 });
     manchete(M.aovivo, 'Cm9');
     mel(clav, (F.f8.paginas[0].fim + 0.5) / 2, ['C5:1 Eb5:1 G5:1 Bb5:2 G5:1 r:10'], { vel: 0.7 });
-    // BEAT bKarp1: a bateria sai; o pacote rasga, um clarão e a carta pousa... e é o Magikarp (a tuba)
-    N(rs, M.bKarp1, 0, 0, 1);
+    // BEAT bKarp1: a bateria sai; o pacote rasga no clipe, um clarão e a carta pousa
+    N(rs, M.rasga, 0, 0, 1);
     N(ap, M.karp1 - 0.1, 5, 0, 0.8);
-    N(kk, M.karp1, 0, 0, 0.6);
-    N(tuba, M.karp1 + 0.25, 40, 1.2, 0.45);
-    N(tuba, M.karp1 + 0.5, 35, 3, 0.4);
-    // f10 sem graça: só o tique e a tuba magra
-    cama(F.f10.s, M.bKarp2, comico, ['Cm7', 'F7']);
-    // BEAT bKarp2: o 2º pacote rasga, o 2º Magikarp pousa e o selo REPETIDA carimba (bumbo e a tuba descendo)
+    N(kk, M.karp1, 0, 0, 0.8);
+    N(pr, M.karp1, 0, 0, 0.5);
+    // f9 · "Tirei um Magikarp!": animado, o groove de rua volta com os guizos e o glockenspiel sobe no "Magikarp"
+    cama(F.f9.s, M.bKarp2, rua, ['Cm7', 'F7'], { cordas: 0 });
+    stabs(met, 0, 'Cm9', [[R(M.tirei), 2]], { low: 60, n: 4, vel: 0.6 });
+    for (const [k, m] of [84, 87, 91, 96].entries()) N(glk, M.tirei + 0.09 * k, m, 1, 0.75);
+    // BEAT bKarp2: o 2º pacote, o 2º Magikarp pousa e o selo REPETIDA carimba (bumbo, caixa e prato)
     N(rs, M.bKarp2, 0, 0, 0.9);
     N(kk, M.karp2, 0, 0, 0.6);
     N(kk, M.repetida, 0, 0, 1);
     N(sn, M.repetida, 0, 0, 0.7);
     N(pr, M.repetida, 0, 0, 0.4);
-    for (const [k, m] of [41, 40, 39, 38].entries()) N(tuba, M.repetida + 0.15 + 0.14 * k, m, k === 3 ? 3 : 1.2, 0.45);
-    // f11: o groove volta; "Fichas": a carta voa (whoosh) e as moedas
+    // f10 · "E tirei... outro Magikarp?!": magro e cômico; no respiro antes do "outro" só o tique, e no "outro" a tuba
+    // "uá-uá" descendo com um sininho triste
+    cama(F.f10.s, F.f11.s, comico, ['Cm7', 'F7']);
+    for (const [k, m] of [41, 40, 39, 38].entries()) N(tuba, M.outro + 0.1 + 0.15 * k, m, k === 3 ? 3 : 1.2, 0.5);
+    N(glk, M.outro + 0.05, 91, 2, 0.4);
+    N(glk, M.outro + 0.3, 86, 3, 0.35);
+    // f11 · "Bom, ainda bem que eu posso vender o repetido por Fichas!": a volta por cima: o groove volta, os sininhos
+    // sacodem, e no "Fichas" a carta voa (whoosh) e as moedas
     cama(F.f11.s, M.materia, rua, ['Cm7', 'F7'], { cordas: 0 });
+    for (const [k, m] of [72, 75, 79, 84].entries()) N(glk, F.f11.a + 0.08 * k, m + 12, 1, 0.55);
     N(vr, M.fichas - 0.1, 5, 0, 0.5);
     for (let k = 0; k < 3; k++) N(moeda, M.fichas + 0.15 + 0.12 * k, 0, 0, 0.7);
+    sacode(Math.ceil((M.fichas + 0.3) * 2) / 4, 'XxXxXxXo........', 0.9);
 
     // ===================== OS 8 LÍDERES (f12): uma nota por insígnia =====================
     cama(M.materia, M.vemai, estudio, ['Ebmaj7', 'Abmaj7', 'Fm9', 'Bb7sus4']);
     manchete(M.materia, 'Ebmaj7');
-    for (const [k, s] of M.insig.entries()) N(sino, s, [87, 89, 91, 92, 94, 96, 98, 99][k], 1, 0.4);
+    for (const [k, s] of M.insig.entries()) {
+        N(sino, s, [87, 89, 91, 92, 94, 96, 98, 99][k], 1, 0.4);
+        N(glk, s, [87, 89, 91, 92, 94, 96, 98, 99][k] - 12, 1, 0.5);
+    }
 
     // ===================== VEM AÍ (f13): sininhos de Natal e a subida =====================
     cama(M.vemai, F.f14.s, estudio, ['Ebmaj7', 'Abmaj7', 'Fm9', 'Bb7sus4']);
@@ -329,6 +372,8 @@ export default function especial() {
     drum(sk, Math.ceil(M.vemai * 2) / 4, 3, 'xxXxxxXxxxXxxxXx', { vel: 0.35 });
     LIM = [0, Number.POSITIVE_INFINITY];
     for (const [k, m] of [94, 99, 103].entries()) N(sino, M.natal + 0.11 * k, m, 2, 0.45);
+    padChord(sinos, 0, 'Ebmaj7', 12, { low: 64, n: 3, vel: 0.9, at: R(M.natal) });
+    drum(gz, Math.floor(M.natal * 2) / 4, 1, 'XoxoXoxoXoxoXxXx', { vel: 0.8 });
     for (const [k, m] of [103, 99, 106].entries()) N(sino, M.gelo + 0.11 * k, m, 2, 0.45);
     // BEAT bNeve: a carta gira na neve (o arpejo de sino descendo)
     for (let k = 0; k < 5; k++) N(sino, M.bNeve + 0.1 * k, 106 - 3 * k, 1, 0.3);
@@ -348,6 +393,8 @@ export default function especial() {
         mel(lead, t0 / 2, [gancho], { vel: 1 });
         mel(leadP, t0 / 2, [gancho], { vel: 0.85 });
         mel(met, t0 / 2, [gancho], { harm: thirdBelow(MAJOR(3)), vel: 0.65 });
+        mel(glk, t0 / 2, [gancho], { shift: 12, vel: 0.7 });
+        drum(gz, t0 / 2, 1, 'XoxoXoxoXoxoXxXx', { vel: 0.8 });
         drum(cl, t0 / 2 - 0.125, 1, GANCHO.palmas, { vel: 0.9 });
         LIM = [t0, t0 + 1.5];
         drum(kk, t0 / 2, 1, 'X.....x.X.....x.', { vel: 0.7 });
@@ -361,6 +408,8 @@ export default function especial() {
         padChord(cor, 0, 'Ebmaj7', 6, { low: 58, n: 4, vel: 0.5, at: R(fim) });
         N(bs, fim, 27, 4, 0.9);
         N(lead, fim, 87, 3, 0.8);
+        padChord(sinos, 0, 'Ebmaj7', 12, { low: 64, n: 3, vel: 1, at: R(fim) });
+        sacode(fim / 2, 'XxXxXxXo........', 1);
     }
 
     // as 2 varridas com a cartinha (o pico do "fuuuh" no corte) e o whoosh curto nos outros cortes
