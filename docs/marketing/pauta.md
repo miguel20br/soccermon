@@ -47,7 +47,7 @@ Legenda: "<série>, ep. N. Joga grátis: soccermon.com/ig" (`/tt` no TikTok, `/y
 | 15 | ter 17/11 19h | Vestiário do Pallet FC | **Saco de bolas:** o Pikachu chuta o Voltorb achando que é a bola; explosão, fumaça | VESTIÁRIO DO PALLET FC | vira o item 20 (mockumentary, 13/11) |
 | 16 | sex 20/11 19h | Confessionário | **Sem a medalha:** o Magikarp chora porque perdeu a medalha; corta pro Ditto usando ela | CONFESSIONÁRIO · DIA 2 | saiu da grade (12/11); a sexta virou o Soccermon News |
 | 17 | ter 24/11 19h | Vestiário do Pallet FC | **O pacote:** o Magikarp abre o 1º pacote do Time Ultimate e sai ele mesmo, carta bronze; o Snorlax acorda pra ver | TIME ULTIMATE 27/11 | aprovado (07/11) |
-| 18 | sex 27/11 19h | Lançamento | Trailer do Time Ultimate + comentário com o link | TIME ULTIMATE | aprovado (07/11) (o trailer passa pelo Miguel) |
+| 18 | **sex 27/11 12h** (era 19h; 19h ficou pro News especial) | Lançamento | Trailer do Time Ultimate v5 (aprovado 25/11) + comentário com o link | TIME ULTIMATE | **agendado** (25/11) nas 3 redes pelo Buffer (`27-trailer-ut.mp4`, capa 30 s): TikTok 6b0657315d949f6c2a6d3f45, IG 6b0657329cddd8483aa5ec22, YT 6b0657325d949f6c2a6d3fa9 |
 | 19 | ter 01/12 19h | Confessionário | **Prova do líder:** prova de segurar a bola na cabeça; o Snorlax ganha dormindo | CONFESSIONÁRIO · DIA 3 | aprovado (07/11) |
 
 Trailerzinhos das 0.9.40, 0.9.41 e 0.9.43 (pendentes): proposta de arquivar, o jogo já mudou e o trailer do Time
