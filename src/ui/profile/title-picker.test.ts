@@ -26,7 +26,7 @@ describe('título "Natal 2026" (perfil-revamp.md, fase 1)', () => {
         expect(titleName('natal2026')).toBe('Natal 2026');
         expect(titleClass('natal2026')).toBe(' title-ice');
         expect(titleRarity('natal2026')).toBe('especial');
-        expect(titleHow('natal2026')).toBe('Copa de Natal (24 e 25/12) ou desafio de Natal');
+        expect(titleHow('natal2026')).toBe('Copa de Natal (24 e 25/12) ou degrau 4 do Desafio de Natal');
         const ice = [...TITLE_IDS, ...Object.keys(CUSTOM_TITLES)].filter((id) => titleLook(id) === 'ice');
         expect(ice).toEqual(['natal2026']);
         expect(earnedTitles(DEFAULT_PROFILE)).not.toContain('natal2026');
