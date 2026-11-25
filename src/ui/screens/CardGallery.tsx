@@ -33,7 +33,7 @@ import '../ultimate/ultimate.css';
 const CardArchive = lazy(() => import('./CardArchive').then((m) => ({ default: m.CardArchive })));
 /** Proposta da edição Retrô (sprite de Game Boy): pedaço à parte, só na galeria. */
 const RetroCards = lazy(() => import('./RetroCards').then((m) => ({ default: m.RetroCards })));
-/** Proposta da edição Evento de Natal (3 opções): pedaço à parte, só na galeria. */
+/** Cartas de Natal (edição do Evento de Natal do UT): pedaço à parte, só na galeria. */
 const NatalCards = lazy(() => import('./NatalCards').then((m) => ({ default: m.NatalCards })));
 
 function sample(speciesId: number, opts: { shiny?: boolean; item?: string | null } = {}): PokemonInstance {

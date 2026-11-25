@@ -118,6 +118,7 @@ export const team: typeof pt = {
         tipIcone: 'Icon: 1 in {odds} when it shows up in the draft. +2 to everything.',
         tipEvento: 'Event of the week for the {type} type. +2 to everything.',
         tipEspecial: 'Outlaw Week Event. +2 to everything.',
+        tipNatal: 'Christmas Event, Ice type. +2 to everything.',
         tipDestaque: 'Star Player: the star of a win. +2 to everything.',
         tipMvpOne: 'MVP 1: star of the match once. +{bonus} to everything.',
         tipMvp: 'MVP {n}: star of the match {n} times. +{bonus} to everything.',
