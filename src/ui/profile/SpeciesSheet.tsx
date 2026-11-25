@@ -3,7 +3,7 @@ import { MOVES, SPECIES_BY_ID, type Species, type StatKey, species } from '../..
 import { viewInstance } from '../../engine/instance';
 import { SIGNATURE } from '../../engine/signature-moves';
 import { playCry } from '../../game/audio';
-import { getLang, moveName } from '../../i18n';
+import { getLang, linkText, moveName, secretText } from '../../i18n';
 import { useT } from '../../i18n/react';
 import { defaultCard } from '../../store/binder';
 import { useGame } from '../../store/game-store';
@@ -22,6 +22,7 @@ import {
     sealsOf,
     topSeal,
 } from '../../store/profile';
+import { combosFoundOf } from '../../store/secret-links';
 import { useBackLayer } from '../back-nav';
 import { EvoChain, evolutionStages } from '../components/EvoChain';
 import { HudIcon } from '../components/MatchHud';
@@ -33,7 +34,9 @@ import { speciesGif } from './club';
 import { DexText } from './DexText';
 import { BallMark, CareerSealIcon, ChampionRibbon, Chevron, LockIcon, SpeakerIcon } from './icons';
 import { useMedalView } from './Medals';
+import { Faces, Shadows } from './SynergyLog';
 import { sealTip } from './seal-tip';
+import { speciesSynergies } from './species-synergies';
 
 const STATS: StatKey[] = ['hp', 'atk', 'def', 'spa', 'spd', 'spe'];
 
@@ -314,6 +317,8 @@ function SeenBody({ sp, dex, moves, onNav }: { sp: Species; dex: Dex; moves: Mov
                 {found < moveIds.length && <p className="pf-note">{t('profile.sheet.movesHelp')}</p>}
             </section>
 
+            <Synergies id={sp.id} />
+
             {entry && isPlayed(entry) && <Seals id={sp.id} entry={entry} dex={dex} />}
 
             <section className="pf-block">
@@ -353,6 +358,47 @@ function SeenBody({ sp, dex, moves, onNav }: { sp: Species; dex: Dex; moves: Mov
                 )}
             </section>
         </div>
+    );
+}
+
+/** Sinergias da espécie: as de história e as secretas descobertas; as outras viram "???" (sem nome nem parceiros). */
+function Synergies({ id }: { id: number }) {
+    const { t, lang } = useT();
+    const combos = useGame((s) => s.profile.combosFound);
+    const { shown, hidden } = speciesSynergies(id, new Set(combosFoundOf({ combosFound: combos })));
+    if (!shown.length && !hidden) return null;
+    return (
+        <section className="pf-block">
+            <h3>{t('profile.sheet.synergies')}</h3>
+            <ul className="sl-grid">
+                {shown.map((s) => {
+                    const txt = s.secret ? secretText(s.id, lang) : linkText(s.id, lang);
+                    return (
+                        <li key={s.id} className={`sl-card${s.secret ? ' secret found' : ''}`}>
+                            <Faces ids={s.faces.slice(0, 5)} />
+                            <span className="sl-txt">
+                                <b>{txt.name}</b>
+                                <small className="sl-tag">
+                                    {s.bonus === null
+                                        ? t('common.secretUi.screenOnly')
+                                        : t('common.secretUi.bonus', { n: s.bonus })}
+                                </small>
+                            </span>
+                        </li>
+                    );
+                })}
+                {Array.from({ length: hidden }, (_, i) => (
+                    // biome-ignore lint/suspicious/noArrayIndexKey: linhas iguais
+                    <li key={i} className="sl-card secret">
+                        <Shadows n={2} />
+                        <span className="sl-txt">
+                            <b>???</b>
+                        </span>
+                    </li>
+                ))}
+            </ul>
+            {hidden > 0 && <p className="pf-note">{t('profile.sheet.synergiesHidden', { n: hidden })}</p>}
+        </section>
     );
 }
 

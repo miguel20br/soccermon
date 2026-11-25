@@ -12,7 +12,7 @@ const faces = (s: SecretLink): number[] => (s.pairs === 'mirror' ? [150, 150] : 
 
 const STORY = LINKS.filter((l) => !l.secret);
 
-const Shadows = ({ n }: { n: number }) => (
+export const Shadows = ({ n }: { n: number }) => (
     <span className="sl-faces" aria-hidden>
         {Array.from({ length: n }, (_, i) => (
             // biome-ignore lint/suspicious/noArrayIndexKey: silhuetas iguais
@@ -23,7 +23,7 @@ const Shadows = ({ n }: { n: number }) => (
     </span>
 );
 
-const Faces = ({ ids }: { ids: number[] }) => (
+export const Faces = ({ ids }: { ids: number[] }) => (
     <span className="sl-faces" aria-hidden>
         {ids.map((id, i) => (
             // biome-ignore lint/suspicious/noArrayIndexKey: o espelho repete a espécie
