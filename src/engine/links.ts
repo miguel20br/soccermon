@@ -1,3 +1,4 @@
+import { SPECIES, species } from './data';
 import type { PokemonInstance } from './instance';
 
 /**
@@ -20,6 +21,13 @@ export interface LinkDef {
     special?: boolean;
     /** Nome do combo que aparece na tela. */
     combo: string;
+    /**
+     * Sinergia secreta (fase 2, docs/planos/sinergias-secretas-fase2.md): o id dela no Registro (as geradas por família
+     * repetem o mesmo). O bônus aparece na carta e no painel; o nome fica "???" até a descoberta.
+     */
+    secret?: string;
+    /** Sem combo de passe e chute: as de "2 de N" só têm o bônus (Miguel, 25/11). */
+    noCombo?: true;
 }
 
 export const LINKS: LinkDef[] = [
@@ -186,6 +194,128 @@ export const LINKS: LinkDef[] = [
     },
 ];
 
+/** Secreta escrita à mão: o id é o do Registro. */
+const secret = (id: string, groups: number[][], need: number, bonus: number, noCombo?: true): LinkDef => ({
+    id,
+    name: id,
+    desc: '',
+    groups,
+    need,
+    bonus,
+    combo: id,
+    secret: id,
+    ...(noCombo && { noCombo }),
+});
+
+// famílias da Gen 1 (base → final, a 1ª evolução de cada estágio) pra Mestre e Aprendiz e Família Completa; o Eevee
+// fica de fora (já tem Eeveelutions e Irmãos Eevee)
+const evo = (id: number) => species(id).evolvesTo.find((e) => e.id <= 151)?.id;
+const evolved = new Set(SPECIES.flatMap((sp) => sp.evolvesTo.map((e) => e.id)));
+const CHAINS = SPECIES.filter((sp) => sp.id <= 151 && sp.id !== 133 && !evolved.has(sp.id) && evo(sp.id)).map((sp) => {
+    const chain = [sp.id];
+    for (let next = evo(sp.id); next; next = evo(next)) chain.push(next);
+    return chain;
+});
+const MISTY = [120, 121, 54, 55, 118, 119, 116, 117];
+const BROCK = [95, 74, 75, 76, 37, 38, 41, 42];
+
+/**
+ * As 21 secretas com bônus em campo (fase 2; Miguel pediu a opinião do Claude em 25/11): +3/+4 nas que ligam muito, +5
+ * nas de 2 famílias, +6 nas de 3 membros certos, +8 nas raras. Combo só nas de membros certos.
+ */
+const SECRETS: LinkDef[] = [
+    secret('turma', [[25, 26], MISTY, BROCK], 3, 1.06),
+    secret('montePrateado', [[25], [143], [3, 6, 9]], 3, 1.08),
+    // o time do Blue: 3 das 6 famílias (com 2 ligava demais)
+    secret(
+        'rivalAzul',
+        [
+            [16, 17, 18],
+            [63, 64, 65],
+            [111, 112],
+            [58, 59],
+            [129, 130],
+            [102, 103],
+        ],
+        3,
+        1.04,
+        true,
+    ),
+    secret('joyJenny', [[113], [58, 59]], 2, 1.05),
+    secret('flauta', [[143], [39, 40, 35, 36]], 2, 1.05),
+    secret('slowbro', [[79], [90]], 2, 1.05),
+    ...CHAINS.map((c) => ({
+        ...secret(`mestre${c[0]}`, [[c[0]], [c[c.length - 1]]], 2, 1.03, true),
+        secret: 'mestreAprendiz',
+    })),
+    ...CHAINS.filter((c) => c.length === 3).map((c) => ({
+        ...secret(`familia${c[0]}`, [[c[0]], [c[1]], [c[2]]], 3, 1.04, true),
+        secret: 'familiaCompleta',
+    })),
+    secret('quatroPokebolas', [[1], [4], [7], [25]], 4, 1.08),
+    secret('irmaosEevee', [[133], [134], [135], [136]], 4, 1.08),
+    secret('museuPewter', [[138, 139], [140, 141], [142]], 3, 1.08),
+    secret('jardimCeladon', [[69, 70, 71], [114], [43, 44, 45]], 2, 1.05, true),
+    secret(
+        'ninjasFuchsia',
+        [
+            [109, 110],
+            [88, 89],
+            [48, 49],
+        ],
+        2,
+        1.05,
+        true,
+    ),
+    secret('menteSaffron', [[63, 64, 65], [122], [48, 49]], 2, 1.05, true),
+    secret('quizCinnabar', [[58, 59], [77, 78], [126]], 2, 1.05, true),
+    secret('giovanni', [[53], [31, 34], [51, 112]], 3, 1.06),
+    secret('lorelei', [[86, 87], [90, 91], [80], [124], [131]], 2, 1.05, true),
+    secret('bruno', [[66, 67, 68], [106, 107], [95]], 3, 1.06),
+    secret(
+        'torre',
+        [
+            [92, 93, 94],
+            [41, 42],
+            [23, 24],
+            [104, 105],
+        ],
+        2,
+        1.05,
+        true,
+    ),
+    secret(
+        'lance',
+        [
+            [147, 148, 149],
+            [130, 142],
+        ],
+        2,
+        1.05,
+    ),
+    // exclusivos de versão (Red x Blue) no mesmo time
+    ...[
+        [[123], [127]],
+        [
+            [23, 24],
+            [27, 28],
+        ],
+        [
+            [43, 44, 45],
+            [69, 70, 71],
+        ],
+        [
+            [58, 59],
+            [37, 38],
+        ],
+        [
+            [56, 57],
+            [52, 53],
+        ],
+    ].map((g, i) => ({ ...secret(`cabo${i}`, g, 2, 1.04, true), secret: 'caboLink' })),
+];
+LINKS.push(...SECRETS);
+
 export interface ActiveLink {
     def: LinkDef;
     /** uids dos titulares que fazem parte da sinergia. */
@@ -197,7 +327,7 @@ export interface ActiveLink {
 }
 
 /** Sinergias de história ativas entre os titulares. */
-export function computeLinks(lineup: readonly PokemonInstance[]): ActiveLink[] {
+export function computeLinks(lineup: readonly Pick<PokemonInstance, 'uid' | 'speciesId'>[]): ActiveLink[] {
     const active: ActiveLink[] = [];
     for (const def of LINKS) {
         const members: string[] = [];
@@ -213,9 +343,9 @@ export function computeLinks(lineup: readonly PokemonInstance[]): ActiveLink[] {
     return active;
 }
 
-/** Sinergias em que um Pokémon (espécie) poderia entrar — pra mostrar na carta. */
+/** Sinergias de história em que um Pokémon (espécie) poderia entrar — pra mostrar na carta (as secretas não). */
 export function linksOf(speciesId: number): LinkDef[] {
-    return LINKS.filter((l) => l.groups.some((g) => g.includes(speciesId)));
+    return LINKS.filter((l) => !l.secret && l.groups.some((g) => g.includes(speciesId)));
 }
 
 /** Multiplicador de atributos de um titular: o maior bônus entre as sinergias de que participa. */

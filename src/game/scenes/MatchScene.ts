@@ -3911,7 +3911,13 @@ export class MatchScene extends Phaser.Scene {
         if (!a || !b) return;
         const first = longReveal(hit.id, this.md.combosFound, !!this.md.replay);
         const text = secretText(hit.id);
-        this.battleBox.push(tr('common.secretUi.line', { name: text.name, a: a.name, b: b.name }));
+        this.battleBox.push(
+            tr(hit.team ? 'common.secretUi.lineTeam' : 'common.secretUi.line', {
+                name: text.name,
+                a: a.name,
+                b: b.name,
+            }),
+        );
         this.time.delayedCall(300, () => {
             playSfx('move');
             if (!cinematic) {
@@ -3932,7 +3938,7 @@ export class MatchScene extends Phaser.Scene {
                 playCry(b.speciesId, this.md.cries, 0.7);
                 const box = this.cine.drama(text.name.toUpperCase(), {
                     ...style,
-                    sub: tr('battle.secretSub', { a: a.name, b: b.name }),
+                    sub: tr(hit.team ? 'battle.secretSubTeam' : 'battle.secretSub', { a: a.name, b: b.name }),
                     top: true,
                     hold: 1600,
                 });
@@ -4491,7 +4497,8 @@ export class MatchScene extends Phaser.Scene {
                 if (b) playCry(b.speciesId, cries, 0.8);
                 this.popText(e.partner, tr('battle.comboPop'), '#ffd447');
                 this.popText(e.by, tr('battle.comboPop'), '#ffd447');
-                if (link && a && b) {
+                // combo de secreta na 1ª vez da partida: a revelação (secretReveal) faz o letreiro
+                if (link && a && b && !this.secretHits.has(e)) {
                     const text = linkText(link.id);
                     const names = { link: text.name, a: a.name, b: b.name };
                     this.battleBox.push(tr('battle.combo', names));
