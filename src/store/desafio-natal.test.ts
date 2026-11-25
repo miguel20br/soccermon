@@ -115,7 +115,8 @@ describe('Pacote de Evento do desafio', () => {
         // fora das datas do evento (05/01 em diante) o pacote continua todo Evento
         const late = openPack({ ...u, evMini: 1 }, DESAFIO_CLAIM_TO - 1, 'evmini');
         for (const c of [...(mini?.pack.cards ?? []), ...(big?.pack.cards ?? []), ...(late?.pack.cards ?? [])])
-            if (c.special?.kind !== 'icone') expect(c.special).toEqual({ kind: 'evento', type: 'Ice' });
+            if (c.special?.kind !== 'icone')
+                expect(c.special).toEqual({ kind: 'evento', type: 'Ice', event: 'natal-2026' });
         expect(openPack({ ...u, evMini: 0 }, DESAFIO_FROM, 'evmini')).toBeNull();
     });
 });

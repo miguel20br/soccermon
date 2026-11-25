@@ -209,6 +209,9 @@ describe('validarTimeDuelo (time pronto)', () => {
         expect(combo({ kind: 'evento', event: 'especial', level: 2 })).toEqual([]);
         expect(combo({ kind: 'evento', event: 'natal' }).join()).toContain('edição');
         expect(combo({ kind: 'evento', event: 'especial', type: 'Fire' }).join()).toContain('edição');
+        // Natal do UT: a chave do evento vem junto do tipo (Gelo); sem o tipo, não
+        expect(combo({ kind: 'evento', type: 'Ice', event: 'natal-2026', level: 1 })).toEqual([]);
+        expect(combo({ kind: 'evento', event: 'natal-2026' }).join()).toContain('edição');
     });
 
     it('save editado não passa: espécie, golpe, habilidade, item, edição, repetido, elenco', () => {

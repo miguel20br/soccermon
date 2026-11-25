@@ -101,7 +101,7 @@ export const versionKey = (card: Pick<PokemonInstance, 'shiny' | 'special'>) =>
     [
         card.shiny ? 's' : '',
         card.special?.kind ?? '',
-        card.special?.type ?? card.special?.event ?? '',
+        card.special?.event ?? card.special?.type ?? '',
         mvpLevel(card as PokemonInstance),
     ].join('.');
 

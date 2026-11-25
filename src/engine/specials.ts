@@ -17,8 +17,11 @@ export interface Special {
     kind: SpecialKind;
     /** Evento: o tipo da semana (cartas Evento de tipo, inclusive as antigas). */
     type?: string;
-    /** Evento de lista (semana especial): a chave do evento, sem `type`. A carta usa o fundo do tema. */
-    event?: typeof ESPECIAL_EVENT;
+    /**
+     * Evento de lista (semana especial): a chave do evento, sem `type`. A carta usa o fundo do tema.
+     * Evento de Natal do UT (`NATAL_EVENT`): vem junto do `type` (Gelo), que segue valendo pra tudo; só muda o visual.
+     */
+    event?: typeof ESPECIAL_EVENT | typeof NATAL_EVENT;
     /** Ícone: título temático ("Pikachu do Ash"). */
     title?: string;
     /**
@@ -42,6 +45,13 @@ export const EVENT_CHANCE = 1 / 8;
  * `src/store/daily.ts` (`weekEvent`). Os textos estão no i18n (`home.eventEspecial`, `common.eventName`).
  */
 export const ESPECIAL_EVENT = 'especial';
+/**
+ * Evento de Natal do Time Ultimate (`natal-2026` em src/store/ultimate/rules.ts): a carta Evento dele leva esta chave
+ * em `special.event`, além do tipo, e ganha a edição de Natal (papel de presente, fita, laço, neve e pisca-pisca).
+ * Aprovada pelo Miguel em 25/11/2026 (opção D-polida da galeria).
+ */
+export const NATAL_EVENT = 'natal-2026';
+export const isNatalCard = (inst: Pick<PokemonInstance, 'special'>) => inst.special?.event === NATAL_EVENT;
 export const ESPECIAL_SPECIES: readonly number[] = [107, 106, 68, 9, 53, 52, 24, 110, 101, 78, 130, 123, 99, 57];
 
 /** Ícones: espécie → título da carta. */

@@ -102,7 +102,7 @@ export const common: typeof pt = {
     metal: { bronze: 'Bronze', prata: 'Silver', ouro: 'Gold' },
     finish: { fosco: 'Common', brilhante: 'Rare', lendario: 'Legendary' },
     edition: { shiny: 'Shiny', destaque: 'Star Player', icone: 'Icon', evento: 'Event' },
-    eventName: { especial: 'Outlaw' } as Record<string, string>,
+    eventName: { especial: 'Outlaw', 'natal-2026': 'Christmas' } as Record<string, string>,
     type: {
         Normal: 'Normal',
         Fire: 'Fire',

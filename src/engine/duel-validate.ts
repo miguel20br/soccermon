@@ -6,7 +6,7 @@ import { DEFAULT_LEVEL, type PokemonInstance } from './instance';
 import { ITEMS } from './items';
 import { defaultMoveset } from './moves';
 import { CORNER_PLANS } from './runners/live-runner';
-import { DESTAQUE_MAX_LEVEL, ESPECIAL_EVENT, EVENT_TYPES, type Special } from './specials';
+import { DESTAQUE_MAX_LEVEL, ESPECIAL_EVENT, EVENT_TYPES, NATAL_EVENT, type Special } from './specials';
 import type { CornerPlan, Tactic, TeamSetup } from './state';
 
 /**
@@ -152,7 +152,9 @@ export function monProblems(m: DuelMonRecipe, where: string, extraEvolved = 0): 
                 (s.level === undefined ||
                     (Number.isInteger(s.level) && s.level >= 0 && s.level <= DESTAQUE_MAX_LEVEL))) ||
                 (s.kind === 'evento' &&
-                    ((isStr(s.type) && EVENT_TYPES.includes(s.type) && s.event === undefined) ||
+                    ((isStr(s.type) &&
+                        EVENT_TYPES.includes(s.type) &&
+                        (s.event === undefined || s.event === NATAL_EVENT)) ||
                         (s.type === undefined && s.event === ESPECIAL_EVENT)) &&
                     (s.level === undefined ||
                         (Number.isInteger(s.level) && s.level >= 0 && s.level <= DESTAQUE_MAX_LEVEL))) ||

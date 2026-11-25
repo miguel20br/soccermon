@@ -8,7 +8,7 @@ import { createInstance, DEFAULT_LEVEL, type PokemonInstance, slotRating, viewIn
 import { mvpScore } from '../../engine/mvp';
 import { Rng } from '../../engine/rng';
 import type { MatchResult } from '../../engine/runners/batch-runner';
-import { editionOf, ICONS } from '../../engine/specials';
+import { editionOf, ICONS, NATAL_EVENT } from '../../engine/specials';
 import type { CornerPlan, MatchOrder, Tactic, TeamSetup } from '../../engine/state';
 import { type Metal, metalOf } from '../../ui/rarity';
 import { lineupAverage } from '../../ui/rating';
@@ -701,7 +701,14 @@ function drawCard(
         uid: uid(id),
         shiny,
         ...(iconPool.length && { special: { kind: 'icone' as const, title: ICONS[id] } }),
-        ...(evento && { special: { kind: 'evento' as const, type: event.type } }),
+        // a carta Evento do Natal leva a chave do evento: é ela que desenha a edição de Natal (o tipo segue o Gelo)
+        ...(evento && {
+            special: {
+                kind: 'evento' as const,
+                type: event.type,
+                ...(event.id === NATAL_EVENT && { event: NATAL_EVENT }),
+            },
+        }),
     };
 }
 
