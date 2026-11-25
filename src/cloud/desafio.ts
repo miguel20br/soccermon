@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { DESAFIO_TO, desafioForced, desafioPhase, payDesafio } from '../store/desafio-natal';
+import { DEGRAUS, DESAFIO_TO, degrausBatidos, desafioForced, desafioPhase, payDesafio } from '../store/desafio-natal';
 import { type GameState, useGame } from '../store/game-store';
 import { pushReveals } from '../store/reveal';
 import { utNow } from '../store/ultimate/clock';
@@ -21,6 +21,8 @@ export interface DesafioNet {
     meus: number | null;
     /** Quando leu pela última vez (ms). */
     at: number;
+    /** Números de mentira do dev e das prévias (`?gols=`): nada vai nem vem da rede. */
+    demo?: boolean;
 }
 export const useDesafio = create<DesafioNet>(() => ({ total: null, meus: null, at: 0 }));
 
@@ -55,7 +57,7 @@ async function readMine(): Promise<number | null> {
 
 /** Relê a soma e os seus gols (no máximo uma vez por minuto, a não ser `force`). */
 export async function refreshDesafio(force = false) {
-    if (!cloudApi || desafioNow() === 'teaser') return;
+    if (!cloudApi || desafioNow() === 'teaser' || useDesafio.getState().demo) return;
     const at = Date.now();
     if (!force && at - useDesafio.getState().at < CACHE_MS) return;
     useDesafio.setState({ at });
@@ -144,7 +146,28 @@ export function goalsOf(s: Saved, prev: Saved, now = Date.now()): number[] {
     return out;
 }
 
+/**
+ * Dev e prévias: `?desafio=aberto&gols=4210&meus=37` mostra a barra com esses números (sem rede) e `&premio=1` abre a
+ * tela de prêmio com os degraus batidos, pra ver e revisar antes de 07/12.
+ */
+function startDemo(search: string): boolean {
+    const q = new URLSearchParams(search);
+    const gols = q.get('gols');
+    if (gols === null) return false;
+    const total = Math.max(0, Number(gols) || 0);
+    const meus = Math.max(0, Number(q.get('meus')) || 0);
+    useDesafio.setState({ total, meus, at: Date.now(), demo: true });
+    if (q.has('premio'))
+        pushReveals(
+            DEGRAUS.slice(0, degrausBatidos(total)).flatMap((d, i) =>
+                d.items.map((item) => ({ item, source: { kind: 'desafio' as const, degrau: i + 1, total, meus } })),
+            ),
+        );
+    return true;
+}
+
 export function startDesafio() {
+    if (__SMOKE__ && startDemo(window.location.search)) return;
     if (!cloudApi || utNow() >= DESAFIO_TO + 30 * 86_400_000) return;
     useGame.subscribe((s, prev) => {
         // save carregando ou vindo da nuvem não é partida nova

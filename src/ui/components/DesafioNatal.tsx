@@ -1,5 +1,5 @@
 import { type CSSProperties, useEffect, useState } from 'react';
-import { cloudApi, useCloud } from '../../cloud/cloud';
+import { useCloud } from '../../cloud/cloud';
 import { CACHE_MS, desafioNow, refreshDesafio, useDesafio } from '../../cloud/desafio';
 import { useT } from '../../i18n/react';
 import { DEGRAUS, DESAFIO_TO, type DesafioPhase, daysToOpen, degrausBatidos } from '../../store/desafio-natal';
@@ -40,8 +40,8 @@ export function useDesafioView(): DesafioView {
     return {
         phase: desafioNow(),
         total: net.total,
-        meus: logged ? net.meus : null,
-        logged,
+        meus: logged || net.demo ? net.meus : null,
+        logged: logged || !!net.demo,
         days: daysToOpen(now),
         visible: now < DESAFIO_TO + SHOW_AFTER_MS,
     };
@@ -71,7 +71,7 @@ function mineLine(
     tn: ReturnType<typeof useT>['tn'],
     lang: 'pt' | 'en',
 ) {
-    if (!cloudApi || !v.logged) return t('natal.online');
+    if (!v.logged) return t('natal.online');
     if (v.meus === null) return '';
     return v.meus > 0 ? tn('natal.mine', v.meus, { n: fmtInt(v.meus, lang) }) : t('natal.needOne');
 }

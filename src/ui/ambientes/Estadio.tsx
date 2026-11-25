@@ -621,7 +621,7 @@ export function Estadio({
                     <FriendChallenge />
                     <ParkedRuns />
                     {/* Desafio de Natal (07/12 a 05/01): a barra com cara de letreiro; antes, a contagem */}
-                    {hydrated && !firstVisit && <DesafioStrip variant="led" />}
+                    {hydrated && <DesafioStrip variant="led" />}
                     <PlayBar main={main} sheet={plan.sheet.map(mode)} onPick={setChosen} />
                     {/* quem ainda não jogou hoje também acha o ranking (depois de jogar, o botão principal já leva). Fica
                         sempre montado e por cima da quadra: aparecer não empurra as placas pra cima */}

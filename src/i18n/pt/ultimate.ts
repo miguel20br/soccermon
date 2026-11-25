@@ -342,11 +342,6 @@ export const ultimate = {
         inTeam: 'no time',
         seeClub: 'Ver no Clube',
     },
-    gift: {
-        title: 'Presente de Natal',
-        text: 'Presente de Natal: uma carta Evento garantida. Está em Meus pacotes.',
-        go: 'Ver Meus pacotes',
-    },
     pending: {
         hint: 'Repetida não entra no Clube: venda ou troque pela do Clube.',
         empty: 'Nada pendente',

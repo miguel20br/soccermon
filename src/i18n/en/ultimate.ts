@@ -339,11 +339,6 @@ export const ultimate: typeof pt = {
         inTeam: 'on team',
         seeClub: 'See in Club',
     },
-    gift: {
-        title: 'Christmas gift',
-        text: 'Christmas gift: a guaranteed Event card. It is in My packs.',
-        go: 'See My packs',
-    },
     pending: {
         hint: "Duplicates can't join the Club: sell it or swap it for the Club one.",
         empty: 'Nothing unassigned',
