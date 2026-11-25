@@ -326,11 +326,12 @@
 }
 .dn-title-plate {
     display: inline-block;
-    padding: 3px 6px;
+    padding: 4px 5px;
+    overflow-wrap: normal;
     border: 2px solid var(--bc-edge);
     border-radius: 4px;
     background: var(--bc-ink);
-    font-size: 10px;
+    font-size: 9px;
     font-weight: 700;
     text-align: center;
     line-height: 1.2;

@@ -92,7 +92,9 @@ export function PrizeArt({ item }: { item: DesafioItem }) {
         case 'title':
             return (
                 <span className="dn-art dn-art-title">
-                    <span className={`dn-title-plate${titleClass(item.id)}`}>{titleName(item.id)}</span>
+                    <span className="dn-title-plate">
+                        <span className={titleClass(item.id)}>{titleName(item.id)}</span>
+                    </span>
                 </span>
             );
         case 'ornament':

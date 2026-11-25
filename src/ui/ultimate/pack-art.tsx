@@ -7,7 +7,8 @@ import type { Metal } from '../rarity';
  * texto na língua): o tipo do pacote, o metal do Pick com Fichas, ou o Pick guardado.
  */
 export function packArt(x: PackKind | Metal | UtPick): string {
-    if (x === 'evmini' || x === 'evbig') return 'evento-natal-2026';
+    if (x === 'evmini') return 'evento-mini';
+    if (x === 'evbig') return 'evento-grande';
     if (typeof x === 'string') return x === 'big' ? 'grande' : x;
     if (x.from === 'start') return 'craque';
     if (x.event) return `evento-${x.event}`;

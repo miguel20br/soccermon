@@ -52,6 +52,8 @@ TXT = {
         'ouro': ('PICK', 'OURO', '1 DE 3', 'SÓ OURO'),
         'evento-natal-2026': ('PICK DE', 'EVENTO', '1 DE 3', 'NATAL'),
         'lider': ('PICK DO', 'LÍDER', '1 DE 3', 'PRATA+'),
+        'evento-mini': ('EVENTO', 'MINI', '3 CARTAS', 'NATAL'),
+        'evento-grande': ('EVENTO', 'GRANDE', '5 CARTAS', 'NATAL'),
     },
     'en': {
         'mini': ('PACK', 'MINI', '3 CARDS', '1 SILVER+'),
@@ -62,6 +64,8 @@ TXT = {
         'ouro': ('PICK', 'GOLD', '1 OF 3', 'GOLD ONLY'),
         'evento-natal-2026': ('PICK', 'EVENT', '1 OF 3', 'CHRISTMAS'),
         'lider': ('PICK', 'LEADER', '1 OF 3', 'SILVER+'),
+        'evento-mini': ('EVENT', 'MINI', '3 CARDS', 'CHRISTMAS'),
+        'evento-grande': ('EVENT', 'BIG', '5 CARDS', 'CHRISTMAS'),
     },
 }
 TYPE_TXT = {'pt': TYPE_PT, 'en': {k: k.upper() for k in TYPE_PT}}
@@ -466,6 +470,12 @@ PACKS = {
                               emblem=choose(3, 'prata'), ray_k=1.6, sparks=SPARK_A + [(98, 46, True)],
                               small_c=HOLO[1]),
     'lider': dict(ramp=RAMP['noite'], emblem=choose(3, 'prata')),
+    # pacotes de Evento do Desafio de Natal (todas as cartas Evento): a cor do Pick de Natal com o leque do Mini/Grande
+    'evento-mini': dict(ramp=type_ramp(TYPE_COLOR['Ice']), chip_holo=True, holo_crimp=True,
+                        emblem=fan(['prata', 'prata', 'prata']), sparks=SPARK_A, small_c=HOLO[1]),
+    'evento-grande': dict(ramp=type_ramp(TYPE_COLOR['Ice']), chip_holo=True, holo_crimp=True,
+                          emblem=fan(['prata', 'prata', 'prata', 'prata', 'prata'], w=20, h=28), base=1.3,
+                          sparks=SPARK_A + [(98, 46, True)], small_c=HOLO[1]),
 }
 # Pick do líder com tipo (GYMS em src/store/ultimate/rules.ts; a Sabrina, sem tipo, usa o 'lider')
 for _t in ('Rock', 'Water', 'Electric', 'Grass', 'Poison', 'Fire', 'Ground'):
