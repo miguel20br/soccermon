@@ -420,7 +420,8 @@ export function ultimateOf(raw: unknown): UltimateSave {
         // campo novo (0.9.54): sem ele, nasce sem campanha
         draft: draftOf(raw.draft),
         // campo novo (0.10.0)
-        gifts: strs(raw.gifts).filter((g) => g === NATAL_GIFT),
+        // todo id fica (presente de Natal, degraus do Desafio, o que vier): apagar um aqui paga o presente de novo
+        gifts: [...new Set(strs(raw.gifts))],
     };
 }
 
@@ -545,6 +546,8 @@ export function mergeUltimate(keep: unknown, other: unknown): UltimateSave {
     return {
         ...win,
         legacy: mergeLegacy(win.legacy, { ...lose.legacy, seasons: [...lose.legacy.seasons, ...(lost ? [lost] : [])] }),
+        // presente aberto em qualquer lado não abre de novo, ganhe o lado que ganhar
+        gifts: [...new Set([...win.gifts, ...lose.gifts])],
     };
 }
 

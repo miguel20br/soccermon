@@ -13,7 +13,7 @@ import {
     proximoDegrau,
 } from './desafio-natal';
 import { DEFAULT_PROFILE } from './profile';
-import { newUltimate, openPack } from './ultimate/ultimate';
+import { mergeUltimate, newUltimate, openPack, ultimateOf } from './ultimate/ultimate';
 
 const at = (iso: string) => Date.parse(iso);
 const saves = () => ({ ultimate: newUltimate('dn', DESAFIO_FROM), profile: { ...DEFAULT_PROFILE } });
@@ -93,6 +93,20 @@ describe('Desafio de Natal: quem ganha e o prêmio uma vez só', () => {
             min: 'ouro',
             exact: true,
         });
+    });
+
+    it('recarregar o save (ou juntar com a nuvem) não paga de novo', () => {
+        const paid = payDesafio(saves(), 10000, 3, now);
+        if (!paid) throw new Error('devia pagar');
+        // o carregamento do jogo passa o save por ultimateOf (JSON do IndexedDB ou da nuvem)
+        const loaded = { ...paid, ultimate: ultimateOf(JSON.parse(JSON.stringify(paid.ultimate))) };
+        expect(loaded.ultimate.gifts).toEqual(paid.ultimate.gifts);
+        expect(payDesafio(loaded, 10000, 3, now)).toBeNull();
+        // a nuvem com mais progresso, mas sem os presentes, vence a junção: os presentes continuam
+        const cloud = { ...saves().ultimate, opened: 99 };
+        const merged = { ...paid, ultimate: mergeUltimate(paid.ultimate, cloud) };
+        expect(merged.ultimate.opened).toBe(99);
+        expect(payDesafio(merged, 10000, 3, now)).toBeNull();
     });
 
     it('título que já era seu (Copa de Natal) não aparece de novo', () => {
