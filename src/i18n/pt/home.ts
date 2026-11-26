@@ -6,8 +6,6 @@ export const home = {
     eventWeek: 'Semana do tipo {type}',
     /** Semana Fora da Lei (16 a 22/11/2026): o nome também está em `common.eventName` e `team.card.tipEspecial`. */
     eventEspecial: 'Semana Fora da Lei',
-    helpAria: 'Ajuda: como funciona cada modo e as regras',
-    helpTitle: 'Como jogar',
     /** Selo da quadra animada do topo (enfeite de transmissão). */
     live: 'AO VIVO',
     tagline: 'Monte seu time com os 151 de Kanto e ganhe a Copa de Futsal.',
@@ -98,7 +96,7 @@ export const home = {
         labTalkDone: 'Coleção completa! Nem o meu laboratório tem uma assim.',
         /** O quadro dos 151 no chão do Lab: aceso = jogou pelo seu time, claro = visto. */
         labBoard: 'Kanto',
-        labBoardSub: '{n} jogaram',
+        labBoardSub: '{n} jogou|{n} jogaram',
         /** Arena: o Duelo na frente, o cinturão como meta, o resto chegando. */
         /** O Duelo no seletor de modos do Estádio. */
         signDuel: 'Com amigos',

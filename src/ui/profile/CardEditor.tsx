@@ -1,16 +1,15 @@
-import { type CSSProperties, useEffect } from 'react';
-import { create } from 'zustand';
+import { type CSSProperties, type KeyboardEvent, useEffect, useId } from 'react';
 import { useCloud } from '../../cloud/cloud';
 import { useT } from '../../i18n/react';
 import { lookOfProfile } from '../../store/club-kit';
 import { useGame } from '../../store/game-store';
 import { activeTitle, activeTrainer } from '../../store/missions';
 import { titleClass } from '../../store/title-codes';
-import { FutCard } from '../components/FutCard';
+import { useCardModal } from '../card-modal';
 import { HudIcon, type HudIconKind } from '../components/MatchHud';
-import { openDoor } from '../doors';
+import { CARD_TABS, type CardTab, openDoor, useCardEditor } from '../doors';
 import { Sheet } from '../kit/Sheet';
-import { useCardShowcase } from './Album';
+import { ShowcaseEditor, useCardShowcase } from './Album';
 import { ClubTab } from './ClubTab';
 import { Crest } from './Crest';
 import { titleName, trainerLabel, useAvatar } from './club';
@@ -22,8 +21,6 @@ import { RedeemCode, TitlePicker, TrainerPicker, TrainerSprite } from './Trainer
  * com o cartão em cima mudando junto. Abre por cima de qualquer tela (`openCardEditor`): o Perfil, e quem mais quiser
  * levar pra cá (a Sede, o Álbum).
  */
-const TABS = ['nome', 'personagem', 'titulo', 'uniforme', 'vitrine'] as const;
-export type CardTab = (typeof TABS)[number];
 const ICON: Record<CardTab, HudIconKind> = {
     nome: 'person',
     personagem: 'smile',
@@ -32,9 +29,19 @@ const ICON: Record<CardTab, HudIconKind> = {
     vitrine: 'cards',
 };
 
-export const useCardEditor = create<{ tab: CardTab | null }>(() => ({ tab: null }));
-export const openCardEditor = (tab: CardTab = 'nome') => useCardEditor.setState({ tab });
-const close = () => useCardEditor.setState({ tab: null });
+/**
+ * O nome e o nome do clube só conferem se já são de outra conta ao sair do campo (onBlur). No iOS tocar num botão não
+ * tira o foco do campo: trocar de aba ou fechar a folha desmontava o campo sem o blur e o nome repetido ficava.
+ */
+const blurField = () => (document.activeElement as HTMLElement | null)?.blur?.();
+const setTab = (tab: CardTab) => {
+    blurField();
+    useCardEditor.setState({ tab });
+};
+const close = () => {
+    blurField();
+    useCardEditor.setState({ tab: null, incoming: null });
+};
 
 /** O cartão como os outros veem, pequeno, no topo da folha: muda na hora com cada escolha. */
 function CardPreview() {
@@ -65,11 +72,16 @@ function CardPreview() {
     );
 }
 
-/** Vitrine: as 3 cartas (tocar tira ou leva pro Álbum) e os 3 destaques (as medalhas). */
+/**
+ * Vitrine: as 3 cartas no editor do Álbum (tirar no x, arrastar ou tocar em duas pra trocar; com a vitrine cheia, o
+ * "Pôr na vitrine" do Álbum chega aqui com a carta nova) e os 3 destaques (as medalhas).
+ */
 function ShowcaseTab() {
     const { t } = useT();
     const { cards } = useCardShowcase();
+    const incoming = useCardEditor((s) => s.incoming);
     const updateProfile = useGame((s) => s.updateProfile);
+    const openCard = useCardModal((s) => s.open);
     const album = () => {
         close();
         openDoor('collection', 'album');
@@ -77,28 +89,15 @@ function ShowcaseTab() {
     return (
         <>
             <h3 className="bc-lbl">{t('profile.card.cards')}</h3>
-            {cards.length > 0 && (
-                <ul className="pf-cards pf-ed-cards" style={{ '--n': cards.length } as CSSProperties}>
-                    {cards.map((c) => (
-                        <li key={c.id}>
-                            <FutCard
-                                inst={c.inst}
-                                size="sm"
-                                modalActions={[
-                                    {
-                                        label: t('profile.binder.remove'),
-                                        onClick: () =>
-                                            updateProfile({
-                                                cardShowcase: cards.map((x) => x.id).filter((x) => x !== c.id),
-                                            }),
-                                    },
-                                    { label: t('profile.binder.organize'), onClick: album },
-                                ]}
-                            />
-                        </li>
-                    ))}
-                </ul>
-            )}
+            <div className={`pf-ed-cards bd-showcase${incoming ? ' picking' : ''}`}>
+                <ShowcaseEditor
+                    shown={cards}
+                    incoming={incoming}
+                    onOpen={(c) => openCard(c.inst)}
+                    onSave={(ids) => updateProfile({ cardShowcase: ids })}
+                    onCancel={() => useCardEditor.setState({ incoming: null })}
+                />
+            </div>
             <button type="button" className="k-sheetrow pf-ed-album" onClick={album}>
                 <HudIcon kind="cards" />
                 <b>{t('profile.edit.cardsPick')}</b>
@@ -113,20 +112,35 @@ export function CardEditor({ style }: { style?: CSSProperties }) {
     const tab = useCardEditor((s) => s.tab);
     const updateProfile = useGame((s) => s.updateProfile);
     const { t, d } = useT();
+    const id = useId();
+    // abas do jeito do teclado (WAI-ARIA): só a escolhida no Tab, as setas (e Home/End) andam entre elas
+    const onKey = (e: KeyboardEvent<HTMLButtonElement>, i: number) => {
+        const n = CARD_TABS.length;
+        const to = { ArrowRight: i + 1, ArrowLeft: i - 1, Home: 0, End: n - 1 }[e.key];
+        if (to === undefined) return;
+        e.preventDefault();
+        const k = CARD_TABS[(to + n) % n];
+        setTab(k);
+        e.currentTarget.parentElement?.querySelector<HTMLElement>(`[data-tab="${k}"]`)?.focus();
+    };
     // trocar de tela fecha a folha (como as outras portas)
     useEffect(() => useGame.subscribe((s, p) => s.screen !== p.screen && close()), []);
     return (
         <Sheet open={!!tab} onClose={close} title={t('profile.edit.open')} className="pf pf-sheet pf-ed" style={style}>
             <CardPreview />
             <div className="bc-tabs pf-ed-tabs" role="tablist" aria-label={t('profile.edit.tabsAria')}>
-                {TABS.map((k) => (
+                {CARD_TABS.map((k, i) => (
                     <button
                         type="button"
                         role="tab"
                         key={k}
+                        id={`${id}-${k}`}
                         data-tab={k}
                         aria-selected={k === tab}
-                        onClick={() => useCardEditor.setState({ tab: k })}
+                        aria-controls={`${id}-painel`}
+                        tabIndex={k === tab ? 0 : -1}
+                        onClick={() => setTab(k)}
+                        onKeyDown={(e) => onKey(e, i)}
                     >
                         <HudIcon kind={ICON[k]} />
                         <span>{d.profile.edit.tabs[k]}</span>
@@ -134,7 +148,13 @@ export function CardEditor({ style }: { style?: CSSProperties }) {
                 ))}
             </div>
             {/* a parte nova entra deslizando (nada teleporta); a chave remonta o formulário de cada parte */}
-            <div className="pf-ed-body" role="tabpanel" key={tab}>
+            <div
+                className="pf-ed-body"
+                role="tabpanel"
+                id={`${id}-painel`}
+                aria-labelledby={tab ? `${id}-${tab}` : undefined}
+                key={tab}
+            >
                 {tab === 'nome' && <ClubTab part="trainer" />}
                 {tab === 'personagem' && <TrainerPicker save={updateProfile} />}
                 {tab === 'titulo' && (

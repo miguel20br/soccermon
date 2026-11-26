@@ -216,6 +216,7 @@ export const profile = {
         open: 'Ver seus números',
         pctShort: '% vitórias',
         record: '{w} V · {l} D em {n} partidas',
+        recordWins: '{w} V em {n} partidas',
         perGame: '{n} por jogo',
         byMode: 'Títulos por modo',
         relampago: 'Copa Relâmpago',

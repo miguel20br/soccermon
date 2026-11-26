@@ -17,15 +17,16 @@ describe('Metas na Sede (menos-e-mais.md, B2)', () => {
     });
 });
 
-describe('Clube e Amigos: folha por cima da tela de agora (11/11)', () => {
-    it('Sede → Clube → X fica na Sede (abria o Perfil por baixo e o X caía nele)', async () => {
+describe('Uniforme e Amigos: folha por cima da tela de agora (11/11)', () => {
+    it('Sede → escudo abre o Editar cartão no Uniforme, por cima da Sede (um editor só, revisão dos menus item 8)', async () => {
         const { useGame } = await import('../store/game-store');
-        const { openDoor, openSheet, useDoorSheet } = await import('./doors');
+        const { openDoor, useCardEditor, useDoorSheet } = await import('./doors');
         useGame.setState({ screen: 'home' });
         openDoor('profile', 'clube');
         expect(useGame.getState().screen).toBe('home');
-        expect(useDoorSheet.getState().open).toBe('clube');
-        openSheet(null); // o X
+        expect(useCardEditor.getState().tab).toBe('uniforme');
+        expect(useDoorSheet.getState().open).toBe(null);
+        useCardEditor.setState({ tab: null }); // o X
         expect(useGame.getState().screen).toBe('home');
         // Amigos pela barra de cima, de dentro de outra tela: a tela fica
         useGame.setState({ screen: 'trophies' });

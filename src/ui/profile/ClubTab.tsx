@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { create } from 'zustand';
 import { useCloud } from '../../cloud/cloud';
 import { reserveName } from '../../cloud/names';
 import { species } from '../../engine/data';
@@ -30,6 +31,7 @@ import {
     rivalColor,
     tagFromName,
 } from '../../store/profile';
+import { useCardEditor } from '../doors';
 import { Stepper } from '../kit/controls';
 import { Crest, KitShirt, kitBackground } from './Crest';
 import { avatarGif, bannerText, hexCss, titleName, trainerLabel } from './club';
@@ -61,6 +63,10 @@ function useSavedFlash(): [boolean, () => void] {
 }
 
 /** Sheets do Perfil: `trainer` (nome e avatar) ou `club` (nome, sigla, cor, escudo, uniforme, faixa). Tudo salva na hora. */
+type NameKind = 'treinador' | 'clube';
+/** O aviso de nome em uso fica fora do componente: a aba remonta a cada troca (`key` no CardEditor) e o aviso não some. */
+const useNameTaken = create<{ taken: NameKind | null }>(() => ({ taken: null }));
+
 export function ClubTab({ part }: { part: 'trainer' | 'club' }) {
     const profile = useGame((s) => s.profile);
     const updateProfile = useGame((s) => s.updateProfile);
@@ -75,12 +81,16 @@ export function ClubTab({ part }: { part: 'trainer' | 'club' }) {
     };
     // nomes únicos: ao sair do campo, o servidor confere se o nome é de outra conta; se for, volta pro que era
     const before = useRef({ trainerName: profile.trainerName, clubName: profile.clubName });
-    const [taken, setTaken] = useState<'treinador' | 'clube' | null>(null);
-    const claim = async (kind: 'treinador' | 'clube', name: string, revert: Partial<Profile>) => {
+    const taken = useNameTaken((s) => s.taken);
+    const setTaken = (k: NameKind | null) => useNameTaken.setState({ taken: k });
+    const claim = async (kind: NameKind, name: string, revert: Partial<Profile>) => {
         const res = await reserveName(kind, name);
         if (res === 'ocupado') {
             updateProfile(revert);
             setTaken(kind);
+            // a resposta pode chegar depois de a pessoa trocar de aba: a folha volta pra parte do nome, com o aviso
+            if (useCardEditor.getState().tab)
+                useCardEditor.setState({ tab: kind === 'treinador' ? 'nome' : 'uniforme' });
         } else {
             setTaken(null);
             before.current = {

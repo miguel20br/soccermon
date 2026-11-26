@@ -6,8 +6,6 @@ export const home: typeof pt = {
     atMarket: 'At the Market',
     eventWeek: '{type}-type week',
     eventEspecial: 'Outlaw Week',
-    helpAria: 'Help: how each mode works and the rules',
-    helpTitle: 'How to play',
     live: 'LIVE',
     tagline: 'Build your team from the 151 of Kanto and win the Futsal Cup.',
     confirmYes: 'Yes, start a new one',

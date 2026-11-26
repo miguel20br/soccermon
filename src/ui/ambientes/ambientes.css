@@ -1823,9 +1823,6 @@
     position: relative;
     display: flex;
     gap: calc(var(--mi) * 10);
-    margin: 0;
-    padding: 0;
-    list-style: none;
 }
 /* a trilha entre os passos */
 .sd-path::before {
@@ -1843,7 +1840,7 @@
     );
     opacity: 0.7;
 }
-.sd-path li {
+.sd-path > span {
     position: relative;
     display: grid;
     place-items: center;
@@ -1854,20 +1851,20 @@
     border-radius: calc(var(--mi) * 2);
     box-shadow: 0 var(--mi) 0 rgb(0 0 0 / 45%);
 }
-.sd-path li > img,
-.sd-path li > .tr-art {
+.sd-path > span > img,
+.sd-path > span > .tr-art {
     width: calc(var(--mi) * 22);
     height: calc(var(--mi) * 22);
     object-fit: contain;
     image-rendering: auto;
 }
-.sd-path li > .hud-icon {
+.sd-path > span > .hud-icon {
     width: calc(var(--mi) * 12);
     height: calc(var(--mi) * 12);
     color: var(--yellow);
 }
 /* ganho: apagado com o visto; o próximo: borda dourada e maior; o seguinte: só a sombra do prêmio */
-.sd-path li.done > :not(.sd-path-ok) {
+.sd-path > span.done > :not(.sd-path-ok) {
     opacity: 0.45;
 }
 .sd-path .sd-path-ok {
@@ -1881,11 +1878,11 @@
     background: var(--green);
     color: var(--bc-ink);
 }
-.sd-path li.next {
+.sd-path > span.next {
     border-color: var(--yellow);
     scale: 1.15;
 }
-.sd-path li:not(.done, .next) > img {
+.sd-path > span:not(.done, .next) > img {
     filter: brightness(0);
     opacity: 0.6;
 }
@@ -1909,6 +1906,28 @@
     position: absolute;
     left: 0;
     top: max(0px, calc(30px - var(--mi) * 10));
+}
+/* PC (kit em 4 px): o tapete em 5 px, mesmo centro e mesmo topo, pra ocupar o chão até o botão Metas (sobrava piso
+   liso embaixo dele); a plaquinha fica no tamanho das outras */
+@media (min-width: 1200px) and (min-height: 860px) {
+    .sd-rug-at .hs {
+        --mi: 5px;
+        /* centrado no conjunto (190 x 4 px) e no mesmo topo de antes (82 x 4 px): o --x/--y do JSX são em 4 px */
+        left: calc((190 * 4px - var(--w) * 5px) / 2);
+        top: calc(var(--y) * 4px);
+    }
+    .sd-rug-at .hs-plate {
+        --mi: 4px;
+    }
+}
+/* o contador do botão Metas (missões até o próximo nível): a pílula do letreiro, sem o contorno do título */
+.rm-go > .door-count {
+    padding: 2px 8px;
+    border-radius: 6px;
+    background: var(--bc-ink);
+    text-shadow: none;
+    --gs: 16px;
+    font-size: var(--gfs, 16px);
 }
 .sd-head-crest {
     width: 22px;

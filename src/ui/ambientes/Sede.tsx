@@ -137,18 +137,19 @@ export function Sede({ active, wild, near }: { active: boolean; wild: Wild[]; ne
                                     onClick={openMetas}
                                 >
                                     <span className="sd-rug rm-prop">
-                                        <ol className="sd-path">
+                                        {/* dentro de botão só vale conteúdo de frase: spans, não ol/li */}
+                                        <span className="sd-path">
                                             {rug.map((s) => (
-                                                <li
+                                                <span
                                                     key={s.id}
                                                     className={s.done ? 'done' : s === next ? 'next' : undefined}
                                                     title={prizeName(s)}
                                                 >
                                                     <PathIcon s={s} />
                                                     {s.done && <HudIcon kind="check" className="sd-path-ok" />}
-                                                </li>
+                                                </span>
                                             ))}
-                                        </ol>
+                                        </span>
                                     </span>
                                 </SceneHotspot>
                             </div>

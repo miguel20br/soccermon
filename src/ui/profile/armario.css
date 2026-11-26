@@ -494,7 +494,17 @@
     }
 }
 
-/* Editar cartão (P1): o cartão em miniatura em cima, as 5 partes em abas e a parte escolhida entrando de lado */
+/* Editar cartão (P1): o cartão em miniatura em cima, as 5 partes em abas e a parte escolhida entrando de lado.
+   Altura fixa: trocar de aba não faz a folha pular de tamanho (no PC ela fica no meio; no celular, presa embaixo) */
+.k-sheet.pf-ed {
+    height: min(820px, calc(calc(100 * var(--vh)) - 32px));
+    align-content: start;
+}
+@media (max-width: 640px) {
+    .k-sheet.pf-ed {
+        height: calc(92 * var(--dvh));
+    }
+}
 .pf-ed-prev {
     display: grid;
     grid-template-columns: auto auto minmax(0, 1fr);
@@ -559,21 +569,8 @@
     }
 }
 .pf-ed-cards {
-    container-type: inline-size;
-    width: 100%;
-    justify-content: center;
-    gap: 8px;
-    padding: 0;
-}
-.pf-ed-cards .fut-wrap.sm {
-    --fut-w: min(104px, calc((100cqi - 16px) / 3));
-}
-.pf-ed-cards li:is(:first-child, :last-child):not(:only-child) {
-    rotate: none;
-    translate: none;
-}
-.pf-ed-cards li + li {
-    margin-left: 0;
+    display: grid;
+    gap: 6px;
 }
 @media (prefers-reduced-motion: reduce) {
     .pf-ed-body {

@@ -215,6 +215,7 @@ export const profile: typeof pt = {
         open: 'See your numbers',
         pctShort: 'Win %',
         record: '{w} W · {l} L in {n} matches',
+        recordWins: '{w} W in {n} matches',
         perGame: '{n} per game',
         byMode: 'Titles by mode',
         relampago: 'Lightning Cup',

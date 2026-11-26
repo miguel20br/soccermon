@@ -36,6 +36,15 @@ export function useMyNumbers() {
     return { career, cups, records, titles, pct };
 }
 
+/** "14 V · 6 D em 20 partidas"; sem as derrotas quando o legado do UT não as guarda (só vitórias e partidas). */
+const recordLine = (
+    t: ReturnType<typeof useT>['t'],
+    c: { wins: number; losses: number; matches: number; lossesKnown: boolean },
+) =>
+    c.lossesKnown
+        ? t('profile.stats.record', { w: c.wins, l: c.losses, n: c.matches })
+        : t('profile.stats.recordWins', { w: c.wins, n: c.matches });
+
 /** A faixa de números grandes no Perfil: tocar abre "Seus números". */
 export function StatsStrip({ onOpen }: { onOpen: () => void }) {
     const { t } = useT();
@@ -45,7 +54,7 @@ export function StatsStrip({ onOpen }: { onOpen: () => void }) {
             type="button"
             className="pf-stats-open bc-tile"
             onClick={onOpen}
-            aria-label={`${t('profile.stats.open')}: ${t('profile.stats.record', { w: career.wins, l: career.losses, n: career.matches })}`}
+            aria-label={`${t('profile.stats.open')}: ${recordLine(t, career)}`}
         >
             <Big v={career.matches} label={t('profile.numbers.matches')} />
             <Big v={career.wins} label={t('profile.numbers.wins')} />
@@ -107,7 +116,7 @@ export function MyStats() {
                 <div className="pf-winbar" role="img" aria-label={t('profile.numbers.winBarAria', { pct })}>
                     <i style={{ width: `${pct}%` }} />
                 </div>
-                <small>{t('profile.stats.record', { w: career.wins, l: career.losses, n: career.matches })}</small>
+                <small>{recordLine(t, career)}</small>
                 {career.matches > cups.matches && (
                     <small>{t('profile.stats.split', { c: cups.matches, u: career.matches - cups.matches })}</small>
                 )}

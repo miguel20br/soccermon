@@ -14,12 +14,11 @@ import { FutCard } from '../components/FutCard';
 import { HudIcon, type HudIconKind } from '../components/MatchHud';
 import { useMenuBackOf } from '../components/MenuHead';
 import { PixelTrophy } from '../components/PixelTrophy';
-import { type DoorSheet, legacyDoor, metasLink, openDoor, openMetas, openSheet, useDoorSheet } from '../doors';
+import { legacyDoor, metasLink, openCardEditor, openDoor, openMetas, openSheet, useDoorSheet } from '../doors';
 import { Sheet } from '../kit/Sheet';
 import { Stage } from '../kit/Stage';
 import { useCardShowcase } from '../profile/Album';
-import { CardEditor, openCardEditor } from '../profile/CardEditor';
-import { ClubTab } from '../profile/ClubTab';
+import { CardEditor } from '../profile/CardEditor';
 import { Crest } from '../profile/Crest';
 import { clubVars, hexCss, titleName, trainerLabel, trainerName, useAvatar } from '../profile/club';
 import { FriendsTab } from '../profile/FriendsTab';
@@ -35,8 +34,11 @@ import '../profile/armario.css';
 
 type SheetId = 'numeros' | 'legado';
 const FLAGS = Array.from({ length: 14 }, (_, i) => i);
-/** `?aba=` (links antigos `?perfil=`) que abre a folha do Clube ou dos Amigos. As missões moram nas Metas. */
-const ABA_SHEET: Record<string, DoorSheet> = { clube: 'clube', amigos: 'amigos' };
+/** `?aba=` (links antigos `?perfil=`) que abre o Uniforme (Editar cartão) ou os Amigos. As missões moram nas Metas. */
+const ABA_SHEET: Record<string, () => void> = {
+    clube: () => openCardEditor('uniforme'),
+    amigos: () => openSheet('amigos'),
+};
 const MetasSheet = lazy(() => import('../ambientes/MetasSheet'));
 
 /** As cores do clube nas folhas (o varal, o escudo, os botões). */
@@ -47,7 +49,7 @@ function useClubVars(): CSSProperties {
 }
 
 /**
- * Clube, Amigos e Metas (`openSheet`, doors.ts): folhas por cima da tela em que a pessoa está, no App. Fechar fica
+ * Amigos, Metas (`openSheet`, doors.ts) e o Editar cartão (`openCardEditor`): folhas por cima da tela em que a pessoa está, no App. Fechar fica
  * nela; trocar de tela fecha a folha (o "Desafiar" dos Amigos vai pro Duelo).
  */
 export function DoorSheets() {
@@ -58,15 +60,6 @@ export function DoorSheets() {
     useEffect(() => useGame.subscribe((s, p) => s.screen !== p.screen && openSheet(null)), []);
     return (
         <>
-            <Sheet
-                open={open === 'clube'}
-                onClose={close}
-                title={d.profile.tabs.clube}
-                className="pf pf-sheet"
-                style={vars}
-            >
-                <ClubTab part="club" />
-            </Sheet>
             <Sheet
                 open={open === 'amigos'}
                 onClose={close}
@@ -206,9 +199,9 @@ export function Profile() {
         const to = legacyDoor();
         if (to) return openDoor(...to);
         const url = new URL(window.location.href);
-        const id = ABA_SHEET[url.searchParams.get('aba') ?? url.searchParams.get('perfil') ?? ''];
-        if (!id) return;
-        openSheet(id);
+        const open = ABA_SHEET[url.searchParams.get('aba') ?? url.searchParams.get('perfil') ?? ''];
+        if (!open) return;
+        open();
         url.searchParams.delete('aba');
         url.searchParams.delete('perfil');
         window.history.replaceState(window.history.state, '', url);
@@ -374,7 +367,10 @@ export function Profile() {
                     disabled={busy}
                     onClick={() => {
                         setBusy(true);
-                        signInWithGoogle().catch(() => setBusy(false));
+                        // volta sem redirecionar (sem nuvem, ou o Google não abriu): o botão destrava; com o redirect a página sai
+                        signInWithGoogle()
+                            .catch(() => {})
+                            .finally(() => setBusy(false));
                     }}
                 >
                     <HudIcon kind="upload" />

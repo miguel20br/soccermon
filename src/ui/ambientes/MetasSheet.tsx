@@ -7,6 +7,7 @@ import type { Mission } from '../../store/missions';
 import { titleClass } from '../../store/title-codes';
 import { HudIcon } from '../components/MatchHud';
 import { PixelTrophy } from '../components/PixelTrophy';
+import { openCardEditor } from '../doors';
 import { Sheet } from '../kit/Sheet';
 import { missionText, titleName, trainerName } from '../profile/club';
 import { MedalsTab } from '../profile/Medals';
@@ -178,7 +179,7 @@ export default function MetasSheet({ onClose, style }: { onClose: () => void; st
                 ))}
             </ul>
             <h3 className="bc-lbl">{d.trophies.tabs.medalhas}</h3>
-            <MedalsTab save={updateProfile} />
+            <MedalsTab save={updateProfile} onEdit={() => openCardEditor('vitrine')} />
         </Sheet>
     );
 }
