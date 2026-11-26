@@ -13,7 +13,8 @@ vi.mock('../components/Tip', async () => {
     };
 });
 // o render do servidor lê o estado inicial da store (zustand): aqui as telas leem o estado do teste
-const state: Record<string, unknown> = {};
+// a ficha mostra o Caminho do treinador, que lê o Time Ultimate
+const state: Record<string, unknown> = { ultimate: newUltimate('album') };
 vi.mock('../../store/game-store', async (orig) => ({
     ...(await orig<object>()),
     useGame: Object.assign((sel: (s: unknown) => unknown) => sel(state), { getState: () => state }),
@@ -24,6 +25,7 @@ import { createInstance } from '../../engine/instance';
 import { Rng } from '../../engine/rng';
 import { binderAdd } from '../../store/binder';
 import { DEFAULT_PROFILE, EDITION_BIT, EMPTY_CAREER } from '../../store/profile';
+import { newUltimate } from '../../store/ultimate/ultimate';
 import { AlbumView, frontRow, speciesRows } from './Album';
 import { DexTab } from './DexTab';
 import { SpeciesSheet } from './SpeciesSheet';
