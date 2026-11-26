@@ -152,6 +152,20 @@ describe('Contagem dos gols de cada partida', () => {
         expect(goalsOf({ ...base, ultimate: draft(2) }, { ...base, ultimate: draft(1) })).toEqual([3]);
         const duel = { id: 'd1', date: 1000, score: [2, 5], result: 'loss' } as never;
         expect(goalsOf({ ...base, duels: [duel] }, base, 2000)).toEqual([2]);
+        // melhor de 3 ganha por 2-1 com jogos de 4-2, 1-3 e 5-0: os gols de cada jogo, e não as vitórias
+        const serie = {
+            id: 'd2',
+            date: 1000,
+            score: [2, 1],
+            result: 'win',
+            bestOf: 3,
+            games: [
+                [4, 2],
+                [1, 3],
+                [5, 0],
+            ],
+        } as never;
+        expect(goalsOf({ ...base, duels: [serie] }, base, 2000)).toEqual([4, 1, 5]);
     });
 
     it('copa trocada, duelo anulado ou antigo (save importado) não contam', () => {
