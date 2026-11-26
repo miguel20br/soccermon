@@ -210,3 +210,47 @@ export function countAt(target: number, ms: number, dur = 700): number {
     const t = Math.max(0, ms) / dur;
     return Math.min(target, Math.floor(target * (1 - (1 - t) ** 3)));
 }
+
+/**
+ * Os passos do Caminho que o tapete da Sede mostra (revisão dos menus, S1): o último ganho, o próximo e o seguinte; sem
+ * nada ganho, o próximo e os 2 depois; com tudo ganho, os 3 últimos.
+ */
+export function pathWindow(steps: readonly PathStep[], next: number, k = 3): PathStep[] {
+    const from = next < 0 ? steps.length - k : next - 1;
+    const start = Math.max(0, Math.min(from, steps.length - k));
+    return steps.slice(start, start + k);
+}
+
+/** O que o Carvalho fala no Lab (revisão dos menus, L3): a meta da Coleção mais perto, e ela muda com o progresso. */
+export type OakLine =
+    | { k: 'start'; n: number }
+    | { k: 'type'; n: number; type: string }
+    | { k: 'album'; n: number }
+    | { k: 'moves'; n: number }
+    | { k: 'done' };
+
+/** Até ver esses, ele explica que draft e rival já contam (o tipo que falta ainda é cedo pra importar). */
+const OAK_START = 20;
+
+/**
+ * Com a Pokédex aberta: o tipo com menos Pokémon faltando ("Faltam 2 do tipo Gelo"; empate, o do 1º que falta na
+ * ordem da Pokédex). Pokédex cheia: o Álbum; Álbum cheio: a Golpedex.
+ */
+export function oakLine(
+    seen: (id: number) => boolean,
+    albumLeft: number,
+    movesLeft: number,
+    list: readonly { id: number; types: readonly string[] }[],
+): OakLine {
+    const missing = list.filter((sp) => !seen(sp.id));
+    if (missing.length) {
+        if (list.length - missing.length < OAK_START) return { k: 'start', n: missing.length };
+        const by = new Map<string, number>();
+        for (const sp of missing) for (const ty of sp.types) by.set(ty, (by.get(ty) ?? 0) + 1);
+        const [type, n] = [...by].sort((a, b) => a[1] - b[1])[0];
+        return { k: 'type', n, type };
+    }
+    if (albumLeft > 0) return { k: 'album', n: albumLeft };
+    if (movesLeft > 0) return { k: 'moves', n: movesLeft };
+    return { k: 'done' };
+}

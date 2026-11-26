@@ -1650,21 +1650,63 @@
     image-rendering: pixelated;
 }
 
+/* o chão do Lab (revisão dos menus, L1 a L3): o globo das Sinergias, o quadro dos 151 e o Carvalho em pé, numa faixa
+   logo abaixo das plaquinhas da parede (medidas em pixels de arte, como o resto do cenário) */
+.lb-floor {
+    position: absolute;
+    left: 0;
+    /* abaixo das plaquinhas da parede: no celular elas têm no mínimo 12 px de letra e descem mais que os móveis */
+    top: max(calc(var(--mi) * 86), calc(var(--mi) * 78 + 24px));
+    width: calc(var(--mi) * 190);
+    height: calc(var(--mi) * 60);
+}
+.lb-at {
+    position: absolute;
+    top: 0;
+}
+.lb-at-globe {
+    left: calc(var(--mi) * 4);
+}
+.lb-at-board {
+    left: calc(var(--mi) * 40);
+}
+.lb-board {
+    filter: drop-shadow(0 var(--mi) 0 rgb(0 0 0 / 35%));
+}
+/* o sprite de treinador (80 x 80) a 3/4, pra ficar da altura das estantes; o pé na linha 56 do chão */
+.lb-oak {
+    position: absolute;
+    z-index: 56;
+    left: calc(var(--mi) * 132);
+    top: calc(var(--mi) * -4);
+    width: calc(var(--mi) * 60);
+    height: calc(var(--mi) * 60);
+    image-rendering: pixelated;
+    pointer-events: none;
+}
+/* PC: a fala e o botão ficam no meio, numa coluna de 460 px; o quadro vai pra esquerda dela e o Carvalho e o globo pra
+   direita (no meio, a plaquinha do quadro caía em cima da fala) */
+@media (min-width: 1200px) and (min-height: 700px) {
+    .lb-at-board {
+        left: calc(var(--mi) * -3 - 246px);
+    }
+    .lb-oak {
+        left: calc(var(--mi) * 95 + 246px);
+    }
+    .lb-at-globe {
+        left: calc(var(--mi) * 151 + 246px);
+    }
+}
+/* PC baixo e estreito (tablet deitado): o quadro fica no meio e a fala sai, o Carvalho continua na sala */
+@media (min-width: 900px) and (max-width: 1199px) and (min-height: 700px) and (max-height: 859px) {
+    .lb-scene ~ .rm-ui .rm-talk {
+        display: none;
+    }
+}
+
 /* ---------- Sede do clube: madeira escura, piso de tábuas, as cores do clube no varal, no tapete e no escudo ---------- */
 .sd-scene {
     --rm-cap: #efe6d6;
-    --ui-h: 270px;
-}
-@media (min-width: 900px) and (min-height: 700px) {
-    .sd-scene {
-        --ui-h: 290px;
-    }
-}
-/* o quadro de missões é alto: no celular pequeno o chão dos Pokémon fica só na faixa logo abaixo da parede */
-@media (max-height: 700px) and (orientation: portrait) {
-    .sd-scene {
-        --ui-h: 220px;
-    }
 }
 .sd-scene .rm-wall {
     background:
@@ -1764,20 +1806,109 @@
     height: calc(var(--mi) * 22);
     clip-path: polygon(32% 0, 68% 0, 100% 20%, 88% 42%, 78% 36%, 78% 100%, 22% 100%, 22% 36%, 12% 42%, 0 20%);
 }
+/* o tapete nas cores do clube é o Caminho do treinador (revisão dos menus, S1): 3 passos ligados por uma trilha */
 .sd-rug {
     position: absolute;
-    z-index: 0;
-    left: calc(var(--mi) * 46);
-    top: calc(var(--mi) * 84);
-    width: calc(var(--mi) * 98);
-    height: calc(var(--mi) * 34);
-    background: var(--club);
-    border: calc(var(--mi) * 3) solid var(--club2);
+    inset: 0;
+    display: grid;
+    place-items: center;
+    background: color-mix(in srgb, var(--club) 62%, #000);
+    border: calc(var(--mi) * 3) solid color-mix(in srgb, var(--club2) 70%, #000);
     box-shadow:
-        inset 0 0 0 calc(var(--mi) * 3) var(--club),
-        inset 0 0 0 calc(var(--mi) * 4) var(--club2),
+        inset 0 0 0 var(--mi) color-mix(in srgb, var(--club) 62%, #000),
+        inset 0 0 0 calc(var(--mi) * 2) color-mix(in srgb, var(--club2) 55%, #000),
         0 var(--mi) 0 rgb(0 0 0 / 35%);
-    filter: brightness(0.62) saturate(0.75);
+}
+.sd-path {
+    position: relative;
+    display: flex;
+    gap: calc(var(--mi) * 10);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+/* a trilha entre os passos */
+.sd-path::before {
+    content: "";
+    position: absolute;
+    left: calc(var(--mi) * 10);
+    right: calc(var(--mi) * 10);
+    top: 50%;
+    height: calc(var(--mi) * 2);
+    translate: 0 -50%;
+    background: repeating-linear-gradient(
+        90deg,
+        #f4f1e6 0 calc(var(--mi) * 3),
+        transparent calc(var(--mi) * 3) calc(var(--mi) * 5)
+    );
+    opacity: 0.7;
+}
+.sd-path li {
+    position: relative;
+    display: grid;
+    place-items: center;
+    width: calc(var(--mi) * 24);
+    height: calc(var(--mi) * 24);
+    background: #2a1a14;
+    border: max(2px, calc(var(--mi) * 1)) solid #f4f1e6;
+    border-radius: calc(var(--mi) * 2);
+    box-shadow: 0 var(--mi) 0 rgb(0 0 0 / 45%);
+}
+.sd-path li > img,
+.sd-path li > .tr-art {
+    width: calc(var(--mi) * 22);
+    height: calc(var(--mi) * 22);
+    object-fit: contain;
+    image-rendering: auto;
+}
+.sd-path li > .hud-icon {
+    width: calc(var(--mi) * 12);
+    height: calc(var(--mi) * 12);
+    color: var(--yellow);
+}
+/* ganho: apagado com o visto; o próximo: borda dourada e maior; o seguinte: só a sombra do prêmio */
+.sd-path li.done > :not(.sd-path-ok) {
+    opacity: 0.45;
+}
+.sd-path .sd-path-ok {
+    position: absolute;
+    right: calc(var(--mi) * -3);
+    top: calc(var(--mi) * -3);
+    width: max(14px, calc(var(--mi) * 9));
+    height: max(14px, calc(var(--mi) * 9));
+    padding: 1px;
+    border-radius: 50%;
+    background: var(--green);
+    color: var(--bc-ink);
+}
+.sd-path li.next {
+    border-color: var(--yellow);
+    scale: 1.15;
+}
+.sd-path li:not(.done, .next) > img {
+    filter: brightness(0);
+    opacity: 0.6;
+}
+/* o botão Metas: em celular estreito só o nível (o próximo prêmio já está no tapete) */
+.rm-go > .sd-dot {
+    position: static;
+    flex: none;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: var(--yellow);
+    border: 2px solid var(--bc-ink);
+}
+@media (max-width: 360px), (orientation: landscape) and (max-height: 520px) {
+    .sd-next {
+        display: none;
+    }
+}
+/* o tapete desce o que a plaquinha da vitrine (2 linhas, letra mínima de 12 px) passa do móvel no celular */
+.sd-rug-at {
+    position: absolute;
+    left: 0;
+    top: max(0px, calc(30px - var(--mi) * 10));
 }
 .sd-head-crest {
     width: 22px;
