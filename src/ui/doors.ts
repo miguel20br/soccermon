@@ -75,6 +75,16 @@ export function openPage(page: Extract<Screen, 'help' | 'credits'>) {
     g.go(page);
 }
 
+/**
+ * Entrar com Google / salvar na nuvem (revisão dos menus, C1 + T2): abre as Configurações, onde a Conta é o 1º bloco
+ * (o botão oficial do Google só nasce renderizado, não dá pra disparar de fora). O voltar leva pra tela de onde abriu.
+ */
+export function openAccount() {
+    const g = useGame.getState();
+    trackNav('account', 'settings', g.screen);
+    g.go('settings');
+}
+
 /** A aba com que a porta abre: `?aba=`, ou o `?perfil=` antigo que aponta pra ela. */
 export function initialTab<D extends Door>(door: D): DoorTab<D> {
     const q = new URLSearchParams(window.location.search);

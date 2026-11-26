@@ -25,7 +25,6 @@ import { Logo } from '../components/LogoHits';
 import { HudIcon } from '../components/MatchHud';
 import { PokeCard2 } from '../components/PokeCard2';
 import { TopActions } from '../components/TopActions';
-import { openPage } from '../doors';
 import { reduceMotionOn } from '../settings-sync';
 import { uiZoom } from '../ui-zoom';
 import { ULTIMATE_OPENS_AT } from '../ultimate/flag';
@@ -412,7 +411,7 @@ export const Head = memo(function Head() {
                 <img className="mm-symbol" src="assets/ui/simbolo.svg" alt="Soccermon" width="40" height="40" />
             </span>
             <TopBar />
-            <TopActions help={() => openPage('help')} profile={false} />
+            <TopActions profile={false} />
         </header>
     );
 });

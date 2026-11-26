@@ -8,12 +8,13 @@ import { NewsButton } from './AboutFooter';
 import { MenuIcon } from './MenuIcon';
 
 /**
- * Canto de cima à direita, igual em toda tela de menu (Home inclusive): Amigos, Novidades, Ajuda ("?"), Configurações
- * (engrenagem) e o seu Perfil (`profile={false}`: a Home dos ambientes tem o treinador na barra de cima). Amigos abre
- * a folha por cima da tela de agora (antes era Sede → Amigos).
+ * Canto de cima à direita, igual em toda tela de menu (Home inclusive): Amigos, Novidades, Configurações (engrenagem)
+ * e o seu Perfil (`profile={false}`: a Home dos ambientes tem o treinador na barra de cima). Amigos abre a folha por
+ * cima da tela de agora (antes era Sede → Amigos). A Ajuda saiu daqui (revisão dos menus, T1, 26/11): fica nas
+ * Configurações e no "?" de cada tela, e o nome do treinador volta a caber no 390.
  */
-export function TopActions({ help, profile = true }: { help?: () => void; profile?: boolean }) {
-    const { t, d } = useT();
+export function TopActions({ profile = true }: { profile?: boolean }) {
+    const { d } = useT();
     const screen = useGame((s) => s.screen);
     const go = useGame((s) => s.go);
     const friends = useDoorSheet((s) => s.open === 'amigos');
@@ -32,23 +33,11 @@ export function TopActions({ help, profile = true }: { help?: () => void; profil
                 <NewDot on={asked} />
             </button>
             <NewsButton />
-            {help && (
-                <button
-                    type="button"
-                    className="help-fab"
-                    aria-current={screen === 'help' ? 'page' : undefined}
-                    data-coach="help"
-                    aria-label={t('home.helpAria')}
-                    title={t('home.helpTitle')}
-                    onClick={help}
-                >
-                    <MenuIcon kind="help" />
-                </button>
-            )}
             {/* sempre no mesmo lugar (nas Configurações também: o botão some e os outros pulavam pro lado) */}
             <button
                 type="button"
                 className="help-fab"
+                data-coach="settings"
                 aria-label={d.home.tiles.settings}
                 aria-current={screen === 'settings' ? 'page' : undefined}
                 title={d.home.tiles.settings}

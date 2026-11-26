@@ -8,7 +8,7 @@ export const profile: typeof pt = {
         album: 'Album',
         sinergias: 'Synergies',
         golpedex: 'Movedex',
-        clube: 'Club',
+        clube: 'Kit',
         dex: 'Pokédex',
         hall: 'Hall of Fame',
         numeros: 'Numbers',
@@ -365,7 +365,7 @@ export const profile: typeof pt = {
         summary: '{done} of {total} missions done',
         done: 'Done',
         progressAria: '{n} of {goal}',
-        rewardTrainer: 'Trainer',
+        rewardTrainer: 'Character',
         rewardTitle: 'Title',
         groups: {
             ginasios: 'Gyms',
@@ -597,7 +597,7 @@ export const profile: typeof pt = {
     },
     picker: {
         legacy: 'Team Ultimate',
-        trainer: 'Your trainer',
+        trainer: 'Character',
         trainerCount: '{n} of {total} unlocked',
         trainerHelp: 'The others come from missions: each one shows its own below.',
         legendary: 'Legendary',
@@ -624,7 +624,7 @@ export const profile: typeof pt = {
         title: 'Trainer path',
         next: 'Next',
         done: 'Earned',
-        trainer: 'Trainer',
+        trainer: 'Character',
         titleKind: 'Title',
         belt: 'Belt',
         room: 'Room',
@@ -634,7 +634,7 @@ export const profile: typeof pt = {
         prize: 'Prize',
     },
     unlocked: {
-        trainer: 'New trainer unlocked: {name}',
+        trainer: 'New character unlocked: {name}',
         title: 'New title: {name}',
     },
 };

@@ -7,7 +7,7 @@ export const profile = {
         album: 'Álbum',
         sinergias: 'Sinergias',
         golpedex: 'Golpedex',
-        clube: 'Clube',
+        clube: 'Uniforme',
         dex: 'Pokédex',
         hall: 'Hall da Fama',
         numeros: 'Números',
@@ -368,7 +368,7 @@ export const profile = {
         summary: '{done} de {total} missões cumpridas',
         done: 'Cumprida',
         progressAria: '{n} de {goal}',
-        rewardTrainer: 'Treinador',
+        rewardTrainer: 'Personagem',
         rewardTitle: 'Título',
         groups: {
             ginasios: 'Ginásios',
@@ -602,7 +602,7 @@ export const profile = {
     },
     picker: {
         legacy: 'Time Ultimate',
-        trainer: 'Seu treinador',
+        trainer: 'Personagem',
         trainerCount: '{n} de {total} liberados',
         trainerHelp: 'Os outros saem das missões: cada um mostra a sua logo abaixo.',
         legendary: 'Lendária',
@@ -630,7 +630,7 @@ export const profile = {
         title: 'Caminho do treinador',
         next: 'Próximo',
         done: 'Ganho',
-        trainer: 'Treinador',
+        trainer: 'Personagem',
         titleKind: 'Título',
         belt: 'Cinturão',
         room: 'Sala',
@@ -640,7 +640,7 @@ export const profile = {
         prize: 'Prêmio',
     },
     unlocked: {
-        trainer: 'Treinador novo desbloqueado: {name}',
+        trainer: 'Personagem novo desbloqueado: {name}',
         title: 'Título novo: {name}',
     },
 };

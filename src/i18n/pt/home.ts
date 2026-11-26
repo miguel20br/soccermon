@@ -98,6 +98,8 @@ export const home = {
         modePrev: 'Modo anterior',
         modeNext: 'Próximo modo',
         modesAria: 'Modos de jogo',
+        /** A placa do Estádio que abre o menu de modos (revisão dos menus, E1). */
+        modesSign: 'Modos',
         arenaGo: 'Desafiar',
         arenaLine: 'Duelo ao vivo com um amigo',
         neonWeek: 'da semana',

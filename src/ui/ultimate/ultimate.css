@@ -1449,6 +1449,15 @@
     letter-spacing: 0.5px;
     text-transform: uppercase;
 }
+/* 320: "OBJETIVOS" inteiro na aba de 64 px (sem o espaçamento entre letras) */
+@media (max-width: 359px) {
+    .ut-tab {
+        padding: 0;
+    }
+    .ut-tab-lbl {
+        letter-spacing: 0;
+    }
+}
 /* tem coisa pra resolver ali */
 .ut-dot {
     position: absolute;

@@ -3820,7 +3820,8 @@
 .es-actions {
     position: relative;
 }
-.es-rank {
+.es-rank,
+.es-tomodes {
     position: absolute;
     right: 0;
     bottom: calc(100% + 10px);
@@ -3852,10 +3853,24 @@
     translate: 0 0;
     transition-delay: 0s;
 }
-.es-rank .hud-icon {
+.es-rank .hud-icon,
+.es-tomodes .hud-icon {
     width: 16px;
     height: 16px;
     color: var(--yellow);
+}
+/* a placa Modos (revisão dos menus, E1): o mesmo chip, à esquerda e sempre à vista (entra com a Home) */
+.es-tomodes {
+    right: auto;
+    left: 0;
+    opacity: 1;
+    visibility: visible;
+    translate: 0 0;
+    transition: transform 320ms var(--ease-pop);
+}
+.es-tomodes:active {
+    transform: translateY(3px) scale(0.95);
+    transition-duration: 60ms;
 }
 
 /* ---------- uma placa por modo, em cima do JOGAR (PlayBar.tsx, 30/10) ---------- */

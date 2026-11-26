@@ -90,6 +90,7 @@ export const home: typeof pt = {
         modePrev: 'Previous mode',
         modeNext: 'Next mode',
         modesAria: 'Game modes',
+        modesSign: 'Modes',
         /** The goals always in view at the Stadium (Clash's "chests"). */
         /** The top bar: titles won and the Pokédex. */
         resLevel: 'Trainer level {n} ({x} of {y} missions to the next)',

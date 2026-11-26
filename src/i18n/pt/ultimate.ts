@@ -4,14 +4,14 @@ export const ultimate = {
     preview: 'Prévia',
     fichas: 'Fichas',
     cards: 'Cartas',
-    tabs: { home: 'Início', play: 'Jogar', club: 'Clube', shop: 'Loja', goals: 'Metas' },
+    tabs: { home: 'Início', play: 'Jogar', club: 'Clube', shop: 'Loja', goals: 'Objetivos' },
     /** Aba Jogar (retorno de 09/11): os modos, equivalentes do FC (Squad Battles, Rivals, Champions, Draft, SBC). */
     modes: {
         soon: 'Em breve',
         battles: {
             name: 'Batalhas de Treinador',
             line: 'Seu time contra clubes da IA, no nível que você escolher.',
-            gives: 'Fichas, passe e metas',
+            gives: 'Fichas, passe e objetivos',
         },
         rivals: {
             name: 'Rivais',
@@ -280,7 +280,7 @@ export const ultimate = {
         shop: 'Loja',
         packsReady: '{n} pacote pra abrir|{n} pacotes pra abrir',
         packsNone: 'Nenhum pacote agora',
-        goals: 'Metas',
+        goals: 'Objetivos',
         goalsDone: 'Tudo feito por agora',
         evos: 'Evoluções',
         evoReady: '{name} pronta',
@@ -409,7 +409,7 @@ export const ultimate = {
             lineup: 'Mexa na escalação (Elenco)',
             play: 'Jogue a 1ª partida',
             win: 'Vença uma partida',
-            evo: 'Comece uma Evolução (aba Metas)',
+            evo: 'Comece uma Evolução (aba Objetivos)',
         },
     },
     result: {
@@ -424,7 +424,7 @@ export const ultimate = {
         gain: '+{n} Fichas',
         next: 'Continuar',
         objectives: 'Objetivos cumpridos',
-        evoReady: 'Evolução pronta em Metas',
+        evoReady: 'Evolução pronta em Objetivos',
         pass: '+{n} pontos no passe',
         passCap: 'Teto do dia no passe',
         marks: 'Marco {n} do passe|Marcos {n} do passe',

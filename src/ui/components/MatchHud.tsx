@@ -381,6 +381,8 @@ export const ICONS = {
     yellow: 'M8 3h8a1 1 0 0 1 1 1v16a1 1 0 0 1-1 1H8a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1z',
     // pedra de evolução (prêmio de região da Rota): a gema lapidada
     stone: 'M8 3h8l5 6-9 12L3 9zM3 9h18M9.5 9L12 21l2.5-12M8 3l1.5 6M16 3l-1.5 6',
+    // os 4 quadrados da placa Modos do Estádio (abre o menu de modos)
+    modes: 'M4 4h7v7H4zM13 4h7v7h-7zM4 13h7v7H4zM13 13h7v7h-7z',
     // formações (src/ui/formation-info.ts; o Ferrolho usa o cadeado)
     fDiamond: 'M12 3l8 9-8 9-8-9z',
     fSquare: 'M4 4h16v16H4zM12 16V8M8.5 11.5L12 8l3.5 3.5',

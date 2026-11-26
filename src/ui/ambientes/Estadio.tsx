@@ -623,6 +623,14 @@ export function Estadio({
                     {/* Desafio de Natal (07/12 a 05/01): a barra com cara de letreiro; antes, a contagem */}
                     {hydrated && <DesafioStrip variant="led" />}
                     <PlayBar main={main} sheet={plan.sheet.map(mode)} onPick={setChosen} />
+                    {/* a placa Modos (revisão dos menus, E1): o caminho visível pro menu de modos (Time Ultimate,
+                        História); o logo continua abrindo também. À esquerda, acima das placas, espelhando o ranking */}
+                    {onModes && !firstVisit && (
+                        <button type="button" className="es-tomodes" onClick={onModes}>
+                            <HudIcon kind="modes" />
+                            {t('home.amb.modesSign')}
+                        </button>
+                    )}
                     {/* quem ainda não jogou hoje também acha o ranking (depois de jogar, o botão principal já leva). Fica
                         sempre montado e por cima da quadra: aparecer não empurra as placas pra cima */}
                     {!daily.played && plan.sheet.includes('daily') && (

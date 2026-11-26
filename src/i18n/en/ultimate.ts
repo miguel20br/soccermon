@@ -5,13 +5,13 @@ export const ultimate: typeof pt = {
     preview: 'Preview',
     fichas: 'Coins',
     cards: 'Cards',
-    tabs: { home: 'Home', play: 'Play', club: 'Club', shop: 'Store', goals: 'Goals' },
+    tabs: { home: 'Home', play: 'Play', club: 'Club', shop: 'Store', goals: 'Objectives' },
     modes: {
         soon: 'Coming soon',
         battles: {
             name: 'Trainer Battles',
             line: 'Your team against AI clubs, at the level you choose.',
-            gives: 'Coins, pass and goals',
+            gives: 'Coins, pass and objectives',
         },
         rivals: {
             name: 'Rivals',
@@ -138,7 +138,7 @@ export const ultimate: typeof pt = {
         evBig: 'Event Big Pack',
         bigHint: '5 cards, at least 2 Silver or better',
         bigHave: 'You have {n}|You have {n}',
-        bigNone: 'Earned from weekly goals and the season pass',
+        bigNone: 'Earned from weekly objectives and the season pass',
         bigRule: 'Big Pack: 5 cards, at least {n} {metal} or better',
         eventRule: '{name}: {pct} per card to be an Event card',
     },
@@ -217,7 +217,7 @@ export const ultimate: typeof pt = {
     event: {
         title: 'Event: {name}',
         ends: 'Ends in {time}',
-        hint: 'Event cards in packs and goals of its own. Complete them all: a Profile ornament and an Event Pick.',
+        hint: 'Event cards in packs and objectives of its own. Complete them all: a Profile ornament and an Event Pick.',
         ornament: 'Ornament earned',
     },
     pass: {
@@ -277,7 +277,7 @@ export const ultimate: typeof pt = {
         shop: 'Store',
         packsReady: '{n} pack to open|{n} packs to open',
         packsNone: 'No packs right now',
-        goals: 'Goals',
+        goals: 'Objectives',
         goalsDone: 'All done for now',
         evos: 'Evolutions',
         evoReady: '{name} is ready',
@@ -406,7 +406,7 @@ export const ultimate: typeof pt = {
             lineup: 'Change your lineup (Squad)',
             play: 'Play your 1st match',
             win: 'Win a match',
-            evo: 'Start an Evolution (Goals tab)',
+            evo: 'Start an Evolution (Objectives tab)',
         },
     },
     result: {
@@ -420,8 +420,8 @@ export const ultimate: typeof pt = {
         pens: 'penalties {a}-{b}',
         gain: '+{n} Coins',
         next: 'Continue',
-        objectives: 'Goals completed',
-        evoReady: 'Evolution ready in Goals',
+        objectives: 'Objectives completed',
+        evoReady: 'Evolution ready in Objectives',
         pass: '+{n} season pass points',
         passCap: 'Daily pass cap reached',
         marks: 'Pass milestone {n}|Pass milestones {n}',
@@ -489,7 +489,7 @@ export const ultimate: typeof pt = {
     },
     evo: {
         title: 'Evolutions',
-        hint: 'Pick a card, see its final form and complete the goals playing with it. It stays the same card, with its edition and its spot.',
+        hint: 'Pick a card, see its final form and complete the objectives playing with it. It stays the same card, with its edition and its spot.',
         new: 'Start an Evolution',
         pickCard: 'Pick the card',
         path: 'Path',
