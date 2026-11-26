@@ -550,6 +550,14 @@
     padding-inline: 0;
     font-size: 10px;
 }
+/* coluna do tamanho do rótulo: no 320 "Personagem" não corta (as curtas cedem espaço) */
+.pf-ed .pf-ed-tabs {
+    grid-auto-columns: auto;
+}
+/* o rótulo conta na largura da coluna (com overflow: hidden a coluna ignorava o texto e "Personagem" cortava) */
+.pf-ed .pf-ed-tabs button span {
+    overflow: visible;
+}
 .pf-ed-prev .pf-title-line {
     margin-top: 0;
 }

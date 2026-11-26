@@ -362,7 +362,8 @@ const LANDSCAPE = '(orientation: landscape) and (max-height: 520px)';
  * letreiro (o dorminhoco não deita em cima) e o capitão (ninguém entra no sprite dele).
  */
 const STADIUM: Blockers = {
-    ui: '.es-ui > *, .es-wall, .es-lintel, .es-lamp',
+    // as placas Modos e Ranking ficam fora da caixa das ações (em cima delas, por cima da quadra): bloqueiam por conta
+    ui: '.es-ui > *, .es-actions > .es-tomodes, .es-actions > .es-rank.on, .es-wall, .es-lintel, .es-lamp',
     props: '.es-banner, .es-led, .es-captain .fs-sprite',
 };
 const SCARE: Record<string, Pt[]> = {

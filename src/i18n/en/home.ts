@@ -59,7 +59,7 @@ export const home: typeof pt = {
     /** Places navigation (?lab=ambientes). */
     amb: {
         tabsAria: 'Places',
-        tabs: { lab: 'Lab', rota: 'Road', estadio: 'Stadium', arena: 'Arena', sede: 'Club' },
+        tabs: { lab: 'Lab', rota: 'Road', estadio: 'Stadium', arena: 'Arena', sede: 'HQ' },
         skip: 'Tap to skip',
         ledDaily: 'NEW DAILY CUP',
         ledNatal: 'CHRISTMAS CUP {mm}/{dd}',

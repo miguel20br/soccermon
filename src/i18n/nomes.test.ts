@@ -15,6 +15,9 @@ describe('nomes dos menus sem colisão', () => {
         expect(pt.ultimate.tabs.club).toBe('Clube');
         expect(pt.profile.tabs.clube).toBe('Uniforme');
         expect(en.profile.tabs.clube).not.toBe(en.ultimate.tabs.club);
+        // a aba da Sede embaixo também: em inglês ela era "Club", o mesmo nome da aba do UT
+        expect(en.home.amb.tabs.sede).not.toBe(en.ultimate.tabs.club);
+        expect(pt.home.amb.tabs.sede).not.toBe(pt.ultimate.tabs.club);
     });
 
     it('a figurinha é o Personagem, não "Seu treinador"', () => {
