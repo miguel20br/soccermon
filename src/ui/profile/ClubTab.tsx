@@ -19,6 +19,7 @@ import {
 } from '../../store/club-kit';
 import { useGame } from '../../store/game-store';
 import { medalTiers, TIER_NAMES } from '../../store/medals';
+import { missionById } from '../../store/missions';
 import { newsKey } from '../../store/news';
 import {
     avatarOptions,
@@ -34,7 +35,7 @@ import {
 import { useCardEditor } from '../doors';
 import { Stepper } from '../kit/controls';
 import { Crest, KitShirt, kitBackground } from './Crest';
-import { avatarGif, bannerText, hexCss, titleName, trainerLabel } from './club';
+import { avatarGif, bannerText, hexCss, missionText, titleName, trainerLabel } from './club';
 import { CheckIcon, LockIcon, ShinySpark } from './icons';
 import { useMedalView } from './Medals';
 import { NewBadge } from './news';
@@ -423,6 +424,8 @@ function KitEditor({ save }: { save: (patch: Partial<Profile>) => void }) {
     const how = (piece: CrestSymbol | KitPattern) => {
         const u = UNLOCK[piece];
         if (!u) return '';
+        const m = 'collection' in u ? missionById(u.collection) : undefined;
+        if (m && !m.title) return t('profile.club.unlockMission', { task: missionText(m) });
         return 'collection' in u
             ? t('profile.club.unlockCollection', { name: titleName(u.collection) })
             : t('profile.club.unlockMedal', {

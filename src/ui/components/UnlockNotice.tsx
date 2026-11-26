@@ -3,21 +3,24 @@ import { createPortal } from 'react-dom';
 import { dict, t } from '../../i18n';
 import { useT } from '../../i18n/react';
 import { useGame } from '../../store/game-store';
-import { KANTO_BADGES, missionById, type TrainerId } from '../../store/missions';
+import { KANTO_BADGES, missionById, missionExtra, type TrainerId } from '../../store/missions';
 import { KantoBadge } from './BadgeCase';
 import '../animacoes.css';
 import { useWipeBusy } from '../kit/wipe-store';
-import { missionText, titleName, trainerName } from '../profile/club';
+import { missionPrizeName, missionText, titleName, trainerName } from '../profile/club';
 import { MedalIcon } from '../profile/icons';
-import { TrainerSprite } from '../profile/TrainerTab';
+import { MissionPrizeArt, TrainerSprite } from '../profile/TrainerTab';
 
-/** O que o aviso diz: o prêmio ("Título novo: Original e Clone") e a tarefa cumprida. */
+/** O que o aviso diz: o prêmio ("Título novo: Original e Clone", "150 Fichas no Time Ultimate") e a tarefa cumprida. */
 export function noticeLines(id: string): { head: string; task: string } | null {
     const m = missionById(id);
     if (!m) return null;
+    const x = m.trainer || m.title ? null : missionExtra(m.id);
     const head = m.trainer
         ? t('profile.unlocked.trainer', { name: trainerName(m.trainer) })
-        : t('profile.unlocked.title', { name: titleName(m.title ?? '') });
+        : x
+          ? t(`profile.unlocked.${x.kind}`, { n: x.kind === 'fichas' ? x.n : 0, name: missionPrizeName(m) })
+          : t('profile.unlocked.title', { name: titleName(m.title ?? '') });
     return { head, task: missionText(m) };
 }
 
@@ -99,7 +102,13 @@ export function UnlockNotice() {
         );
     return createPortal(
         <div key={id} className={`unlock-seal${out ? ' out' : ''}`} role="status">
-            {m?.trainer ? <TrainerSprite id={m.trainer} /> : <MedalIcon />}
+            {m?.trainer ? (
+                <TrainerSprite id={m.trainer} />
+            ) : m && missionExtra(m.id) && !m.title ? (
+                <MissionPrizeArt m={m} />
+            ) : (
+                <MedalIcon />
+            )}
             <b className="k-seal">{lines.head}</b>
         </div>,
         document.body,

@@ -30,11 +30,29 @@ export const CREST_SYMBOLS = [
     'coroa',
     'taca',
     'espadas',
+    // Time Ultimate: 25 vitórias (a opção 1 de UT_CREST_OPTIONS, provisória)
+    'carta',
 ] as const;
 export type CrestSymbol = (typeof CREST_SYMBOLS)[number];
 
-export const KIT_PATTERNS = ['liso', 'listras', 'faixa', 'meio'] as const;
+export const KIT_PATTERNS = [
+    'liso',
+    'listras',
+    'faixa',
+    'meio',
+    // Time Ultimate: 100 partidas (a opção 1 de UT_KIT_OPTIONS, provisória)
+    'xadrez',
+] as const;
 export type KitPattern = (typeof KIT_PATTERNS)[number];
+
+/**
+ * As 3 opções de arte das missões do Time Ultimate pro Miguel escolher (26/11). A 1ª está ligada; trocar = mudar o id em
+ * CREST_SYMBOLS / KIT_PATTERNS, no UNLOCK e no nome (i18n). ponytail: depois da escolha, apagar as outras e os desenhos.
+ */
+export const UT_CREST_OPTIONS = ['carta', 'pacote', 'louro'] as const;
+export const UT_KIT_OPTIONS = ['xadrez', 'chevron', 'aros'] as const;
+export type CrestArt = CrestSymbol | (typeof UT_CREST_OPTIONS)[number];
+export type KitArt = KitPattern | (typeof UT_KIT_OPTIONS)[number];
 
 /** Cor secundária: as do clube + branco (camisa reserva clássica). */
 export const SECOND_COLORS = [{ id: 'branco', name: 'Branco', hex: 0xf2f2f2 }, ...CLUB_COLORS] as const;
@@ -42,7 +60,7 @@ export type SecondColorId = (typeof SECOND_COLORS)[number]['id'];
 export const secondColorHex = (id: string | undefined) =>
     (SECOND_COLORS.find((c) => c.id === id) ?? SECOND_COLORS[0]).hex;
 
-/** O que libera cada peça: uma coleção temática completa ou um degrau de medalha. Sem regra = livre. */
+/** O que libera cada peça: uma missão cumprida (coleção temática ou do UT) ou um degrau de medalha. Sem regra = livre. */
 export type Unlock = { collection: string } | { medal: string; tier: Tier };
 export const UNLOCK: Partial<Record<CrestSymbol | KitPattern, Unlock>> = {
     folha: { collection: 'colIniciais' },
@@ -58,6 +76,9 @@ export const UNLOCK: Partial<Record<CrestSymbol | KitPattern, Unlock>> = {
     coroa: { medal: 'campeao', tier: 2 },
     taca: { medal: 'campeao', tier: 3 },
     espadas: { medal: 'duelista', tier: 1 },
+    // missões do Time Ultimate (o `collection` é o id de qualquer missão)
+    carta: { collection: 'utWin25' },
+    xadrez: { collection: 'utPlay100' },
     faixa: { medal: 'vitorias', tier: 1 },
     meio: { medal: 'campeao', tier: 1 },
 };

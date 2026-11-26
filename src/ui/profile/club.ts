@@ -8,6 +8,7 @@ import {
     MISSIONS,
     type Mission,
     type MissionGroup,
+    missionExtra,
     missionOfTrainer,
     TITLE_IDS,
     type TrainerId,
@@ -109,6 +110,25 @@ export function missionText(m: Mission): string {
     return m.vars ? fmt(d.gym, m.vars) : (d.text[m.id] ?? m.id);
 }
 
+/** Nome do prêmio da missão: o treinador, o título ou o prêmio do Time Ultimate (Fichas, carta, símbolo, padrão). */
+export function missionPrizeName(m: Mission): string {
+    if (m.trainer) return trainerName(m.trainer);
+    if (m.title) return titleName(m.title);
+    const x = missionExtra(m.id);
+    const d = dict().profile;
+    if (!x) return m.id;
+    if (x.kind === 'fichas') return t('profile.path.fichasName', { n: x.n });
+    if (x.kind === 'card') return d.path.cardName;
+    return x.kind === 'crest' ? (d.club.symbols[x.id] ?? x.id) : (d.club.patterns[x.id] ?? x.id);
+}
+/** Que tipo de prêmio é (a etiqueta do Caminho: Personagem, Título, Fichas, Carta, Símbolo, Uniforme). */
+export function missionPrizeKind(m: Mission): string {
+    const d = dict().profile.path;
+    if (m.trainer) return d.trainer;
+    const x = m.title ? null : missionExtra(m.id);
+    return x ? d[x.kind] : d.titleKind;
+}
+
 /** Missão que dá este título (os de Pallet e de código não têm). */
 export const missionOfTitle = (id: string) => MISSIONS.find((m) => m.title === id);
 
@@ -133,6 +153,7 @@ export const TITLE_GROUPS: TitleGroup[] = [
     'platina',
     'lendas',
     'elite',
+    'ultimate',
     'colecoes',
     'colecao',
     'ginasios',
@@ -149,6 +170,7 @@ const RARITY: Record<TitleGroup, TitleRarity> = {
     platina: 'epico',
     lendas: 'lendario',
     elite: 'raro',
+    ultimate: 'raro',
     colecoes: 'raro',
     colecao: 'raro',
     ginasios: 'comum',

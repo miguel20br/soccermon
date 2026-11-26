@@ -2,7 +2,7 @@
  * As metas que os ambientes deixam à vista (a de cada lugar): o quadro de missões da Sede e o próximo cinturão da
  * Arena. Só conta, sem tela.
  */
-import { MISSIONS, type Mission, missionCount, type SaveView } from '../../store/missions';
+import { MISSIONS, type Mission, missionCount, missionExtra, type SaveView } from '../../store/missions';
 import type { Avatar } from '../../store/profile';
 import { BELTS, ROOM_LEVELS, type RoomLevel } from '../../store/trophies';
 
@@ -38,7 +38,7 @@ export function closestMissions(view: SaveView, max = 3, list: readonly Mission[
 
 /**
  * Nível do treinador (a barra de topo): as missões cumpridas em degraus que crescem devagar (1, 2, 2, 3, 3, 4, 4…
- * missões por nível), sem XP nem moeda nova. As 63 missões de hoje fecham o nível 15. `n` de `goal` é o caminho até o
+ * missões por nível), sem XP nem moeda nova. As 71 missões de hoje (63 + as 8 do Time Ultimate) fecham o nível 16. `n` de `goal` é o caminho até o
  * próximo nível.
  */
 export function trainerLevel(done: number): { level: number; n: number; goal: number } {
@@ -78,7 +78,7 @@ export interface PathStep {
 /**
  * Caminho do treinador (revamp-ui.md, decisão 7): os últimos `past` prêmios ganhos à esquerda e os `ahead` próximos à
  * direita, o mais perto de sair primeiro (a mesma regra das Metas: maior fração feita, depois a meta menor). Só entra
- * missão que dá treinador ou título. `next` é o índice do próximo prêmio (-1 com tudo ganho).
+ * missão com prêmio (treinador, título ou o do Time Ultimate). `next` é o índice do próximo prêmio (-1 com tudo ganho).
  * `doneOrder` = `profile.missionsDone`, na ordem em que saíram.
  */
 export function trainerPath(
@@ -90,7 +90,7 @@ export function trainerPath(
     ahead = 8,
     list: readonly Mission[] = MISSIONS,
 ): { steps: PathStep[]; next: number } {
-    const prized = (m: Mission) => !!(m.trainer || m.title);
+    const prized = (m: Mission) => !!(m.trainer || m.title || missionExtra(m.id));
     const byId = new Map(list.map((m) => [m.id, m]));
     const rooms = ROOM_LEVELS.filter((l) => l.titles > 0);
     const done: PathStep[] = [

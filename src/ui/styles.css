@@ -7263,6 +7263,19 @@ p.muted.center a {
     height: 40px;
     margin-bottom: 4px;
 }
+/* prêmio de missão que é padrão de uniforme: a camisa recortada (a mesma silhueta do editor do clube) */
+.prize-kit {
+    display: block;
+    width: 28px;
+    height: 26px;
+    clip-path: polygon(32% 0, 68% 0, 100% 20%, 88% 42%, 78% 36%, 78% 100%, 22% 100%, 22% 36%, 12% 42%, 0 20%);
+    filter: drop-shadow(0 2px 0 #0e1430);
+}
+.unlock-seal > .prize-kit {
+    width: 44px;
+    height: 41px;
+    margin-bottom: 4px;
+}
 .unlock-seal > .k-seal {
     position: relative;
     padding: 5px 14px 6px;

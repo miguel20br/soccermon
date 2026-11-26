@@ -92,6 +92,7 @@ const HEAD: Record<TrainerId, Head | Head[]> = {
     scientist: [39, 17],
     supernerd: [35, 15],
     swimmer: [36, 20],
+    tamer: [31, 18],
     youngster: [42, 21],
     youngsterGold: [42, 21],
 };

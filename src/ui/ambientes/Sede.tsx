@@ -10,9 +10,9 @@ import { PixelTrophy } from '../components/PixelTrophy';
 import { openDoor, openMetas } from '../doors';
 import { playDoor } from '../kit/DoorWipe';
 import { Crest, KitShirt } from '../profile/Crest';
-import { hexCss, titleName, trainerName } from '../profile/club';
+import { hexCss, missionPrizeName } from '../profile/club';
 import { NewDot, newsCount, useNews } from '../profile/news';
-import { useSaveView } from '../profile/TrainerTab';
+import { MissionPrizeArt, useSaveView } from '../profile/TrainerTab';
 import { trainerSrc } from '../tema';
 import { ClockCtx, useSceneClock } from './clock';
 import { levelOfDone, type PathStep, pathWindow, trainerPath } from './metas';
@@ -33,7 +33,7 @@ function PathIcon({ s }: { s: PathStep }) {
     return p.m.trainer ? (
         <img className="pixel" src={trainerSrc(p.m.trainer)} alt="" draggable={false} />
     ) : (
-        <HudIcon kind="crown" />
+        <MissionPrizeArt m={p.m} />
     );
 }
 
@@ -99,9 +99,7 @@ export function Sede({ active, wild, near }: { active: boolean; wild: Wild[]; ne
     const rug = pathWindow(path.steps, path.next);
     const prizeName = (s: PathStep) =>
         s.prize.kind === 'mission'
-            ? s.prize.m.trainer
-                ? trainerName(s.prize.m.trainer)
-                : titleName(s.prize.m.title ?? '')
+            ? missionPrizeName(s.prize.m)
             : s.prize.kind === 'belt'
               ? t('trophies.belt', { n: s.goal })
               : d.trophies.level[s.prize.level];

@@ -95,7 +95,7 @@ import {
     stoners,
     withKnownEvents,
 } from './long-events';
-import { activeTitle, activeTrainer, matchView, newMissions, stageView } from './missions';
+import { activeTitle, activeTrainer, matchView, newMissions, stageView, utView } from './missions';
 import { isNatalCup, NATAL_TITLE, natalCupWon, natalOpponents } from './natal-cup';
 import { withSeenBaseline } from './news';
 import {
@@ -146,6 +146,7 @@ import {
     evolveCard,
     finishMatch,
     firstStep,
+    missionGifts,
     natalGift,
     newUltimate,
     openMany,
@@ -1215,19 +1216,40 @@ export function withUnlocks(saved: PersistedSave): PersistedSave {
     const save = records === saved.records ? saved : { ...saved, records };
     const runs = [save.run, ...save.parkedRuns];
     const fresh = newMissions(
-        { ...save, runs, done: save.profile.missionsDone },
+        { ...save, runs, done: save.profile.missionsDone, ut: utView(save.ultimate) },
         runs.flatMap((r) => r?.results ?? []).map(stageView),
     );
+    const missionsDone = [...save.profile.missionsDone, ...fresh];
+    // prêmio de missão do Time Ultimate que ainda não caiu (inclusive o da missão que outro aparelho cumpriu)
+    const ultimate = missionGifts(save.ultimate, missionsDone);
+    const out = ultimate === save.ultimate ? save : { ...save, ultimate };
     // selo NOVO: save de antes dele conta o que já tinha como visto (depois das missões retroativas)
     return withAmbBaseline(
-        withCoachBaseline(
-            withSeenBaseline(
-                fresh.length
-                    ? { ...save, profile: { ...save.profile, missionsDone: [...save.profile.missionsDone, ...fresh] } }
-                    : save,
-            ),
-        ),
+        withCoachBaseline(withSeenBaseline(fresh.length ? { ...out, profile: { ...out.profile, missionsDone } } : out)),
     );
+}
+
+/**
+ * Missões do Time Ultimate depois de mexer no modo (partida, pacote, desafio, virada): a cumprida vai pro aviso, como
+ * as da copa, e o prêmio dela que cai no modo (Fichas, carta) entra no save uma vez só.
+ */
+function utMissionsAfter(s: GameStore): Partial<GameStore> | null {
+    const fresh = newMissions({
+        ...s,
+        runs: [s.run, ...s.parkedRuns],
+        done: s.profile.missionsDone,
+        ut: utView(s.ultimate),
+    });
+    const missionsDone = fresh.length ? [...s.profile.missionsDone, ...fresh] : s.profile.missionsDone;
+    const ultimate = missionGifts(s.ultimate, missionsDone);
+    if (!fresh.length && ultimate === s.ultimate) return null;
+    return {
+        ultimate,
+        ...(fresh.length && {
+            profile: { ...s.profile, missionsDone },
+            unlockQueue: [...s.unlockQueue, ...fresh],
+        }),
+    };
 }
 
 /**
@@ -1315,6 +1337,11 @@ export const useGame = create<GameStore>()(
                 const run = getState().run;
                 if (run) setState({ run: { ...run, ...patch } });
             };
+            /** Missões do Time Ultimate (e os prêmios delas no modo) depois de mexer nele. */
+            const utCheck = () => {
+                const patch = utMissionsAfter(getState());
+                if (patch) setState(patch);
+            };
             /** Pokédex com estas espécies marcadas como vistas. */
             const seenDex = (list: { speciesId: number }[]) => {
                 const dex = getState().dex;
@@ -1397,11 +1424,13 @@ export const useGame = create<GameStore>()(
                             { from: 'ultimate', at: now },
                         ),
                     });
+                    utCheck();
                     return { packs: r.packs, full: r.full };
                 },
                 ultimateSeason: (now = utNow()) => {
                     const r = rollSeason(getState().ultimate, now);
                     if (r.u !== getState().ultimate) setState({ ultimate: r.u });
+                    utCheck();
                 },
                 ultimateGift: (now = utNow()) => {
                     const u = natalGift(getState().ultimate, now);
@@ -1498,6 +1527,7 @@ export const useGame = create<GameStore>()(
                         }),
                     );
                     setState({ dex, ultimate: finishMatch(getState().ultimate, m, utNow()) });
+                    utCheck();
                 },
                 ultimateQuickSell: (uids) => setState({ ultimate: quickSell(getState().ultimate, uids) }),
                 ultimateUndoSell: () => setState({ ultimate: undoSell(getState().ultimate) }),
@@ -1506,7 +1536,10 @@ export const useGame = create<GameStore>()(
                 ultimateLock: (uid) => setState({ ultimate: toggleLock(getState().ultimate, uid) }),
                 ultimateSbcPlace: (id, uid) => setState({ ultimate: sbcPlace(getState().ultimate, id, uid) }),
                 ultimateSbcRemove: (id, uid) => setState({ ultimate: sbcRemove(getState().ultimate, id, uid) }),
-                ultimateSbcDeliver: (id) => setState({ ultimate: sbcDeliver(getState().ultimate, id) }),
+                ultimateSbcDeliver: (id) => {
+                    setState({ ultimate: sbcDeliver(getState().ultimate, id) });
+                    utCheck();
+                },
                 ultimateDraftEnter: (formation) => {
                     const u = draftEnter(getState().ultimate, formation, utNow());
                     if (u) setState({ ultimate: u });

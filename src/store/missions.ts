@@ -6,6 +6,7 @@ import type { GoalNote, MatchDigest } from '../engine/match-stats';
 import type { MatchResult } from '../engine/runners/batch-runner';
 import type { TeamSetup } from '../engine/state';
 import { GYM_TM } from '../engine/tm';
+import { CREST_SYMBOLS, type CrestSymbol, type KitPattern, UNLOCK } from './club-kit';
 import { bestDailyStreak, type DailyEntry } from './daily';
 import type { Records, RunState, StageResult } from './game-store';
 import {
@@ -23,8 +24,11 @@ import {
     type Profile,
     playedCount,
     seenCount,
+    ultimateTally,
 } from './profile';
 import { CODE_TITLES, EVENT_TITLES } from './title-codes';
+import { PASS_MARKS } from './ultimate/rules';
+import { MISSION_GIFTS, type UltimateSave } from './ultimate/ultimate';
 
 export { DEFAULT_TITLE, DEFAULT_TRAINER };
 
@@ -73,6 +77,8 @@ export const TRAINERS = [
     'oak',
     'supernerd',
     'scientist',
+    // Time Ultimate: os 8 líderes numa temporada (26/11; provisório, o Miguel escolhe entre Domador, Psíquico e Marinheiro)
+    'tamer',
     // lendários: versões douradas, por feitos absurdos (18/10/2026)
     'ashGold',
     'lanceGold',
@@ -111,9 +117,11 @@ export const isHoloTrainer = (id: string | null | undefined) => !!id && HOLO_SET
 /** Classe do sprite do treinador: holo, dourado ou nada (começa com espaço). */
 export const trainerFx = (id: string | null | undefined) =>
     isHoloTrainer(id) ? ' trainer-holo' : isGoldTrainer(id) ? ' trainer-gold' : '';
-/** Classe da moldura de quem usa o treinador (perfil, duelo, Hall da Fama). */
-export const trainerFrame = (id: string | null | undefined) =>
-    isHoloTrainer(id) ? ' holo-frame' : isGoldTrainer(id) ? ' gold-frame' : '';
+/** Título que vem com a moldura dourada (missão do passe completo do Time Ultimate), com qualquer treinador. */
+export const UT_FRAME_TITLE = 'utPasse';
+/** Classe da moldura de quem usa o treinador (perfil, duelo, Hall da Fama); o título do passe completo também doura. */
+export const trainerFrame = (id: string | null | undefined, title?: string | null) =>
+    isHoloTrainer(id) ? ' holo-frame' : isGoldTrainer(id) || title === UT_FRAME_TITLE ? ' gold-frame' : '';
 
 /** Missão do Ash: ser campeão sofrendo no máximo isso de gols na copa inteira. */
 export const ASH_MAX_CONCEDED = 5;
@@ -168,6 +176,9 @@ export const TITLE_IDS = [
     'colMisty',
     // platina (0.8.9)
     'diplomaKanto',
+    // Time Ultimate (26/11): passe completo (com a moldura dourada) e 50 vitórias
+    'utPasse',
+    'utVitorias50',
 ] as const;
 export type TitleId = (typeof TITLE_IDS)[number];
 
@@ -184,6 +195,36 @@ export interface SaveView {
     done: ReadonlySet<string>;
     /** Copas do Dia jogadas (sequência de dias). */
     daily?: DailyEntry[];
+    /** O resumo do Time Ultimate (`utView`); sem ele, as missões do UT ficam em 0. */
+    ut?: UtView;
+}
+
+/** O que as missões do Time Ultimate leem: as temporadas de verdade somadas (a prévia não conta) e a de agora. */
+export interface UtView {
+    played: number;
+    wins: number;
+    /** Pacotes abertos. */
+    opened: number;
+    /** Insígnias e Desafios de Montagem diferentes da temporada de agora. */
+    gyms: number;
+    sbc: number;
+    /** Mais marcos do passe numa temporada. */
+    marks: number;
+}
+export function utView(u: UltimateSave): UtView {
+    const { played, wins, opened } = ultimateTally(u);
+    const now = u.season >= 1;
+    const old = u.legacy.seasons.filter((r) => r.season >= 1 && r.season < u.season);
+    // a faxina repete e não entra em `done`: entregue uma vez, conta como um desafio
+    const sbc = u.sbc.done.length + (u.sbc.n > u.sbc.done.length ? 1 : 0);
+    return {
+        played,
+        wins,
+        opened,
+        gyms: now ? u.gyms.length : 0,
+        sbc: now ? sbc : 0,
+        marks: Math.max(now ? u.pass.marks : 0, ...old.map((r) => r.marks)),
+    };
 }
 
 /** Uma partida do seu time, do jeito que as missões leem. Titulares vazios = partida antiga (só o resumo). */
@@ -204,7 +245,16 @@ export interface MatchView {
     final: boolean;
 }
 
-export type MissionGroup = 'platina' | 'ginasios' | 'elite' | 'classes' | 'feitos' | 'colecao' | 'colecoes' | 'lendas';
+export type MissionGroup =
+    | 'platina'
+    | 'ginasios'
+    | 'elite'
+    | 'classes'
+    | 'feitos'
+    | 'colecao'
+    | 'colecoes'
+    | 'ultimate'
+    | 'lendas';
 export const MISSION_GROUPS: MissionGroup[] = [
     'platina',
     'ginasios',
@@ -213,6 +263,7 @@ export const MISSION_GROUPS: MissionGroup[] = [
     'feitos',
     'colecao',
     'colecoes',
+    'ultimate',
     'lendas',
 ];
 
@@ -342,8 +393,11 @@ export interface PlatinumItem {
     goal: number;
 }
 
-/** Missões que contam na platina: todas menos as próprias platinas. ponytail: quando houver Gen 2, filtrar por geração. */
-const platinumPool = () => MISSIONS.filter((m) => m.group !== 'platina');
+/**
+ * Missões que contam na platina: todas menos as próprias platinas e as do Time Ultimate (não são da geração, e o passe
+ * pede uma temporada inteira). ponytail: quando houver Gen 2, filtrar por geração.
+ */
+const platinumPool = () => MISSIONS.filter((m) => m.group !== 'platina' && m.group !== 'ultimate');
 const doneOf = (list: Mission[], s: SaveView) => list.filter((m) => s.done.has(m.id)).length;
 
 /** Os itens da platina com o progresso de cada um (tudo sai do save: é retroativo). */
@@ -608,11 +662,40 @@ export const MISSIONS: Mission[] = [
         title: 'zeNinguem',
         match: (m) => champion(m) && m.lineup.length > 0 && m.lineup.every((p) => viewInstance(p).overall <= 64),
     },
+    // Time Ultimate (Miguel, 26/11): 0 XP por partida, o nível vem destas 8. A temporada zera, a missão cumprida fica.
+    { id: 'utPlay1', group: 'ultimate', goal: 1, count: (s) => s.ut?.played ?? 0 },
+    { id: 'utWin25', group: 'ultimate', goal: 25, count: (s) => s.ut?.wins ?? 0 },
+    { id: 'utPlay100', group: 'ultimate', goal: 100, count: (s) => s.ut?.played ?? 0 },
+    { id: 'utGyms', group: 'ultimate', trainer: 'tamer', goal: 8, count: (s) => s.ut?.gyms ?? 0 },
+    { id: 'utSbc3', group: 'ultimate', goal: 3, count: (s) => s.ut?.sbc ?? 0 },
+    { id: 'utPasse', group: 'ultimate', title: 'utPasse', goal: PASS_MARKS, count: (s) => s.ut?.marks ?? 0 },
+    { id: 'utWin50', group: 'ultimate', title: 'utVitorias50', goal: 50, count: (s) => s.ut?.wins ?? 0 },
+    { id: 'utPacks10', group: 'ultimate', goal: 10, count: (s) => s.ut?.opened ?? 0 },
     // Platina: 100% de tudo da geração (fica por último: olha as missões cumpridas acima, inclusive as de agora)
     ...platinumMissions(),
 ];
 
 const BY_ID = new Map(MISSIONS.map((m) => [m.id, m]));
+
+/** Prêmio da missão fora de treinador e título: Fichas ou carta no Time Ultimate, símbolo ou padrão do clube. */
+export type MissionExtra =
+    | { kind: 'fichas'; n: number }
+    | { kind: 'card' }
+    | { kind: 'crest'; id: CrestSymbol }
+    | { kind: 'kit'; id: KitPattern };
+export function missionExtra(id: string): MissionExtra | null {
+    const g = MISSION_GIFTS[id];
+    if (g?.fichas) return { kind: 'fichas', n: g.fichas };
+    if (g?.pick) return { kind: 'card' };
+    const piece = (Object.keys(UNLOCK) as (CrestSymbol | KitPattern)[]).find((k) => {
+        const u = UNLOCK[k];
+        return !!u && 'collection' in u && u.collection === id;
+    });
+    if (!piece) return null;
+    return (CREST_SYMBOLS as readonly string[]).includes(piece)
+        ? { kind: 'crest', id: piece as CrestSymbol }
+        : { kind: 'kit', id: piece as KitPattern };
+}
 export const missionById = (id: string) => BY_ID.get(id);
 /** Missão que dá este treinador (os livres não têm). */
 export const missionOfTrainer = (id: TrainerId) => MISSIONS.find((m) => m.trainer === id);

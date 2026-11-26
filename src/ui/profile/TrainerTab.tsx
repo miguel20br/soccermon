@@ -2,6 +2,7 @@ import { type FormEvent, useMemo, useState } from 'react';
 import { species } from '../../engine/data';
 import { useT } from '../../i18n/react';
 import { returnCard } from '../../store/binder';
+import { lookOfProfile } from '../../store/club-kit';
 import { useGame } from '../../store/game-store';
 import {
     activeTitle,
@@ -13,6 +14,7 @@ import {
     MISSIONS,
     type Mission,
     missionCount,
+    missionExtra,
     missionOfTrainer,
     type Platinum,
     platinumItems,
@@ -22,10 +24,13 @@ import {
     trainerFx,
     trainerSrc,
     unlockedTrainers,
+    utView,
 } from '../../store/missions';
 import { newsKey } from '../../store/news';
 import { markPlayed, type Profile } from '../../store/profile';
 import { redeemCardCode, redeemCode, redeemDexCode, titleClass } from '../../store/title-codes';
+import { HudIcon } from '../components/MatchHud';
+import { Crest, kitBackground } from './Crest';
 import {
     missionOfTitle,
     missionText,
@@ -50,10 +55,41 @@ export function useSaveView(): SaveView {
     const run = useGame((s) => s.run);
     const parked = useGame((s) => s.parkedRuns);
     const done = useGame((s) => s.profile.missionsDone);
+    const ultimate = useGame((s) => s.ultimate);
     return useMemo(
-        () => ({ records, dex, moves, career, hall, runs: [run, ...parked], done: new Set(done) }),
-        [records, dex, moves, career, hall, run, parked, done],
+        () => ({
+            records,
+            dex,
+            moves,
+            career,
+            hall,
+            runs: [run, ...parked],
+            done: new Set(done),
+            ut: utView(ultimate),
+        }),
+        [records, dex, moves, career, hall, run, parked, done, ultimate],
     );
+}
+
+/**
+ * O desenho do prêmio da missão: o treinador (sprite), o símbolo no seu escudo, o padrão na sua camisa, a ficha, a
+ * carta ou, com título, a coroa.
+ */
+export function MissionPrizeArt({ m }: { m: Mission }) {
+    const look = lookOfProfile(useGame((s) => s.profile));
+    if (m.trainer) return <TrainerSprite id={m.trainer} />;
+    const x = m.title ? null : missionExtra(m.id);
+    if (!x) return <HudIcon kind="crown" />;
+    if (x.kind === 'crest') return <Crest look={{ ...look, symbol: x.id }} className="hud-icon prize-crest" />;
+    if (x.kind === 'kit')
+        return (
+            <span
+                className="prize-kit"
+                aria-hidden
+                style={{ background: kitBackground(look.color, look.color2, x.id, '18%') }}
+            />
+        );
+    return <HudIcon kind={x.kind === 'fichas' ? 'coin' : 'cards'} />;
 }
 
 /** Sprite de treinador (pixel art; bloqueado = silhueta escura). */

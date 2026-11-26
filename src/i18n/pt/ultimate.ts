@@ -175,6 +175,7 @@ export const ultimate = {
         event: 'Pick de Evento: {name}',
         metal: 'Pick {metal}',
         gold: 'Pick de Ouro',
+        gift: 'Carta de presente',
         of: 'Escolha 1 de {n}',
         ruleMin: '{metal} ou melhor',
         ruleEvent: 'carta Evento, {metal} ou melhor',

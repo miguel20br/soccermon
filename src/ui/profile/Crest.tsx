@@ -1,5 +1,5 @@
 import type { CSSProperties, ReactNode } from 'react';
-import type { ClubLook, CrestShape, CrestSymbol, KitPattern } from '../../store/club-kit';
+import type { ClubLook, CrestArt, CrestShape, KitArt } from '../../store/club-kit';
 import { bannerInk, colorDistance } from '../../store/profile';
 import { hexCss } from './club';
 
@@ -13,7 +13,7 @@ const SHAPE_PATH: Record<CrestShape, string> = {
 };
 
 /** Símbolos (caixa de 24x24, tinta na cor secundária `c`; `b` = cor do fundo, pros furos). */
-export function symbolArt(s: CrestSymbol, c: string, b: string): ReactNode {
+export function symbolArt(s: CrestArt, c: string, b: string): ReactNode {
     const line = {
         fill: 'none',
         stroke: c,
@@ -130,6 +130,54 @@ export function symbolArt(s: CrestSymbol, c: string, b: string): ReactNode {
                     <path d="M2.5 16.5 L7.5 21.5 M21.5 16.5 L16.5 21.5" {...line} strokeWidth="2.6" />
                 </>
             );
+        // Time Ultimate (opções pro Miguel, UT_CREST_OPTIONS): a carta com a estrela, o pacote, a coroa de louros
+        case 'carta':
+            return (
+                <>
+                    <rect x="4.5" y="1.5" width="15" height="21" rx="2.2" fill={c} />
+                    <path
+                        d="M12 6.5 L13.6 10.2 L17.5 10.5 L14.5 13 L15.4 16.9 L12 14.8 L8.6 16.9 L9.5 13 L6.5 10.5 L10.4 10.2 Z"
+                        fill={b}
+                    />
+                </>
+            );
+        case 'pacote':
+            return (
+                <>
+                    <path
+                        d="M4.5 3.5 L6.4 1.5 L8.3 3.5 L10.2 1.5 L12 3.5 L13.8 1.5 L15.7 3.5 L17.6 1.5 L19.5 3.5 V20.5 L17.6 22.5 L15.7 20.5 L13.8 22.5 L12 20.5 L10.2 22.5 L8.3 20.5 L6.4 22.5 L4.5 20.5 Z"
+                        fill={c}
+                    />
+                    <path d="M4.5 7 H19.5" stroke={b} strokeWidth="1.3" strokeDasharray="1.6 1.2" />
+                    <circle cx="12" cy="13.5" r="3.6" fill={b} />
+                    <circle cx="12" cy="13.5" r="1.5" fill={c} />
+                </>
+            );
+        case 'louro': {
+            const branch = (
+                <>
+                    <path
+                        d="M11 22 C5 19 2.8 12.5 5.5 4"
+                        fill="none"
+                        stroke={c}
+                        strokeWidth="1.6"
+                        strokeLinecap="round"
+                    />
+                    <ellipse cx="5.6" cy="17.4" rx="2.9" ry="1.45" transform="rotate(-38 5.6 17.4)" fill={c} />
+                    <ellipse cx="3.9" cy="12.6" rx="2.9" ry="1.45" transform="rotate(-72 3.9 12.6)" fill={c} />
+                    <ellipse cx="4.4" cy="7.6" rx="2.6" ry="1.35" transform="rotate(-100 4.4 7.6)" fill={c} />
+                    <ellipse cx="8.6" cy="19.8" rx="2.4" ry="1.2" transform="rotate(-8 8.6 19.8)" fill={c} />
+                    <ellipse cx="7.6" cy="14.4" rx="2.2" ry="1.1" transform="rotate(-40 7.6 14.4)" fill={c} />
+                    <ellipse cx="7.4" cy="9.4" rx="2" ry="1" transform="rotate(-60 7.4 9.4)" fill={c} />
+                </>
+            );
+            return (
+                <>
+                    {branch}
+                    <g transform="translate(24 0) scale(-1 1)">{branch}</g>
+                </>
+            );
+        }
     }
 }
 
@@ -143,7 +191,7 @@ export function Crest({
     className = 'crest',
     title,
 }: {
-    look: Pick<ClubLook, 'color' | 'color2' | 'shape' | 'symbol'>;
+    look: Pick<ClubLook, 'color' | 'color2' | 'shape'> & { symbol: CrestArt };
     className?: string;
     title?: string;
 }) {
@@ -171,7 +219,7 @@ export function Crest({
 }
 
 /** Fundo CSS do uniforme (padrão nas duas cores): placar, VERSUS, editor. */
-export function kitBackground(c1: number, c2: number, pattern: KitPattern, stripe = '6px', dir = '90deg'): string {
+export function kitBackground(c1: number, c2: number, pattern: KitArt, stripe = '6px', dir = '90deg'): string {
     const [a, b] = [hexCss(c1), hexCss(c2)];
     switch (pattern) {
         case 'liso':
@@ -182,11 +230,29 @@ export function kitBackground(c1: number, c2: number, pattern: KitPattern, strip
             return `linear-gradient(135deg, ${a} 0 36%, ${b} 36% 64%, ${a} 64%)`;
         case 'meio':
             return `linear-gradient(${dir}, ${a} 50%, ${b} 50%)`;
+        // Time Ultimate (opções pro Miguel, UT_KIT_OPTIONS)
+        case 'xadrez':
+            return `repeating-conic-gradient(${a} 0 25%, ${b} 0 50%) 0 0 / calc(${stripe} * 2) calc(${stripe} * 2)`;
+        case 'chevron':
+            return `${chevron(b)}, ${a}`;
+        case 'aros':
+            return `repeating-linear-gradient(calc(${dir} + 90deg), ${a} 0 ${stripe}, ${b} ${stripe} calc(${stripe} * 2))`;
     }
 }
 
+/** O V no peito (o chevron): as duas metades em diagonal, na cor `b`, por cima do que vier depois. */
+const chevron = (b: string) =>
+    `linear-gradient(to top right, transparent 0 42%, ${b} 42% 62%, transparent 62%) left / 50.5% 100% no-repeat, ` +
+    `linear-gradient(to top left, transparent 0 42%, ${b} 42% 62%, transparent 62%) right / 50.5% 100% no-repeat`;
+
 /** Camisa (silhueta) com o padrão do uniforme: editor do clube. */
-export function KitShirt({ look, className = 'kit-shirt' }: { look: ClubLook; className?: string }) {
+export function KitShirt({
+    look,
+    className = 'kit-shirt',
+}: {
+    look: Omit<ClubLook, 'pattern'> & { pattern: KitArt };
+    className?: string;
+}) {
     return (
         <span
             className={className}
@@ -197,7 +263,7 @@ export function KitShirt({ look, className = 'kit-shirt' }: { look: ClubLook; cl
 }
 
 /** Só a cor secundária do padrão, por cima de um fundo (metade do VERSUS). Liso = nada. */
-export function kitOverlay(c2: number, pattern: KitPattern, stripe = '28px'): string {
+export function kitOverlay(c2: number, pattern: KitArt, stripe = '28px'): string {
     const b = hexCss(c2);
     switch (pattern) {
         case 'liso':
@@ -208,5 +274,11 @@ export function kitOverlay(c2: number, pattern: KitPattern, stripe = '28px'): st
             return `linear-gradient(135deg, transparent 0 40%, ${b} 40% 60%, transparent 60%)`;
         case 'meio':
             return `linear-gradient(90deg, transparent 50%, ${b} 50%)`;
+        case 'xadrez':
+            return `repeating-conic-gradient(transparent 0 25%, ${b} 0 50%) 0 0 / calc(${stripe} * 2) calc(${stripe} * 2)`;
+        case 'chevron':
+            return chevron(b);
+        case 'aros':
+            return `repeating-linear-gradient(0deg, transparent 0 ${stripe}, ${b} ${stripe} calc(${stripe} * 2))`;
     }
 }

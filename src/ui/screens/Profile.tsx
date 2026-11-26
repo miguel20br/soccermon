@@ -20,14 +20,14 @@ import { Stage } from '../kit/Stage';
 import { useCardShowcase } from '../profile/Album';
 import { CardEditor } from '../profile/CardEditor';
 import { Crest } from '../profile/Crest';
-import { clubVars, hexCss, titleName, trainerLabel, trainerName, useAvatar } from '../profile/club';
+import { clubVars, hexCss, missionPrizeName, titleName, trainerLabel, useAvatar } from '../profile/club';
 import { FriendsTab } from '../profile/FriendsTab';
 import { PencilIcon } from '../profile/icons';
 import { frameClass, ShowcaseRow, useShowcase } from '../profile/Medals';
 import { MyStats, StatsStrip } from '../profile/MyStats';
 import { NewDot, useNews } from '../profile/news';
 import { OrnamentRow, ornamentIds } from '../profile/ornaments';
-import { TrainerSprite, useSaveView } from '../profile/TrainerTab';
+import { MissionPrizeArt, TrainerSprite, useSaveView } from '../profile/TrainerTab';
 import { UltimateLegacy } from '../ultimate/Legacy';
 import '../profile/profile.css';
 import '../profile/armario.css';
@@ -83,7 +83,7 @@ export function DoorSheets() {
 function PrizeArt({ s }: { s: PathStep }) {
     if (s.prize.kind === 'belt') return <PixelTrophy kind="cinturao" metal={s.prize.metal} />;
     if (s.prize.kind === 'room') return <HudIcon kind="building" />;
-    return s.prize.m.trainer ? <TrainerSprite id={s.prize.m.trainer} /> : <HudIcon kind="crown" />;
+    return <MissionPrizeArt m={s.prize.m} />;
 }
 
 /**
@@ -101,9 +101,7 @@ function LevelCard() {
     const prize = steps[next];
     const prizeName = (s: PathStep) =>
         s.prize.kind === 'mission'
-            ? s.prize.m.trainer
-                ? trainerName(s.prize.m.trainer)
-                : titleName(s.prize.m.title ?? '')
+            ? missionPrizeName(s.prize.m)
             : s.prize.kind === 'belt'
               ? t('trophies.belt', { n: s.goal })
               : d.trophies.level[s.prize.level];
@@ -228,7 +226,7 @@ export function Profile() {
                 </>
             }
         >
-            <header className={`panel pf-head bc-surface${trainerFrame(activeTrainer(profile))}`}>
+            <header className={`panel pf-head bc-surface${trainerFrame(activeTrainer(profile), activeTitle(profile))}`}>
                 {/* o personagem em pé, grande (tocar troca); o avatar vai ao lado do nome */}
                 <button
                     type="button"

@@ -284,8 +284,8 @@ describe('platina da Gen 1', () => {
             moves: [0, gameMoveIds().size],
             album: [0, expect.any(Number)],
             collections: [0, 9],
-            trainers: [0, MISSIONS.filter((m) => m.trainer && m.group !== 'platina').length],
-            missions: [0, others.length],
+            trainers: [0, MISSIONS.filter((m) => m.trainer && m.group !== 'platina' && m.group !== 'ultimate').length],
+            missions: [0, others.filter((id) => !id.startsWith('ut')).length],
         });
         const full = items(fullDex, allMoves, others);
         for (const [n, goal] of Object.values(full)) expect(n).toBe(goal);

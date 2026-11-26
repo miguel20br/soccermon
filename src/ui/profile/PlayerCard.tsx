@@ -60,7 +60,8 @@ export interface PlayerInfo {
     trainer: TrainerId;
     avatar: { src: string; google: boolean };
     frame: Tier;
-    title: { name: string; look: string };
+    /** `id`: o título escolhido (o do passe completo do UT doura a moldura); o rival de versão antiga não manda. */
+    title: { name: string; look: string; id?: string };
     clubName: string;
     clubTag: string;
     look: ClubLook;
@@ -100,7 +101,7 @@ export function peerInfo(p: Peer, other = true): PlayerInfo {
         trainer: TRAINERS.includes(p.trainer as TrainerId) ? (p.trainer as TrainerId) : 'red',
         avatar: peerAvatar(p),
         frame: frameTier(showcase),
-        title: peerTitle(p),
+        title: { ...peerTitle(p), ...(typeof p.titleId === 'string' && { id: p.titleId }) },
         clubName: str(p.clubName, 40),
         clubTag: str(p.clubTag, 4),
         look: lookOfPeer(p),
@@ -190,7 +191,7 @@ export function useMyInfo(): PlayerInfo {
         trainer: activeTrainer(profile),
         avatar,
         frame: show.frame,
-        title: { name: titleName(title), look: titleClass(title).trim() },
+        title: { name: titleName(title), look: titleClass(title).trim(), id: title },
         clubName: profile.clubName || 'Pallet FC',
         clubTag: profile.clubTag,
         look: lookOfProfile(profile),
@@ -269,7 +270,7 @@ export function PlayerCardModal() {
             onClose={closeIfTop}
             title={info.name}
             style={{ '--club': hexCss(info.look.color), '--tc': hexCss(info.look.color) } as CSSProperties}
-            className={`pcard bc-surface bc-stripe${trainerFrame(info.trainer)}`}
+            className={`pcard bc-surface bc-stripe${trainerFrame(info.trainer, info.title.id)}`}
         >
             <header className="pcard-head">
                 {!info.bare && (

@@ -173,6 +173,7 @@ export const ultimate: typeof pt = {
         event: 'Event Pick: {name}',
         metal: '{metal} Pick',
         gold: 'Gold Pick',
+        gift: 'Gift card',
         of: 'Pick 1 of {n}',
         ruleMin: '{metal} or better',
         ruleEvent: 'Event card, {metal} or better',

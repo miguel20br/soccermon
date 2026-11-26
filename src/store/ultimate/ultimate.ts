@@ -143,6 +143,8 @@ export interface UtSeasonRecord {
     champion: boolean;
     /** A carta que mais jogou: a Lenda da temporada (só enfeite). */
     legend: PokemonInstance | null;
+    /** Pacotes abertos (a missão dos 10 pacotes conta todas as temporadas). Temporada de antes da 0.9.54 não tem. */
+    opened?: number;
 }
 export interface UtLegacy {
     seasons: UtSeasonRecord[];
@@ -175,8 +177,8 @@ export const pendingUid = (p: UtPending) => (p.kind === 'card' ? p.card.uid : p.
 export interface UtPick extends PickSpec {
     /** Único na temporada (semeia as opções: `ut-pick-${uid}`). */
     uid: string;
-    from: 'start' | 'gym' | 'pass' | 'shop' | 'event';
-    /** id do líder, número do marco, id do evento ('' no primeiro craque e no comprado). */
+    from: 'start' | 'gym' | 'pass' | 'shop' | 'event' | 'mission';
+    /** id do líder, número do marco, id do evento ou da missão ('' no primeiro craque e no comprado). */
     ref: string;
 }
 
@@ -248,7 +250,10 @@ export interface UltimateSave {
     sbc: UtSbc;
     /** Draft: a campanha em andamento, a entrada grátis da semana e o recorde. */
     draft: UtDraft;
-    /** Presentes de data já dados nesta temporada (ex.: 'natal-2026'), um por save. */
+    /**
+     * Presentes já dados (o de Natal, 'natal-2026', e os prêmios das missões do UT, 'missao-<id>'): um por save, passam a
+     * virada da temporada (`rollSeason`) e juntam na nuvem (`mergeUltimate`).
+     */
     gifts: string[];
 }
 
@@ -429,7 +434,7 @@ export function ultimateOf(raw: unknown): UltimateSave {
 const pendingUids = (raw: unknown) =>
     Array.isArray(raw) ? raw.flatMap((p) => (isObj(p) && p.kind === 'card' && cardOk(p.card) ? [p.card.uid] : [])) : [];
 
-const PICK_FROM = ['start', 'gym', 'pass', 'shop', 'event'] as const;
+const PICK_FROM = ['start', 'gym', 'pass', 'shop', 'event', 'mission'] as const;
 const METAL_IDS: readonly string[] = ['bronze', 'prata', 'ouro'];
 /** O que o Pick oferece, do save: `n` de 1 a 10, metal de verdade; o resto opcional. null = estragado. */
 function pickSpecOf(p: Record<string, unknown>): PickSpec | null {
@@ -507,6 +512,7 @@ function legacyOf(raw: unknown): UtLegacy {
                             marks: num(r.marks),
                             champion: r.champion === true,
                             legend: cardOk(r.legend) ? r.legend : null,
+                            ...(typeof r.opened === 'number' && { opened: num(r.opened) }),
                         },
                     ]
                   : [],
@@ -543,12 +549,16 @@ export function mergeUltimate(keep: unknown, other: unknown): UltimateSave {
     const lose = win === o ? k : o;
     // o lado de uma temporada mais velha ainda não virou: a temporada que ele jogou entra no legado (senão sumia)
     const lost = lose.season < win.season ? seasonRecord(lose) : null;
-    return {
+    const merged = {
         ...win,
         legacy: mergeLegacy(win.legacy, { ...lose.legacy, seasons: [...lose.legacy.seasons, ...(lost ? [lost] : [])] }),
-        // presente aberto em qualquer lado não abre de novo, ganhe o lado que ganhar
-        gifts: [...new Set([...win.gifts, ...lose.gifts])],
     };
+    // presente aberto em qualquer lado não abre de novo, ganhe o lado que ganhar: o que só o lado que perdeu recebeu vai
+    // pro que ficou (as Fichas e o Pick dele sumiam junto com o lado que perdeu); presente sem conteúdo conhecido só marca
+    return lose.gifts.reduce(
+        (u, id) => (u.gifts.includes(id) ? u : { ...giveGift(u, id), gifts: [...u.gifts, id] }),
+        merged,
+    );
 }
 
 // ------------------------------------------------------------------------------------------- relógio dos pacotes
@@ -1210,14 +1220,52 @@ const gymOf = (id: string) => GYMS.find((g) => g.id === id);
 /** Presente de Natal (25/12, Brasília): na primeira vez que abre o Time Ultimate, um Pick de Natal em Meus pacotes. */
 export const NATAL_GIFT = 'natal-2026';
 export function natalGift(u: UltimateSave, now: number): UltimateSave | null {
-    const pick = EVENTS.find((e) => e.id === NATAL_GIFT)?.pick;
-    if (!pick || dailyDay(new Date(now)) !== '2026-12-25' || u.gifts.includes(NATAL_GIFT)) return null;
+    if (dailyDay(new Date(now)) !== '2026-12-25' || u.gifts.includes(NATAL_GIFT)) return null;
+    const out = giveGift(u, NATAL_GIFT);
+    return out === u ? null : out;
+}
+
+/**
+ * Prêmios das missões do Time Ultimate no Caminho do treinador (missions.ts, grupo `ultimate`) que caem dentro do modo:
+ * Fichas na carteira ou um Pick em Meus pacotes. O símbolo, o padrão, o personagem e os títulos ficam no perfil.
+ */
+export const MISSION_GIFTS: Record<string, { fichas?: number; pick?: PickSpec }> = {
+    utPlay1: { fichas: 150 },
+    utPacks10: { fichas: 150 },
+    // carta de presente: Pick de 1, Prata ou melhor (nunca espécie que você já tem, como todo Pick)
+    utSbc3: { pick: { n: 1, min: 'prata' } },
+};
+export const missionGiftId = (missionId: string) => `missao-${missionId}`;
+
+/** O que o presente `id` dá (null = id desconhecido). */
+function giftOf(id: string): { fichas?: number; pick?: Omit<UtPick, 'uid'> } | null {
+    if (id === NATAL_GIFT) {
+        const pick = EVENTS.find((e) => e.id === NATAL_GIFT)?.pick;
+        return pick ? { pick: { ...pick, from: 'event', ref: NATAL_GIFT } } : null;
+    }
+    const mission = id.startsWith('missao-') ? id.slice('missao-'.length) : '';
+    const g = MISSION_GIFTS[mission];
+    return g ? { fichas: g.fichas, ...(g.pick && { pick: { ...g.pick, from: 'mission', ref: mission } }) } : null;
+}
+
+/** Dá o presente `id` uma vez só (já dado ou desconhecido = o save igual). */
+export function giveGift(u: UltimateSave, id: string): UltimateSave {
+    const g = giftOf(id);
+    if (!g || u.gifts.includes(id)) return u;
     return {
         ...u,
-        gifts: [...u.gifts, NATAL_GIFT],
-        picks: [...u.picks, { ...pick, uid: `gift-${NATAL_GIFT}`, from: 'event', ref: NATAL_GIFT }],
+        gifts: [...u.gifts, id],
+        fichas: u.fichas + (g.fichas ?? 0),
+        picks: g.pick ? [...u.picks, { ...g.pick, uid: `gift-${id}` }] : u.picks,
     };
 }
+
+/**
+ * Os prêmios das missões cumpridas (`done` = `profile.missionsDone`) que ainda não caíram neste save. Só numa temporada
+ * de verdade: na prévia a virada zeraria as Fichas e o Pick, e o presente já estaria marcado como dado.
+ */
+export const missionGifts = (u: UltimateSave, done: readonly string[]): UltimateSave =>
+    u.season < 1 ? u : done.reduce((x, id) => (MISSION_GIFTS[id] ? giveGift(x, missionGiftId(id)) : x), u);
 
 /** Prêmio pendente (null = não paga nada). */
 function prizeOf(
@@ -1468,6 +1516,7 @@ export const seasonRecord = (u: UltimateSave): UtSeasonRecord | null =>
               marks: u.pass.marks,
               champion: u.pass.marks >= PASS_MARKS,
               legend: mostPlayed(u),
+              opened: u.opened,
           }
         : null;
 
@@ -1489,6 +1538,8 @@ export function rollSeason(u: UltimateSave, now: number): { u: UltimateSave; rec
             ...fresh,
             season: n,
             legacy: { ...u.legacy, seasons: record ? [...u.legacy.seasons, record] : u.legacy.seasons },
+            // presente é um por save: o da missão cumprida na temporada passada não cai de novo
+            gifts: u.gifts,
         },
         record,
     };

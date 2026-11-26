@@ -475,7 +475,7 @@ function PeerCard({
     }
     return (
         <div
-            className={`panel duel-peer${online ? '' : ' away'}${trainerFrame(p.trainer)}`}
+            className={`panel duel-peer${online ? '' : ' away'}${trainerFrame(p.trainer, p.titleId)}`}
             style={{ '--club': hexCss(p.clubColor) } as React.CSSProperties}
         >
             <img className={`duel-trainer pixel${trainerFx(p.trainer)}`} src={trainerSrc(p.trainer as never)} alt="" />

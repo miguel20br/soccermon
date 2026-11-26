@@ -29,13 +29,16 @@ export function usePickName() {
                     ? t('ultimate.pick.event', { name: d.ultimate.events[p.ref] ?? p.ref })
                     : p.from === 'pass'
                       ? t('ultimate.pick.gold')
-                      : t('ultimate.pick.metal', { metal: metalLabel(p.min) });
+                      : p.from === 'mission'
+                        ? t('ultimate.pick.gift')
+                        : t('ultimate.pick.metal', { metal: metalLabel(p.min) });
         const rule = p.event
             ? t('ultimate.pick.ruleEvent', { metal: metalLabel(p.min) })
             : p.exact
               ? metalLabel(p.min)
               : t('ultimate.pick.ruleMin', { metal: metalLabel(p.min) });
-        const hint = [t('ultimate.pick.of', { n: p.n }), rule, p.type ? typeName(p.type) : '']
+        // Pick de 1 (a carta de presente) não tem escolha: só a regra
+        const hint = [p.n > 1 ? t('ultimate.pick.of', { n: p.n }) : '', rule, p.type ? typeName(p.type) : '']
             .filter(Boolean)
             .join(' · ');
         return { title, hint };

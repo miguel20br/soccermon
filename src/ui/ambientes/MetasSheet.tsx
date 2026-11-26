@@ -3,32 +3,25 @@ import { useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { useT } from '../../i18n/react';
 import { duelWins } from '../../store/duels';
 import { useGame } from '../../store/game-store';
-import type { Mission } from '../../store/missions';
+import { missionExtra, UT_FRAME_TITLE } from '../../store/missions';
 import { titleClass } from '../../store/title-codes';
 import { HudIcon } from '../components/MatchHud';
 import { PixelTrophy } from '../components/PixelTrophy';
 import { openCardEditor } from '../doors';
 import { Sheet } from '../kit/Sheet';
-import { missionText, titleName, trainerName } from '../profile/club';
+import { missionPrizeKind, missionPrizeName, missionText, titleName } from '../profile/club';
 import { MedalsTab } from '../profile/Medals';
-import { MissionHow, MissionSummary, TrainerSprite, useSaveView } from '../profile/TrainerTab';
+import { MissionHow, MissionPrizeArt, MissionSummary, useSaveView } from '../profile/TrainerTab';
 import { closestMissions, type PathStep, trainerPath } from './metas';
 import '../profile/profile.css';
 import '../profile/armario.css';
-
-/** O prêmio de uma missão: o treinador (sprite) ou, sem treinador, o título (coroa). */
-function MissionPrize({ m }: { m: Mission }) {
-    return m.trainer ? <TrainerSprite id={m.trainer} /> : <HudIcon kind="crown" />;
-}
 
 /** Nome curto do prêmio do passo (o treinador, o título, o cinturão ou a sala). */
 function usePrizeName() {
     const { t, d } = useT();
     return (s: PathStep) =>
         s.prize.kind === 'mission'
-            ? s.prize.m.trainer
-                ? trainerName(s.prize.m.trainer)
-                : titleName(s.prize.m.title ?? '')
+            ? missionPrizeName(s.prize.m)
             : s.prize.kind === 'belt'
               ? t('trophies.belt', { n: s.goal })
               : d.trophies.level[s.prize.level];
@@ -62,9 +55,7 @@ function TrainerPath() {
             ? t('profile.path.belt')
             : s.prize.kind === 'room'
               ? t('profile.path.room')
-              : s.prize.m.trainer
-                ? t('profile.path.trainer')
-                : t('profile.path.titleKind');
+              : missionPrizeKind(s.prize.m);
     return (
         <section className="tp" aria-label={t('profile.path.title')}>
             <h3 className="bc-lbl">{t('profile.path.title')}</h3>
@@ -80,7 +71,7 @@ function TrainerPath() {
                             {i === next && <em className="tp-tag">{t('profile.path.next')}</em>}
                             <span className="tp-ic">
                                 {x.prize.kind === 'mission' ? (
-                                    <MissionPrize m={x.prize.m} />
+                                    <MissionPrizeArt m={x.prize.m} />
                                 ) : x.prize.kind === 'belt' ? (
                                     <PixelTrophy kind="cinturao" metal={x.prize.metal} />
                                 ) : (
@@ -107,6 +98,9 @@ function TrainerPath() {
                             {titleName(s.prize.m.title)}
                         </span>
                     </small>
+                )}
+                {s.prize.kind === 'mission' && s.prize.m.title === UT_FRAME_TITLE && (
+                    <small className="tp-plus">{t('profile.path.plusFrame')}</small>
                 )}
                 {s.prize.kind === 'mission' ? (
                     <MissionHow m={s.prize.m} view={view} />
@@ -151,13 +145,13 @@ export default function MetasSheet({ onClose, style }: { onClose: () => void; st
                 {near.map((g) => (
                     <li key={g.m.id}>
                         <span>{missionText(g.m)}</span>
-                        {(g.m.trainer || g.m.title) && (
+                        {(g.m.trainer || g.m.title || missionExtra(g.m.id)) && (
                             <span className="pf-near-prize">
-                                <MissionPrize m={g.m} />
+                                <MissionPrizeArt m={g.m} />
                                 <span
                                     className={(!g.m.trainer && g.m.title && titleClass(g.m.title).trim()) || undefined}
                                 >
-                                    {g.m.trainer ? trainerName(g.m.trainer) : titleName(g.m.title ?? '')}
+                                    {missionPrizeName(g.m)}
                                 </span>
                                 {g.m.trainer && g.m.title && (
                                     <small className="muted">

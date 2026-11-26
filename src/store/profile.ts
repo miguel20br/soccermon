@@ -350,19 +350,22 @@ export const EMPTY_CAREER: Career = {
 };
 
 /** O que o Perfil lê do Time Ultimate: a temporada de agora e o legado (as que acabaram). */
-type UtTally = Pick<UltimateSave, 'season' | 'played' | 'wins' | 'losses' | 'legacy'>;
+type UtTally = Pick<UltimateSave, 'season' | 'played' | 'wins' | 'losses' | 'legacy'> &
+    Partial<Pick<UltimateSave, 'opened'>>;
 
 /**
  * Partidas do Time Ultimate em todas as temporadas (a de agora mais o legado). A prévia (temporada 0) não conta: na
  * virada ela não vai pro legado (`seasonRecord`) e os números cairiam. O legado guarda só partidas e vitórias, então
  * com temporada passada as derrotas ficam desconhecidas (`null`): a tela mostra só partidas, vitórias e o %.
  */
-export function ultimateTally(u: UtTally): { played: number; wins: number; losses: number | null } {
+export function ultimateTally(u: UtTally): { played: number; wins: number; losses: number | null; opened: number } {
     const now = u.season >= 1;
     const old = u.legacy.seasons.filter((r) => r.season >= 1 && r.season < u.season);
     return {
         played: (now ? u.played : 0) + old.reduce((n, r) => n + r.played, 0),
         wins: (now ? u.wins : 0) + old.reduce((n, r) => n + r.wins, 0),
+        // pacotes abertos (missão do UT); temporada de antes da 0.9.54 não guardou
+        opened: (now ? (u.opened ?? 0) : 0) + old.reduce((n, r) => n + (r.opened ?? 0), 0),
         losses: old.length ? null : now ? u.losses : 0,
     };
 }
