@@ -10,8 +10,8 @@ import {
     withUnlocks,
 } from '../store/game-store';
 import { mergeProfileUnlocks } from '../store/missions';
-import { DEFAULT_PROFILE, mergeCareer, mergeDex, mergeHall, mergeMoves } from '../store/profile';
-import { mergeUltimate } from '../store/ultimate/ultimate';
+import { DEFAULT_PROFILE, EMPTY_CAREER, mergeCareer, mergeDex, mergeHall, mergeMoves } from '../store/profile';
+import { mergeUltimate, ultimateOf } from '../store/ultimate/ultimate';
 
 /**
  * O que fazer com o save do aparelho e o da conta quando alguém entra com Google. Funções puras (sem
@@ -196,6 +196,30 @@ export function mergeSaves(
         binder: mergeBinder(local.binder, cloud?.binder),
         ultimate: mergeUltimate(k.ultimate, o.ultimate),
     });
+}
+
+/**
+ * O save do aparelho é de outra conta (continua guardado nela): esta começa com a nuvem ou do zero. Do aparelho só
+ * ficam as configurações (por baixo das da conta) e o tutorial visto. Tipado como save inteiro: campo novo no save
+ * não compila sem dizer de onde vem (senão a conta nova herda o da conta anterior).
+ */
+export function otherAccountSave(local: PersistedSave, cloud: Partial<PersistedSave> | undefined): PersistedSave {
+    return {
+        run: cloud?.run ?? null,
+        settings: mergeSettings(local.settings, cloud?.settings, 'cloud'),
+        records: mergeRecords({ cups: 0, titles: 0, perfect: 0 }, cloud?.records),
+        profile: { ...DEFAULT_PROFILE, seen: [], ...cloud?.profile },
+        dex: cloud?.dex ?? {},
+        moves: cloud?.moves ?? {},
+        career: { ...EMPTY_CAREER, ...cloud?.career },
+        onboarded: local.onboarded || !!cloud?.onboarded,
+        parkedRuns: cloud?.parkedRuns ?? [],
+        hall: cloud?.hall ?? [],
+        duels: cloud?.duels ?? [],
+        daily: cloud?.daily ?? [],
+        binder: cloud?.binder ?? [],
+        ultimate: ultimateOf(cloud?.ultimate),
+    };
 }
 
 // ------------------------------------------------------------------------------------- resumo na tela

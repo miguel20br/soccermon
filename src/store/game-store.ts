@@ -1076,6 +1076,8 @@ export const savePart = (s: PersistedSave): PersistedSave => ({
     binder: s.binder,
     ultimate: s.ultimate,
 });
+/** As chaves do save, tiradas do próprio `savePart`: campo novo no save entra sozinho na sincronização com a nuvem. */
+export const SAVE_KEYS = Object.keys(savePart({} as PersistedSave)) as (keyof PersistedSave)[];
 
 /** Copa salva com formato aceitável (save importado ou da nuvem): senão é descartada, não trava o jogo. */
 const runShapeOk = (r: unknown): r is RunState => {

@@ -1,12 +1,10 @@
 import type { Session, SupabaseClient } from '@supabase/supabase-js';
 import { create } from 'zustand';
-import { migrateSave, type PersistedSave, SAVE_VERSION, savePart, useGame } from '../store/game-store';
-import { DEFAULT_PROFILE, EMPTY_CAREER } from '../store/profile';
+import { migrateSave, type PersistedSave, SAVE_KEYS, SAVE_VERSION, savePart, useGame } from '../store/game-store';
 import {
     hasProgress,
-    mergeRecords,
     mergeSaves,
-    mergeSettings,
+    otherAccountSave,
     type Plan,
     planReconcile,
     type SaveSummary,
@@ -260,20 +258,8 @@ async function onSignedIn(session: Session) {
     }
 }
 
-/** Partes do save que importam para saber se a junção mudou algo em relação à nuvem. */
-const SYNC_KEYS = [
-    'run',
-    'records',
-    'profile',
-    'dex',
-    'moves',
-    'career',
-    'onboarded',
-    'parkedRuns',
-    'hall',
-    'duels',
-    'daily',
-] as const;
+/** Partes do save que importam para saber se a junção mudou algo em relação à nuvem (configuração sozinha não conta). */
+const SYNC_KEYS = SAVE_KEYS.filter((k) => k !== 'settings');
 /** JSON com as chaves em ordem (a ordem de inserção não conta como diferença). */
 const stable = (v: unknown): unknown =>
     Array.isArray(v)
@@ -342,23 +328,7 @@ async function reconcile(uid: string): Promise<boolean> {
         case 'other-account': {
             // o save deste aparelho é de outra conta (continua guardado nela): esta começa com a nuvem ou do zero
             applying = true;
-            useGame.setState({
-                run: cloud?.run ?? null,
-                settings: mergeSettings(local.settings, cloud?.settings, 'cloud'),
-                records: mergeRecords({ cups: 0, titles: 0, perfect: 0 }, cloud?.records),
-                profile: { ...DEFAULT_PROFILE, seen: [], ...cloud?.profile },
-                dex: cloud?.dex ?? {},
-                moves: cloud?.moves ?? {},
-                career: { ...EMPTY_CAREER, ...cloud?.career },
-                onboarded: local.onboarded || !!cloud?.onboarded,
-                parkedRuns: cloud?.parkedRuns ?? [],
-                hall: cloud?.hall ?? [],
-                duels: cloud?.duels ?? [],
-                daily: cloud?.daily ?? [],
-                binder: cloud?.binder ?? [],
-                screen: 'home',
-                match: null,
-            });
+            useGame.setState({ ...otherAccountSave(local, cloud), screen: 'home', match: null });
             applying = false;
             writeLocalTs(cloudTs || Date.now());
             writeOwner(uid);
@@ -448,22 +418,7 @@ export const dismissNotice = () => useCloud.setState({ notice: null });
 export function startCloudSync() {
     // toda mudança no save local marca a hora (vale também para visitante: ao entrar, compara com a nuvem)
     useGame.subscribe((s, prev) => {
-        const keys = [
-            'run',
-            'settings',
-            'records',
-            'profile',
-            'dex',
-            'moves',
-            'career',
-            'onboarded',
-            'parkedRuns',
-            'hall',
-            'duels',
-            'daily',
-            'binder',
-        ] as const;
-        if (keys.every((k) => s[k] === prev[k])) return;
+        if (SAVE_KEYS.every((k) => s[k] === prev[k])) return;
         // o carregamento do save do IndexedDB não é "mudança": senão o local parece sempre mais novo que a nuvem
         if (applying || !useGame.persist.hasHydrated()) return;
         writeLocalTs(Date.now());

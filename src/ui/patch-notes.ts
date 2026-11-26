@@ -69,6 +69,19 @@ export const PATCH_NOTES: PatchNotes[] = [
         ],
     },
     {
+        version: '0.9.53.3',
+        date: '2026-11-26',
+        title: 'Conserto do Time Ultimate na nuvem',
+        sections: [
+            {
+                title: 'Consertos',
+                lines: [
+                    'Time Ultimate: o progresso agora sobe pra nuvem também quando só o Time Ultimate muda, e entrar com outra conta não traz o Time Ultimate da conta anterior',
+                ],
+            },
+        ],
+    },
+    {
         version: '0.9.53.2',
         date: '2026-11-26',
         title: 'Conserto do nome do clube',
@@ -3198,6 +3211,19 @@ export const PATCH_NOTES_EN: PatchNotes[] = [
                     'Title on the VERSUS screen and on the Share image',
                     "Trainer path in the Club's Goals, with the reward for each mission",
                     'Signing in no longer resets your avatar, name and club to the default when the device had no profile yet',
+                ],
+            },
+        ],
+    },
+    {
+        version: '0.9.53.3',
+        date: '2026-11-26',
+        title: 'Ultimate Team cloud fix',
+        sections: [
+            {
+                title: 'Fixes',
+                lines: [
+                    "Ultimate Team: progress now syncs to the cloud even when only Ultimate Team changes, and signing in with another account no longer brings over the previous account's Ultimate Team",
                 ],
             },
         ],

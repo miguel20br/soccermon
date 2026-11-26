@@ -40,6 +40,11 @@
 - Caminho do treinador nas Metas da Sede, com o prêmio de cada missão
 - Entrar com a conta não volta mais o avatar, o nome e o clube pro padrão quando o aparelho ainda não tinha perfil
 
+## 0.9.53.3 · Conserto do Time Ultimate na nuvem (2026-11-26)
+
+### Consertos
+- Time Ultimate: o progresso agora sobe pra nuvem também quando só o Time Ultimate muda, e entrar com outra conta não traz o Time Ultimate da conta anterior
+
 ## 0.9.53.2 · Conserto do nome do clube (2026-11-26)
 
 ### Consertos
