@@ -1,11 +1,15 @@
 /*
- * Perfil como armário (src/ui/screens/Profile.tsx, cara-de-jogo.md decisão 9): o cartão do treinador, a barra das
- * missões e as portas, sem rolar. Editar abre Sheet.
+ * Perfil como armário (src/ui/screens/Profile.tsx, cara-de-jogo.md decisão 9): o cartão do treinador, o nível, os
+ * números e os atalhos, sem rolar. Editar o cartão abre uma folha só (CardEditor.tsx).
  */
 .pf-arm .k-stage-body {
     width: min(560px, 100%);
     margin: 0 auto;
     gap: 10px;
+}
+/* nada encolhe pra caber (o nível sumia esmagado no 320): o que não cabe sai pelas regras de tela baixa */
+.pf-arm .k-stage-body > * {
+    flex: none;
 }
 .pf-arm .pf-head {
     grid-template-columns: auto minmax(0, 1fr);
@@ -148,130 +152,195 @@
     text-decoration: underline dotted color-mix(in srgb, var(--text), transparent 60%);
     text-underline-offset: 4px;
 }
-/* lápis: avisa que o nome edita; acende e gira um pouco no toque/hover (nada teleporta: 200 ms) */
-.pf-pencil {
-    width: 0.9em;
-    height: 0.9em;
-    color: var(--muted);
-    transition:
-        color 200ms ease-out,
-        transform 200ms ease-out;
-}
-.pf-name:hover .pf-pencil,
-.pf-name:focus-visible .pf-pencil {
-    color: var(--yellow);
-    transform: rotate(-12deg) scale(1.1);
-}
-.pf-name:active .pf-pencil {
-    transform: rotate(-12deg) scale(0.95);
-}
-.pf-duo.pf-edit .new-dot {
-    position: absolute;
-    top: 0;
-    right: 0;
-}
-
-/* missões: uma linha com a barra */
-.pf-arm-missions {
-    display: grid;
-    grid-template-columns: auto minmax(0, 1fr) auto;
-    gap: 10px;
-    min-height: 44px;
-    animation: pf-arm-in 260ms var(--ease-out) 60ms both;
-}
-.pf-arm-missions b {
-    font-size: 13px;
-    white-space: nowrap;
-}
-.pf-arm-missions .k-bar {
-    width: 100%;
-}
-.pf-arm-missions .door-count {
-    margin: 0;
-}
-
-/* as portas do armário */
-.pf-lockers {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 8px;
-}
-.pf-locker {
-    position: relative;
-    min-height: 52px;
-    padding: 6px 10px;
-    animation: pf-arm-in 260ms var(--ease-out) both;
-}
-.pf-locker:nth-child(1),
-.pf-locker:nth-child(2) {
-    animation-delay: 100ms;
-}
-.pf-locker:nth-child(3),
-.pf-locker:nth-child(4) {
-    animation-delay: 140ms;
-}
-.pf-locker:nth-child(5),
-.pf-locker:nth-child(6) {
-    animation-delay: 180ms;
-}
-.pf-locker-ic {
+/* o avatar vai colado no nome (antes era a dupla apertada com o personagem) */
+.pf-name-av.pf-avatar {
     flex: none;
     width: 32px;
     height: 32px;
-    display: grid;
-    place-items: center;
-}
-.pf-locker-ic > :is(svg, img) {
-    width: 32px;
-    height: 32px;
-}
-.pf-locker-ic .trainer-sprite {
-    width: 40px;
-    height: 40px;
-}
-.pf-locker-txt {
-    flex: 1;
-    display: grid;
-    justify-items: start;
-    gap: 2px;
-    text-align: left;
-}
-.pf-locker b {
-    line-height: 1.15;
-}
-.pf-locker .door-count {
-    margin: 0;
-    padding: 0;
-    --gs: 14px;
-    font-size: var(--gfs, 14px);
-    line-height: 1;
-}
-.pf-locker .new-dot {
-    position: absolute;
-    top: 4px;
-    right: 4px;
+    border-width: 2px;
+    box-shadow: 0 2px 0 #0e1430;
 }
 
-/* tela baixa (celular pequeno): a vitrine e o cartão encolhem pra caber sem rolar */
+/* o personagem em pé e grande (revisão dos menus, P3): 2x no celular, 3x no PC. O sprite tem vão dos lados: corta */
+.pf-hero {
+    align-self: center;
+    line-height: 0;
+}
+.pf-hero-tr {
+    display: block;
+    width: 120px;
+    height: 160px;
+    object-fit: cover;
+}
+.pf-editcard-open {
+    position: relative;
+    justify-self: start;
+    margin-top: 4px;
+    gap: 6px;
+}
+.pf-editcard-open .pf-ico {
+    width: 14px;
+    height: 14px;
+}
+.pf-editcard-open .new-dot {
+    position: absolute;
+    top: -4px;
+    right: -4px;
+}
+
+/* o nível (P2): a estrela com o número, a barra larga até o próximo e o próximo prêmio do Caminho */
+.pf-level.bc-tile {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    gap: 12px;
+    padding: 8px 12px;
+    animation: pf-arm-in 260ms var(--ease-out) 40ms both;
+}
+.pf-level-star.res-lv {
+    position: relative;
+    inset: auto;
+    width: 46px;
+    height: 46px;
+}
+.pf-level-star .cb-num {
+    --gs: 20px;
+    font-size: var(--gfs, 20px);
+}
+.pf-level-main {
+    display: grid;
+    gap: 5px;
+}
+.pf-level-main > b {
+    font-family: "Galmuri14", "Galmuri11", monospace;
+    --gs: 20px;
+    font-size: var(--gfs, 20px);
+}
+.pf-level-bar.k-bar {
+    height: 12px;
+}
+.pf-level-main small {
+    font-size: 12px;
+}
+.pf-level-prize {
+    display: grid;
+    grid-template-columns: auto auto;
+    grid-template-areas:
+        "lbl lbl"
+        "art name"
+        "art num";
+    align-items: center;
+    column-gap: 6px;
+    max-width: 140px;
+    padding-left: 12px;
+    border-left: 2px solid var(--line);
+}
+.pf-level-prize > small {
+    grid-area: lbl;
+    font-size: 10px;
+    text-transform: uppercase;
+}
+.pf-level-art {
+    grid-area: art;
+    display: grid;
+    place-items: center;
+    width: 36px;
+    height: 36px;
+}
+.pf-level-art > :is(img, svg) {
+    width: 36px;
+    height: 36px;
+}
+.pf-level-art .hud-icon {
+    width: 26px;
+    height: 26px;
+    color: var(--yellow);
+}
+.pf-level .pf-level-prize > b {
+    grid-area: name;
+    overflow-wrap: normal;
+    display: -webkit-box;
+    overflow: hidden;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    font-size: 12px;
+    line-height: 1.15;
+}
+.pf-level-prize > em {
+    grid-area: num;
+    font-style: normal;
+    font-size: 12px;
+    color: var(--yellow);
+}
+
+/* atalhos (P3): Troféus, Coleção, Amigos e o Time Ultimate, numa fileira */
+.pf-shorts {
+    display: grid;
+    grid-auto-flow: column;
+    grid-auto-columns: minmax(0, 1fr);
+    gap: 8px;
+}
+.pf-short.bc-tile {
+    display: grid;
+    justify-items: center;
+    align-content: center;
+    gap: 3px;
+    min-height: 66px;
+    padding: 6px 4px;
+    text-align: center;
+    animation: pf-arm-in 260ms var(--ease-out) 120ms both;
+}
+.pf-short .hud-icon {
+    width: 24px;
+    height: 24px;
+    color: var(--yellow);
+}
+.pf-shorts .pf-short b {
+    max-width: 100%;
+    font-size: 12px;
+    line-height: 1.1;
+    overflow-wrap: normal;
+}
+.pf-short .door-count {
+    margin: 0;
+    padding: 0;
+    --gs: 12px;
+    font-size: var(--gfs, 12px);
+    line-height: 1;
+}
+
+/* sem conta: salvar na nuvem (o login de sempre) */
+.pf-cloud.bc-tile {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    gap: 10px;
+    padding: 8px 12px;
+    border-color: var(--green);
+    animation: pf-arm-in 260ms var(--ease-out) 160ms both;
+}
+.pf-cloud > .hud-icon {
+    width: 24px;
+    height: 24px;
+    color: var(--green);
+}
+.pf-cloud:disabled {
+    opacity: 0.6;
+}
+
+/* tela baixa (celular pequeno): o personagem volta a 1x e a vitrine encolhe pra caber sem rolar */
 @media (max-height: 640px) and (orientation: portrait) {
     .pf-arm .k-stage-body {
-        gap: 8px;
+        gap: 6px;
     }
     .pf-arm .pf-head {
         padding: 10px 12px;
         gap: 6px 10px;
     }
-    .pf-arm .pf-duo,
-    .pf-arm .pf-duo-trainer {
+    .pf-arm .pf-hero-tr {
         width: 64px;
-        height: 64px;
+        height: 80px;
     }
     .pf-arm .pf-cards .fut-wrap.sm {
         --fut-w: min(64px, calc((100cqi - 16px) / 3));
-    }
-    /* sem carta na vitrine: o convite sai (o Álbum continua na porta da Coleção) */
-    .pf-arm .pf-cards-empty {
-        display: none;
     }
     .pf-arm .pf-who {
         gap: 2px;
@@ -279,32 +348,125 @@
     .pf-arm .pf-who h2 {
         font-size: 17px;
     }
-    .pf-locker,
-    .pf-arm-missions {
-        min-height: 40px;
+    .pf-level.bc-tile {
+        min-height: 0;
         padding-block: 4px;
     }
-    .pf-locker b {
-        font-size: 12px;
+    .pf-level-star.res-lv {
+        width: 36px;
+        height: 36px;
     }
-    .pf-lockers {
-        gap: 6px;
+    .pf-short.bc-tile {
+        min-height: 48px;
+        padding-block: 4px;
+    }
+    .pf-short .hud-icon {
+        width: 20px;
+        height: 20px;
+    }
+    .pf-arm .pf-cloud small {
+        display: none;
+    }
+    /* as taças continuam no atalho Troféus (com o número) */
+    .pf-arm .pf-cups {
+        display: none;
+    }
+    /* "Editar cartão" vira só o lápis no canto do cartão (o nome e o personagem também abrem a folha) */
+    .pf-arm .pf-head {
+        position: relative;
+    }
+    .pf-arm .pf-who h2 {
+        padding-right: 40px;
+    }
+    .pf-arm .pf-editcard-open {
+        position: absolute;
+        top: 8px;
+        right: 8px;
+        min-width: 36px;
+        min-height: 36px;
+        margin: 0;
+        padding: 0;
+        justify-content: center;
+    }
+    .pf-editcard-txt {
+        display: none;
+    }
+}
+@media (max-width: 359px) {
+    .pf-level .pf-level-prize > small {
+        display: none;
+    }
+    .pf-level.bc-tile {
+        gap: 8px;
+        padding-inline: 8px;
+    }
+    .pf-level-prize {
+        max-width: 96px;
+        padding-left: 8px;
+    }
+    .pf-level-art,
+    .pf-level-art > :is(img, svg) {
+        width: 26px;
+        height: 26px;
+    }
+    .pf-level-art .hud-icon {
+        width: 20px;
+        height: 20px;
+    }
+    .pf-shorts .pf-short b {
+        font-size: 11px;
     }
 }
 
-/* deitado e PC: o cartão à esquerda, missões e portas à direita */
+/* deitado e PC (P3): duas colunas cheias, o cartão grande à esquerda; nível, números, atalhos e nuvem à direita */
 @media (orientation: landscape) and (min-width: 700px) {
     .pf-arm .k-stage-body {
-        width: min(980px, 100%);
+        width: min(1040px, 100%);
         display: grid;
-        grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-        grid-template-rows: auto auto;
+        grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
         align-content: center;
         column-gap: 14px;
     }
     .pf-arm .pf-head {
-        grid-row: 1 / 3;
-        align-self: center;
+        grid-row: 1 / span 4;
+        align-content: center;
+    }
+    .pf-arm .k-stage-body > :not(.pf-head) {
+        grid-column: 2;
+    }
+}
+/* PC com altura: o personagem em 3x e as cartas maiores, pro cartão encher a altura */
+@media (orientation: landscape) and (min-width: 1100px) and (min-height: 720px) {
+    .pf-arm .pf-hero-tr {
+        width: 180px;
+        height: 240px;
+    }
+    .pf-arm .pf-cards .fut-wrap.sm {
+        --fut-w: min(132px, calc((100cqi - 16px) / 3));
+    }
+    .pf-arm .pf-who h2 {
+        font-size: 24px;
+    }
+    .pf-level.bc-tile {
+        padding: 14px 16px;
+    }
+    .pf-short.bc-tile {
+        min-height: 96px;
+    }
+    .pf-short .hud-icon {
+        width: 30px;
+        height: 30px;
+    }
+    .pf-shorts .pf-short b {
+        font-size: 14px;
+    }
+    .pf-short .door-count {
+        --gs: 14px;
+        font-size: var(--gfs, 14px);
+    }
+    .pf-arm .pf-stats-open .pf-num b {
+        --gs: 30px;
+        font-size: var(--gfs, 30px);
     }
 }
 @media (orientation: landscape) and (max-height: 520px) {
@@ -314,10 +476,112 @@
     .pf-arm .pf-head {
         padding: 10px 12px;
     }
-    .pf-locker,
-    .pf-arm-missions {
-        min-height: 44px;
+    .pf-arm .pf-hero-tr {
+        width: 64px;
+        height: 80px;
     }
+    .pf-level.bc-tile {
+        padding-block: 4px;
+    }
+    .pf-short.bc-tile {
+        min-height: 52px;
+    }
+    .pf-arm .pf-cups {
+        display: none;
+    }
+    .pf-arm .pf-cloud small {
+        display: none;
+    }
+}
+
+/* Editar cartão (P1): o cartão em miniatura em cima, as 5 partes em abas e a parte escolhida entrando de lado */
+.pf-ed-prev {
+    display: grid;
+    grid-template-columns: auto auto minmax(0, 1fr);
+    align-items: center;
+    gap: 4px 10px;
+    margin-bottom: 10px;
+    padding: 8px 10px;
+}
+.pf-ed-prev-tr {
+    width: 48px;
+    height: 60px;
+    object-fit: cover;
+}
+.pf-ed-prev .pf-avatar {
+    width: 40px;
+    height: 40px;
+}
+.pf-ed-prev-who {
+    display: grid;
+    gap: 4px;
+    line-height: 1.15;
+    min-width: 0;
+}
+.pf-ed-prev-who > b {
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+.pf-ed-prev .pf-showcase {
+    grid-column: 1 / -1;
+}
+.pf-ed-prev .pf-showcase:empty {
+    display: none;
+}
+.pf-ed-tabs {
+    position: sticky;
+    top: -1px;
+    z-index: 2;
+    margin-bottom: 10px;
+    border-radius: 6px;
+}
+.pf-ed .pf-ed-tabs button {
+    padding-inline: 0;
+    font-size: 10px;
+}
+.pf-ed-prev .pf-title-line {
+    margin-top: 0;
+}
+.pf-ed-tabs .hud-icon {
+    width: 20px;
+    height: 20px;
+}
+.pf-ed-body {
+    display: grid;
+    gap: 10px;
+    animation: pf-ed-in 220ms var(--ease-out) both;
+}
+@keyframes pf-ed-in {
+    from {
+        opacity: 0;
+        transform: translateX(14px);
+    }
+}
+.pf-ed-cards {
+    container-type: inline-size;
+    width: 100%;
+    justify-content: center;
+    gap: 8px;
+    padding: 0;
+}
+.pf-ed-cards .fut-wrap.sm {
+    --fut-w: min(104px, calc((100cqi - 16px) / 3));
+}
+.pf-ed-cards li:is(:first-child, :last-child):not(:only-child) {
+    rotate: none;
+    translate: none;
+}
+.pf-ed-cards li + li {
+    margin-left: 0;
+}
+@media (prefers-reduced-motion: reduce) {
+    .pf-ed-body {
+        animation: none;
+    }
+}
+:root[data-reduce-motion="true"] .pf-ed-body {
+    animation: none;
 }
 
 /* as Sheets do Perfil: lista de missões perto de sair */
