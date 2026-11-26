@@ -38,6 +38,7 @@
 - Legado do Time Ultimate no Perfil: a melhor carta e cada temporada
 - Título no VERSUS e na imagem de Compartilhar
 - Caminho do treinador nas Metas da Sede, com o prêmio de cada missão
+- Entrar com a conta não volta mais o avatar, o nome e o clube pro padrão quando o aparelho ainda não tinha perfil
 
 ## 0.9.53.2 · Conserto do nome do clube (2026-11-26)
 
