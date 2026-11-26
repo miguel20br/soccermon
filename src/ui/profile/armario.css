@@ -203,8 +203,8 @@
     height: 46px;
 }
 .pf-level-star .cb-num {
-    --gs: 18px;
-    font-size: var(--gfs, 18px);
+    --gs: 20px;
+    font-size: var(--gfs, 20px);
 }
 .pf-level-main {
     display: grid;
@@ -212,8 +212,8 @@
 }
 .pf-level-main > b {
     font-family: "Galmuri14", "Galmuri11", monospace;
-    --gs: 18px;
-    font-size: var(--gfs, 18px);
+    --gs: 20px;
+    font-size: var(--gfs, 20px);
 }
 .pf-level-bar.k-bar {
     height: 12px;
@@ -303,7 +303,8 @@
 .pf-short .door-count {
     margin: 0;
     padding: 0;
-    font-size: 12px;
+    --gs: 12px;
+    font-size: var(--gfs, 12px);
     line-height: 1;
 }
 
@@ -456,13 +457,16 @@
         width: 30px;
         height: 30px;
     }
-    .pf-short b,
-    .pf-short .door-count {
+    .pf-shorts .pf-short b {
         font-size: 14px;
     }
+    .pf-short .door-count {
+        --gs: 14px;
+        font-size: var(--gfs, 14px);
+    }
     .pf-arm .pf-stats-open .pf-num b {
-        --gs: 28px;
-        font-size: var(--gfs, 28px);
+        --gs: 30px;
+        font-size: var(--gfs, 30px);
     }
 }
 @media (orientation: landscape) and (max-height: 520px) {
