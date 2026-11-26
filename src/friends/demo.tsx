@@ -1,4 +1,7 @@
 import { useCloud } from '../cloud/cloud';
+import { monRecipe } from '../engine/duel-validate';
+import { createInstance } from '../engine/instance';
+import { Rng } from '../engine/rng';
 import type { Peer } from '../net/duel-state';
 import { useGame } from '../store/game-store';
 import { peerInfo, usePlayerCard } from '../ui/profile/PlayerCard';
@@ -19,7 +22,8 @@ import {
  * - `&tela=home`: abre na Home (o convite do Davi no cartão do Duelo).
  * - `&tela=config`: abre em Configurações e, 2 s depois, a Ana chama pro Duelo "na hora" (o aviso por cima da tela).
  * - `&cartao=1` (ou `anon`): o cartão do treinador do rival (o de verdade) com o "Adicionar amigo".
- * - `&tela=dia`: o ranking da Copa do Dia (o de mentira, src/league/demo.ts) com os nomes que abrem o perfil.
+ * - `&tela=dia`: o ranking da Copa do Dia (o de mentira, src/league/demo.ts) com os nomes que abrem o perfil; o Gary
+ *   não é amigo e abre o perfil público (a vitrine sem a foto, como o banco manda).
  */
 const ago = (min: number) => new Date(Date.now() - min * 60_000).toISOString();
 const row = (
@@ -102,6 +106,42 @@ const DAVI = {
     ],
 };
 
+/** O perfil público do Gary (quem não é amigo): como o perfil_publico manda, sem a foto do Google. */
+const gary = () => {
+    const rng = new Rng('gary-vitrine', 'demo');
+    return {
+        name: 'Gary',
+        avatar: 'assets/cards/133.gif',
+        avatarGoogle: false,
+        trainer: 'blue',
+        title: '',
+        titleId: 'campeao',
+        clubName: 'Pallet Rival',
+        clubTag: 'RIV',
+        clubColor: 0x8e44ad,
+        color2: 0x1f1f2e,
+        crestShape: 'diamante',
+        crestSymbol: 'raio',
+        showcase: ['m:campeao:3', 'm:artilheiro:2'],
+        cards: [6, 130, 65].map((id) => monRecipe(createInstance(id, rng))),
+        cups: [2, 1, 1],
+        level: 12,
+        code: 'CHAR2ZRD',
+        numbers: { matches: 92, wins: 61, goals: 288, titles: 4, perfect: 1, bestStreak: 5, duelWins: 9, played: 88 },
+        hall: [
+            {
+                date: Date.now() - 2 * 864e5,
+                club: 'Pallet Rival',
+                color: 'roxo',
+                final: [4, 2],
+                perfect: false,
+                captain: 6,
+                shiny: false,
+            },
+        ],
+    };
+};
+
 export function startFriendsDemo(params: URLSearchParams) {
     let rows: FriendRow[] = [
         // o escudo de cada um vem da vitrine (o Gabriel, sem vitrine, fica com o padrão na cor do clube)
@@ -162,6 +202,7 @@ export function startFriendsDemo(params: URLSearchParams) {
         challenge: async () => 'enviado',
         vitrine: async () => true,
         profile: async (code) => (code === 'VRDN4GRN' ? DAVI : null),
+        publicProfile: async (code) => (code === 'CHAR2ZRD' ? gary() : code === 'VRDN4GRN' ? DAVI : null),
         ping: async () => {},
         listen: (on) => {
             if (tela !== 'config') return () => {};

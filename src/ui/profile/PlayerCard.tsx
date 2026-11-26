@@ -72,8 +72,10 @@ export interface PlayerInfo {
     id?: string;
     /** Código de amigo (pedir amizade por ele; o botão sabe se já são amigos ou se o pedido já foi). */
     code?: string;
-    /** Quem não é amigo, aberto de um ranking: só nome e clube (a vitrine só amigo lê). */
+    /** Quem não é amigo e a vitrine não veio (sem login, servidor sem a migração, versão antiga): só nome e clube. */
     bare?: boolean;
+    /** Vitrine de quem não é amigo (perfil público, sem a foto do Google): números e títulos sem o Desafiar. */
+    stranger?: boolean;
     anon?: boolean;
     /** Taças da Copa por metal (bronze, prata, ouro): o pedaço da sala de troféus. */
     cups: [number, number, number];
@@ -139,23 +141,31 @@ function friendTitle(v: unknown): FriendTitle | null {
  * fora, validado campo a campo como o peer do Duelo). Sem vitrine (amigo numa versão antiga): só o nome e o clube.
  */
 export function friendInfo(r: FriendRow, raw: unknown): PlayerInfo {
-    const p = obj(raw);
-    const n = obj(p.numbers);
-    const base = peerInfo({
-        ...p,
-        title: str(p.title, 60),
-        id: '',
+    return vitrineInfo(obj(raw), r.code, {
         name: r.trainer,
         clubName: r.club,
         clubTag: r.club_tag,
         clubColor: clubColorHex(r.club_color),
-    } as Peer);
+    });
+}
+
+/**
+ * Vitrine de quem não é amigo (perfil_publico, 20261126120000_perfil_publico.sql): o banco já tirou a foto do Google.
+ * O nome é o que a pessoa tocou (ranking, histórico); clube e escudo vêm da vitrine, validados como o peer do Duelo.
+ */
+export function strangerVitrineInfo(name: string, code: string, raw: Record<string, unknown>): PlayerInfo {
+    return { ...vitrineInfo(raw, code, { name }), stranger: true, code };
+}
+
+function vitrineInfo(p: Record<string, unknown>, code: string, card: Partial<Peer>): PlayerInfo {
+    const n = obj(p.numbers);
+    const base = peerInfo({ ...p, title: str(p.title, 60), id: '', ...card } as Peer);
     return {
         ...base,
         id: undefined,
         friend: {
-            code: r.code,
-            club: r.club,
+            code,
+            club: base.clubName,
             numbers: p.numbers
                 ? {
                       matches: int(n.matches),
@@ -297,7 +307,7 @@ export function PlayerCardModal() {
                     {info.anon && <span className="duel-anon pcard-anon">{t('duel.lobby.anon')}</span>}
                 </div>
             </header>
-            {info.bare && <p className="muted pcard-empty">{t('profile.card.notFriend')}</p>}
+            {info.bare && <p className="muted pcard-empty">{t('profile.card.noProfile')}</p>}
             {!info.bare && <OrnamentRow ids={info.ornaments} className="pcard-orn" />}
             {!info.bare && <ShowcaseRow items={info.showcase} className="pcard-medals" />}
             {info.cups.some((n) => n > 0) && (
@@ -328,8 +338,8 @@ export function PlayerCardModal() {
             ) : (
                 <p className="muted pcard-empty">{t('profile.card.noCards')}</p>
             )}
-            {info.friend && <FriendPart f={info.friend} name={info.name} />}
-            {info.other && !info.friend && (info.id || info.code) && (
+            {info.friend && <FriendPart f={info.friend} name={info.name} challenge={!info.stranger} />}
+            {info.other && (!info.friend || info.stranger) && (info.id || info.code) && (
                 <div className="pcard-friend">
                     <AddFriendButton peer={{ id: info.id, code: info.code, anon: info.anon }} />
                 </div>
@@ -338,8 +348,16 @@ export function PlayerCardModal() {
     );
 }
 
-/** O que só o perfil do amigo tem: números, os últimos títulos e "vocês no Duelo". */
-function FriendPart({ f, name }: { f: NonNullable<PlayerInfo['friend']>; name: string }) {
+/** Números, os últimos títulos e "vocês no Duelo" (amigo e perfil público); o Desafiar só pra amigo. */
+function FriendPart({
+    f,
+    name,
+    challenge,
+}: {
+    f: NonNullable<PlayerInfo['friend']>;
+    name: string;
+    challenge: boolean;
+}) {
     const { t, lang } = useT();
     const inRoom = useGame((g) => g.screen === 'duel') && !!useDuel.getState().room;
     const duels = useGame((s) => s.duels);
@@ -383,7 +401,7 @@ function FriendPart({ f, name }: { f: NonNullable<PlayerInfo['friend']>; name: s
                 {total ? t('profile.card.h2hLine', { w: vs.win, d: vs.draw, l: vs.loss }) : t('profile.card.h2hNone')}
             </p>
             {/* já dentro de uma sala do Duelo o convite não teria sala nova pra ir: sem o botão */}
-            {!inRoom && (
+            {challenge && !inRoom && (
                 <div className="pcard-friend">
                     <button
                         type="button"
