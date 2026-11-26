@@ -252,7 +252,7 @@ export interface UtEvent {
 export const EVENTS: UtEvent[] = [
     {
         id: 'natal-2026',
-        start: brt(2026, 12, 15),
+        start: brt(2026, 12, 7),
         end: brt(2027, 1, 5),
         type: 'Ice',
         cardOdds: 1 / 12,

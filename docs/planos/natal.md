@@ -17,7 +17,7 @@ Só proposta: nenhum código mexido, nada postado. O que já está decidido vem 
   ainda não tinha o tema quando olhei, só conserto de celular; o desenho exato do mecanismo eu não vi. Antes de
   codar, ler o que o neon deixou.)
 - **Código na segunda 07/12, decoração liga sozinha na sexta 11/12.** O evento do Time Ultimate já liga sozinho em
-  15/12 (`EVENTS`, `natal-2026`). A semana 14/12 serve pro desafio comunitário e o push.
+  07/12 (`EVENTS`, `natal-2026`; adiantado de 15/12 pelo Miguel em 26/11, junto com o Desafio de Natal). A semana 14/12 serve pro desafio comunitário e o push.
 - O Natal do Time Ultimate **já existe**: cartas Evento de Gelo (1 em 12 por carta), 3 objetivos, enfeite "Natal" no
   Perfil, pick de Evento. Esta proposta é a camada de fora (cara do jogo, Copa do Dia, comunidade), não mexe nisso.
 

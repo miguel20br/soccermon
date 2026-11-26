@@ -8,6 +8,7 @@
 - Três músicas de menu de Natal em rodízio (Noite Feliz, Trenó e Luzes da árvore) e uma música de partida de Natal
 - Título novo "Natal 2026", com efeito de gelo, ganho no evento de Natal
 - Copa de Natal em 24 e 25/12: rivais de Gelo e o Snorlax de capitão na final
+- Evento de Natal no Time Ultimate de 07/12 a 05/01: cartas Evento de Gelo nos pacotes e 3 objetivos
 - Desafio de Natal de 07/12 a 05/01: os gols de todo mundo somam numa meta com 8 degraus de prêmios
 - No dia 25/12, uma carta Evento garantida de presente no Time Ultimate
 - Gorro de Natal em pixel art em 39 Pokémon, no Estádio, na Arena e no pódio
