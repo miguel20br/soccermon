@@ -17,6 +17,7 @@ export const PATCH_NOTES: PatchNotes[] = [
                 title: 'Consertos',
                 lines: [
                     'Time Ultimate: o progresso agora sobe pra nuvem também quando só o Time Ultimate muda, e entrar com outra conta não traz o Time Ultimate da conta anterior',
+                    'Time Ultimate: quem jogou só o Time Ultimate sem conta não perde o progresso ao entrar com a conta',
                 ],
             },
         ],
@@ -3104,6 +3105,7 @@ export const PATCH_NOTES_EN: PatchNotes[] = [
                 title: 'Fixes',
                 lines: [
                     "Ultimate Team: progress now syncs to the cloud even when only Ultimate Team changes, and signing in with another account no longer brings over the previous account's Ultimate Team",
+                    'Ultimate Team: playing only Ultimate Team as a guest no longer loses that progress when you sign in',
                 ],
             },
         ],

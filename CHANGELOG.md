@@ -4,6 +4,7 @@
 
 ### Consertos
 - Time Ultimate: o progresso agora sobe pra nuvem também quando só o Time Ultimate muda, e entrar com outra conta não traz o Time Ultimate da conta anterior
+- Time Ultimate: quem jogou só o Time Ultimate sem conta não perde o progresso ao entrar com a conta
 
 ## 0.9.53.2 · Conserto do nome do clube (2026-11-26)
 

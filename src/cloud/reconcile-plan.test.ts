@@ -278,4 +278,10 @@ describe('resumo para a pergunta', () => {
         expect(hasProgress(save({ onboarded: true }))).toBe(false);
         expect(hasProgress(save({ parkedRuns: [cup('p')] }))).toBe(true);
     });
+
+    it('só ter jogado o Time Ultimate é progresso: a nuvem não passa por cima sem perguntar', () => {
+        expect(hasProgress(save({ ultimate: { ...newUltimate('t', 0), opened: 1 } }))).toBe(true);
+        expect(hasProgress(save({ ultimate: { ...newUltimate('t', 0), played: 1 } }))).toBe(true);
+        expect(hasProgress(save({ ultimate: newUltimate('t', 0) }))).toBe(false);
+    });
 });
