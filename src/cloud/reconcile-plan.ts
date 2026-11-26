@@ -68,7 +68,10 @@ export function hasProgress(s: Partial<PersistedSave> | undefined): boolean {
         (s.records?.cups ?? 0) > 0 ||
         dexCount(s) > 0 ||
         Object.keys(s.moves ?? {}).length > 0 ||
-        (s.career?.matches ?? 0) > 0
+        (s.career?.matches ?? 0) > 0 ||
+        // quem só jogou o Time Ultimate também tem o que perder
+        (s.ultimate?.opened ?? 0) > 0 ||
+        (s.ultimate?.played ?? 0) > 0
     );
 }
 
