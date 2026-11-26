@@ -39,6 +39,11 @@
 - Título no VERSUS e na imagem de Compartilhar
 - Caminho do treinador nas Metas da Sede, com o prêmio de cada missão
 
+## 0.9.53.2 · Conserto do nome do clube (2026-11-26)
+
+### Consertos
+- Nome do clube: apagar o nome não volta mais sozinho pra Pallet FC, e a caixa não perde o foco a cada letra
+
 ## 0.9.53.1 · Comemorações próprias e cut-in de dupla (2026-11-23)
 
 ### Partida
