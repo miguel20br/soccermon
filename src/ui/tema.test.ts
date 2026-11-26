@@ -1,7 +1,7 @@
-import { existsSync } from 'node:fs';
+import { existsSync, readdirSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { TRAINERS } from '../store/missions';
-import { NATAL_FROM, NATAL_TO, NEON_FROM, NEON_TO, temaOf, timeLeft } from './tema';
+import { NATAL_FROM, NATAL_TO, NEON_FROM, NEON_TO, temaOf, timeLeft, trainerSrcOf } from './tema';
 
 const at = (iso: string) => Date.parse(iso);
 
@@ -72,5 +72,15 @@ describe('cronômetro da Noite Neon', () => {
 describe('Natal: treinadores de gorro', () => {
     it('todo treinador tem a cópia de gorro (rode scripts/build-natal-trainers.ts ao criar um)', () => {
         for (const id of TRAINERS) expect(existsSync(`public/assets/trainers/natal/${id}.png`), id).toBe(true);
+    });
+    it('no Natal, todo sprite da pasta aponta pra uma imagem que existe (a Enfermeira fica sem gorro)', () => {
+        const ids = readdirSync('public/assets/trainers')
+            .filter((f) => f.endsWith('.png'))
+            .map((f) => f.slice(0, -4));
+        expect(ids).toContain('nurse');
+        for (const id of ids) expect(existsSync(`public/${trainerSrcOf(id, true)}`), id).toBe(true);
+        expect(trainerSrcOf('nurse', true)).toBe('assets/trainers/nurse.png');
+        expect(trainerSrcOf('red', true)).toBe('assets/trainers/natal/red.png');
+        expect(trainerSrcOf('red', false)).toBe('assets/trainers/red.png');
     });
 });

@@ -42,8 +42,15 @@ export const NEON_STREET = [106, 107, 68, 9] as const;
 export const neonOn = tema === 'neon';
 export const natalOn = tema === 'natal';
 
-/** Sprite do treinador; no Natal, a cópia de gorro (scripts/build-natal-trainers.ts). */
-export const trainerSrc = (id: string) => `assets/trainers/${natalOn ? 'natal/' : ''}${id}.png`;
+/**
+ * Sprites sem a cópia de gorro: o build-natal-trainers.ts só faz os treinadores do jogador (TRAINERS). No Natal eles
+ * ficam com o sprite normal, em vez de imagem quebrada. O teste confere toda imagem da pasta.
+ */
+const NO_NATAL = new Set(['nurse']);
+/** Sprite do treinador; no Natal, a cópia de gorro quando existe (scripts/build-natal-trainers.ts). */
+export const trainerSrcOf = (id: string, natal: boolean) =>
+    `assets/trainers/${natal && !NO_NATAL.has(id) ? 'natal/' : ''}${id}.png`;
+export const trainerSrc = (id: string) => trainerSrcOf(id, natalOn);
 
 export function startTema() {
     if (tema) document.documentElement.dataset.tema = tema;
