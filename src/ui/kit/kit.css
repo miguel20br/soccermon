@@ -33,9 +33,11 @@
     --green-lo: color-mix(in srgb, var(--green-c), #063a10 50%);
     --red-hi: color-mix(in srgb, var(--red), #fff 36%);
     --red-lo: #8a1c1a;
-    /* ESCOLHIDO (uma forma por tamanho): pílula, aba e segmentado = azul cheio; cartão grande = anel azul claro */
+    /* ESCOLHIDO (uma forma por tamanho): pílula, aba e segmentado = azul cheio; cartão grande = anel dourado (decisão
+       do Miguel, 26/11: o mesmo anel do Personagem, do Álbum e da medalha em destaque, inclusive no Estádio) */
     --pick-fill: var(--blue-c);
-    --pick-ring: 0 0 0 3px var(--blue-hi), 0 3px 0 3px var(--cb-ink);
+    --pick-line: var(--yellow);
+    --pick-ring: 0 0 0 3px var(--pick-line), 0 3px 0 3px var(--cb-ink);
     /* sombra sempre dura: plaquinha e chip / botão e cartão / telão e sheet */
     --lift-1: 0 3px 0 var(--cb-ink);
     --lift-2: 0 5px 0 var(--cb-ink);

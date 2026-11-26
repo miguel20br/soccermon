@@ -912,7 +912,7 @@
 }
 .target-btn[aria-pressed="true"],
 .target-btn[aria-pressed="true"]:hover {
-    border-color: var(--blue-hi);
+    border-color: var(--pick-line);
     background: #3a3f5f;
     box-shadow: var(--pick-ring);
 }
@@ -1558,8 +1558,8 @@
         background-color var(--dur-ui) var(--ease-out);
 }
 .tr-mon.on .tr-shadow {
-    background: color-mix(in srgb, var(--blue-hi), transparent 45%);
-    box-shadow: 0 0 0 3px var(--blue-hi);
+    background: color-mix(in srgb, var(--pick-line), transparent 45%);
+    box-shadow: 0 0 0 3px var(--pick-line);
 }
 .tr-mon:focus-visible {
     outline: 3px solid var(--yellow);
@@ -1655,7 +1655,7 @@
     transition-duration: var(--dur-toque);
 }
 .tr-obj.on {
-    background: color-mix(in srgb, var(--blue-hi), transparent 80%);
+    background: color-mix(in srgb, var(--pick-line), transparent 80%);
     box-shadow: var(--pick-ring);
 }
 .tr-obj:focus-visible {

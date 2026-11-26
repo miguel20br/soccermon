@@ -4124,12 +4124,12 @@
         clip-path: inset(50%);
     }
 }
-/* a escolhida sobe, acende e ganha a borda azul (escolhido = azul, brand guide); a cor do modo fica só no ícone */
+/* a escolhida sobe, acende e ganha o anel dourado (--pick-line, kit.css); a cor do modo fica só no ícone */
 .es-tile.on {
     transform: translateY(-5px);
     color: #fff;
     background: #2f3d82;
-    border-color: var(--blue-hi);
+    border-color: var(--pick-line);
     box-shadow:
         inset 0 -4px 0 rgb(0 0 0 / 22%),
         0 0 0 2px var(--cb-ink),
