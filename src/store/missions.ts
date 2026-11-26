@@ -11,6 +11,7 @@ import type { Records, RunState, StageResult } from './game-store';
 import {
     albumCount,
     type Career,
+    DEFAULT_PROFILE,
     DEFAULT_TITLE,
     DEFAULT_TRAINER,
     type Dex,
@@ -725,14 +726,23 @@ const OPTIONAL_LOOK = [
     'albumFront',
 ] as const;
 
+/** Campos que sempre existem e nascem com o valor de DEFAULT_PROFILE (nunca mexido = ainda igual a ele). */
+const CHOSEN_FIELDS = ['trainerName', 'avatar', 'clubName', 'clubTag', 'clubColor', 'trainer', 'title'] as const;
+const isDefault = (k: (typeof CHOSEN_FIELDS)[number], v: unknown) =>
+    JSON.stringify(v) === JSON.stringify(DEFAULT_PROFILE[k]);
+
 /**
  * Junta o perfil da nuvem com o do aparelho: vale o de `keep`, mas missão cumprida e título resgatado não se perdem,
- * e escudo/uniforme/vitrine escolhidos num aparelho que o outro lado ainda não tem também ficam.
+ * e campo que um lado ainda deixou no padrão (nome, avatar, clube, escudo/uniforme/vitrine…) nunca apaga o que o
+ * outro lado escolheu. Os dois escolheram: vale o de `keep`.
  */
 export function mergeProfileUnlocks(keep: Profile, other: Partial<Profile> | undefined): Profile {
     const filled: Partial<Profile> = {};
     for (const k of OPTIONAL_LOOK)
         if (keep[k] === undefined && other?.[k] !== undefined) Object.assign(filled, { [k]: other[k] });
+    for (const k of CHOSEN_FIELDS)
+        if (isDefault(k, keep[k]) && other?.[k] !== undefined && !isDefault(k, other[k]))
+            Object.assign(filled, { [k]: other[k] });
     return {
         ...keep,
         ...filled,
