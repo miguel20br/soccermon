@@ -18,7 +18,7 @@ create table public.natal_gols (
 create table public.natal_marcou (
     user_id uuid not null references auth.users (id) on delete cascade,
     dia date not null check (dia between date '2026-12-07' and date '2027-01-05'),
-    gols integer not null default 0 check (gols between 0 and 300),
+    gols integer not null default 0 check (gols between 0 and 100),
     partidas integer not null default 0 check (partidas between 0 and 200),
     primary key (user_id, dia)
 );
@@ -41,7 +41,7 @@ grant select on public.natal_marcou to authenticated;
 grant select, insert, update, delete on public.natal_gols, public.natal_marcou to service_role;
 
 /**
- * Soma os gols de uma partida terminada. Teto: 30 gols por partida, 300 gols e 200 partidas por conta por dia (o que
+ * Soma os gols de uma partida terminada. Teto: 15 gols por partida, 100 gols e 200 partidas por conta por dia (o que
  * passa do teto não entra na soma, o resto entra). Fora do prazo ou sem conta Google: erro curto (o jogo ignora).
  * Devolve quantos gols a conta já tem no desafio (o "você marcou N gols").
  */
@@ -54,7 +54,7 @@ as $$
 declare
     uid uuid := auth.uid();
     d date := public.hoje_brasilia();
-    g integer := least(greatest(coalesce(p_gols, 0), 0), 30);
+    g integer := least(greatest(coalesce(p_gols, 0), 0), 15);
     atual integer;
     jogos integer;
     soma integer;
@@ -72,7 +72,7 @@ begin
     where m.user_id = uid and m.dia = d
     for update;
     if jogos < 200 then
-        g := least(g, 300 - atual);
+        g := least(g, 100 - atual);
         update public.natal_marcou
         set gols = gols + g, partidas = partidas + 1
         where user_id = uid and dia = d;

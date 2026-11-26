@@ -158,7 +158,7 @@ export function goalsOf(s: Saved, prev: Saved, now = Date.now()): number[] {
     // Duelo: partida nova e de agora (a mesma pode ser gravada de novo; anulada e save importado não contam)
     if (s.duels !== prev.duels) {
         const seen = new Set(prev.duels.map((d) => d.id));
-        // melhor de 3: o placar é de vitórias na série; os gols vêm de cada jogo (um envio por partida, teto 30 cada)
+        // melhor de 3: o placar é de vitórias na série; os gols vêm de cada jogo (um envio por partida, teto 15 cada)
         for (const d of s.duels)
             if (!seen.has(d.id) && d.result !== 'void' && d.date > now - 10 * 60_000)
                 out.push(...(d.games ? d.games.map((g) => g[0]) : [d.score[0]]));

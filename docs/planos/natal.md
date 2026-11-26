@@ -287,7 +287,7 @@ Conta com o `npm run stats -- --dias 30` e uma consulta de gols no mesmo banco (
   (Batalhas, líderes e Draft) e **Duelo** (partida nova e de agora; anulada não conta). `src/cloud/desafio.ts` chama a
   RPC `natal_gols_somar(gols)`. Sem login, sem Supabase ou offline: "Só online", e o jogo segue igual. A fila de envio é
   da aba (fechou sem rede, aquela partida não soma).
-- **Anti-trapaça sem exagero:** 30 gols por partida, 300 gols e 200 partidas por conta por dia; o que passa não soma.
+- **Anti-trapaça sem exagero:** 15 gols por partida, 100 gols e 200 partidas por conta por dia (era 30 e 300; baixado pelo Miguel em 26/11 pra ninguém carregar a meta sozinho: no máximo ~3.000 por conta); o que passa não soma.
   Não usa o `game_events` (é anônimo, não dá pra cruzar com a conta).
 - **Visibilidade:** faixa pequena no menu de modos (Home), faixa com cara de letreiro no Estádio, texto no LED da
   torcida, "você marcou N gols" junto da barra. Tocar abre o painel dos 8 degraus (prêmio desenhado, meta, batido /

@@ -76,12 +76,12 @@ reset role;
 set role authenticated;
 select pg_temp.como(1, '2026-12-07');
 select pg_temp.igual(public.natal_gols_somar(5)::text, '5', 'primeira partida');
-select pg_temp.igual(public.natal_gols_somar(999)::text, '35', 'teto de 30 por partida');
-select pg_temp.igual(public.natal_gols_somar(-4)::text, '35', 'negativo vira 0');
-select public.natal_gols_somar(30) from generate_series(1, 12);
-select pg_temp.igual(public.natal_gols_somar(30)::text, '300', 'teto de 300 por conta por dia');
+select pg_temp.igual(public.natal_gols_somar(999)::text, '20', 'teto de 15 por partida');
+select pg_temp.igual(public.natal_gols_somar(-4)::text, '20', 'negativo vira 0');
+select public.natal_gols_somar(15) from generate_series(1, 6);
+select pg_temp.igual(public.natal_gols_somar(15)::text, '100', 'teto de 100 por conta por dia');
 select pg_temp.como(1, '2027-01-05');
-select pg_temp.igual(public.natal_gols_somar(7)::text, '307', 'dia novo (o último) soma');
+select pg_temp.igual(public.natal_gols_somar(7)::text, '107', 'dia novo (o último) soma');
 -- ninguém escreve direto nas tabelas
 select pg_temp.falha($$insert into public.natal_gols values ('2026-12-08', 999)$$, 'permissao');
 select pg_temp.falha('update public.natal_marcou set gols = 0', 'permissao');
@@ -96,7 +96,7 @@ reset role;
 set role anon;
 select pg_temp.igual(
     (select string_agg(dia || '=' || gols, ',' order by dia) from public.natal_gols),
-    '2026-12-07=300,2027-01-05=10',
+    '2026-12-07=100,2027-01-05=10',
     'a soma por dia é pública'
 );
 select pg_temp.falha('select * from public.natal_marcou', 'permissao');
