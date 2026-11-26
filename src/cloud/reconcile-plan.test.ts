@@ -4,7 +4,7 @@ import { newUltimate } from '../store/ultimate/ultimate';
 vi.mock('idb-keyval', () => ({ get: async () => undefined, set: async () => {}, del: async () => {} }));
 
 import { DEFAULT_SETTINGS, type PersistedSave, type RunState, withUnlocks } from '../store/game-store';
-import { DEFAULT_PROFILE, type Dex, EDITION_BIT, EMPTY_CAREER } from '../store/profile';
+import { DEFAULT_PROFILE, type Dex, EDITION_BIT, EMPTY_CAREER, type Profile } from '../store/profile';
 import { hasProgress, mergeSaves, type PlanInput, planReconcile, summarize } from './reconcile-plan';
 
 /** Copa mínima para as regras (o motor não roda aqui). */
@@ -235,14 +235,46 @@ describe('mergeSaves: junção sem perder copa', () => {
     });
 
     it('perfil vale do lado escolhido; recusar estatísticas em qualquer lado vence', () => {
-        const local = save({ profile: { ...DEFAULT_PROFILE, clubName: 'Pallet FC' } });
+        const local = save({ profile: { ...DEFAULT_PROFILE, clubName: 'Cerulean' } });
         const cloud = save({
             profile: { ...DEFAULT_PROFILE, clubName: 'Viridian' },
             settings: { ...DEFAULT_SETTINGS, stats: false },
         });
-        expect(mergeSaves(local, cloud, 'device').profile.clubName).toBe('Pallet FC');
+        expect(mergeSaves(local, cloud, 'device').profile.clubName).toBe('Cerulean');
         expect(mergeSaves(local, cloud, 'cloud').profile.clubName).toBe('Viridian');
         expect(mergeSaves(local, cloud, 'device').settings.stats).toBe(false);
+    });
+
+    it('perfil padrão de um lado nunca apaga o perfil escolhido do outro (bug do Davi: avatar voltou pro Pikachu)', () => {
+        const chosen: Profile = {
+            ...DEFAULT_PROFILE,
+            trainerName: 'Davi',
+            avatar: { kind: 'pokemon', speciesId: 6, shiny: true },
+            clubName: 'Davi FC',
+            clubTag: 'DAV',
+            clubColor: 'azul',
+        };
+        const pick = ({ trainerName, avatar, clubName, clubTag, clubColor }: Profile) => ({
+            trainerName,
+            avatar,
+            clubName,
+            clubTag,
+            clubColor,
+        });
+        // conta com perfil escolhido; aparelho novo, de visitante, com uma copa em andamento e o perfil padrão
+        const cloud = save({ profile: chosen, dex: dex(6) });
+        const local = save({ run: cup('d') });
+        const p = plan({ local, cloud, cloudTs: 50 });
+        expect(p).toEqual({ kind: 'ask-merge', cupChoice: false, keep: 'device' });
+        expect(pick(mergeSaves(local, cloud, 'device').profile)).toEqual(pick(chosen));
+        // o contrário: vale a nuvem, mas ela ainda está no padrão e o aparelho tem o perfil escolhido
+        expect(pick(mergeSaves(save({ profile: chosen }), save(), 'cloud').profile)).toEqual(pick(chosen));
+        // os dois lados escolheram: vale o de `keep`, campo a campo (o que um lado deixou no padrão vem do outro)
+        const other: Profile = { ...DEFAULT_PROFILE, avatar: { kind: 'google' }, clubName: 'Viridian' };
+        const m = mergeSaves(save({ profile: chosen }), save({ profile: other }), 'cloud').profile;
+        expect(m.avatar).toEqual({ kind: 'google' });
+        expect(m.clubName).toBe('Viridian');
+        expect(m.trainerName).toBe('Davi');
     });
 
     it('levar para a conta sem save na nuvem: o save do aparelho vai inteiro', () => {
