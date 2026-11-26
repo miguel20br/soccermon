@@ -64,6 +64,8 @@ vi.stubGlobal('window', {
 const { loadCloud, startCloudSync, cloudUserId } = await import('./cloud');
 const { useGame, savePart, SAVE_VERSION } = await import('../store/game-store');
 const { newUltimate } = await import('../store/ultimate/ultimate');
+const { claim, useDesafio } = await import('./desafio');
+const { setUtNow } = await import('../store/ultimate/clock');
 
 afterAll(() => {
     vi.unstubAllEnvs();
@@ -118,5 +120,22 @@ describe('sincronização com a nuvem', () => {
         sb.signIn('conta-c');
         await until(() => cloudUserId() === 'conta-c' && useGame.getState().ultimate.salt !== 'b');
         expect(useGame.getState().ultimate.fichas).toBe(0);
+    });
+
+    it('os gols do Desafio da conta anterior não abrem prêmio na conta nova', () => {
+        setUtNow(Date.parse('2026-12-20T12:00:00-03:00'));
+        try {
+            expect(cloudUserId()).toBe('conta-c');
+            // a conta B tinha 37 gols; a C acabou de entrar e a leitura dos gols dela ainda não voltou
+            useDesafio.setState({ total: 10000, meus: 37, uid: 'conta-b' });
+            claim();
+            expect(useGame.getState().ultimate.gifts).toEqual([]);
+            // os gols são desta conta: abre
+            useDesafio.setState({ uid: 'conta-c' });
+            claim();
+            expect(useGame.getState().ultimate.gifts).toHaveLength(8);
+        } finally {
+            setUtNow(null);
+        }
     });
 });

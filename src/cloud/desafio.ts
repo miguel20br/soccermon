@@ -26,6 +26,8 @@ export interface DesafioNet {
     total: number | null;
     /** Os seus gols no desafio (null = sem conta ou não leu). */
     meus: number | null;
+    /** De qual conta são os `meus`: outra conta no mesmo aparelho não abre prêmio com os gols da anterior. */
+    uid?: string | null;
     /** Quando leu pela última vez (ms). */
     at: number;
     /** Números de mentira do dev e das prévias (`?gols=`): nada vai nem vem da rede. */
@@ -68,8 +70,14 @@ export async function refreshDesafio(force = false) {
     const at = Date.now();
     if (!force && at - useDesafio.getState().at < CACHE_MS) return;
     useDesafio.setState({ at });
+    const uid = cloudUserId();
     const [total, meus] = await Promise.all([readTotal(), readMine()]);
-    useDesafio.setState((s) => ({ total: total ?? s.total, meus: cloudUserId() ? (meus ?? s.meus) : null }));
+    useDesafio.setState((s) => {
+        // a conta trocou durante a leitura: os gols lidos eram da outra (a troca já pediu outra leitura)
+        if (uid !== cloudUserId()) return { total: total ?? s.total };
+        // sem rede: fica o último valor lido, se for desta conta
+        return { total: total ?? s.total, meus: uid ? (meus ?? (s.uid === uid ? s.meus : null)) : null, uid };
+    });
     claim();
 }
 
@@ -78,9 +86,11 @@ export async function refreshDesafio(force = false) {
  * já carregado e acertado com a nuvem (senão o save da conta que chega por cima levaria o prêmio embora).
  */
 export function claim() {
-    const { total, meus } = useDesafio.getState();
+    const { total, meus, uid } = useDesafio.getState();
     const c = useCloud.getState();
     if (total === null || meus === null || c.status !== 'saved' || c.ask || !useGame.persist.hasHydrated()) return;
+    // os gols são de outra conta (trocou de conta no aparelho e a leitura desta ainda não voltou)
+    if (!uid || uid !== cloudUserId()) return;
     const s = useGame.getState();
     const r = payDesafio(s, total, meus, utNow());
     if (!r) return;
@@ -107,6 +117,7 @@ async function flush() {
                 queue.length = 0;
                 return;
             }
+            const uid = cloudUserId();
             const { data, error } = await sb.rpc('natal_gols_somar', { p_gols: queue[0] });
             // sem rede: tenta de novo daqui a pouco. ponytail: a fila é da aba (fechou sem rede, a partida não soma)
             if (error && !/sem_conta|fora_do_prazo/.test(error.message) && ++tries < TRIES) {
@@ -115,7 +126,7 @@ async function flush() {
             }
             tries = 0;
             queue.shift();
-            if (!error && typeof data === 'number') useDesafio.setState({ meus: data });
+            if (!error && typeof data === 'number' && uid === cloudUserId()) useDesafio.setState({ meus: data, uid });
         }
     } finally {
         sending = false;
@@ -186,7 +197,8 @@ export function startDesafio() {
     });
     // logou (ou a sessão voltou) e o save acertou com a nuvem: relê os seus gols e abre os prêmios
     useCloud.subscribe((c, prev) => {
-        if (c.user && !prev.user) void refreshDesafio(true);
+        // entrou, ou trocou de conta sem sair (o `user` é outro objeto a cada login)
+        if (c.user && c.user !== prev.user) void refreshDesafio(true);
         else if (c.status === 'saved' && prev.status !== 'saved') claim();
     });
     void refreshDesafio();
