@@ -727,14 +727,16 @@ const OPTIONAL_LOOK = [
 ] as const;
 
 /** Campos que sempre existem e nascem com o valor de DEFAULT_PROFILE (nunca mexido = ainda igual a ele). */
-const CHOSEN_FIELDS = ['trainerName', 'avatar', 'clubName', 'clubTag', 'clubColor', 'trainer', 'title'] as const;
-const isDefault = (k: (typeof CHOSEN_FIELDS)[number], v: unknown) =>
+const CHOSEN_FIELDS = ['trainerName', 'avatar', 'trainer', 'title'] as const;
+/** Nome, sigla e cor do clube andam juntos: misturar lados monta um clube que ninguém montou. */
+const CLUB_FIELDS = ['clubName', 'clubTag', 'clubColor'] as const;
+const isDefault = (k: (typeof CHOSEN_FIELDS)[number] | (typeof CLUB_FIELDS)[number], v: unknown) =>
     JSON.stringify(v) === JSON.stringify(DEFAULT_PROFILE[k]);
 
 /**
  * Junta o perfil da nuvem com o do aparelho: vale o de `keep`, mas missão cumprida e título resgatado não se perdem,
- * e campo que um lado ainda deixou no padrão (nome, avatar, clube, escudo/uniforme/vitrine…) nunca apaga o que o
- * outro lado escolheu. Os dois escolheram: vale o de `keep`.
+ * e campo que um lado ainda deixou no padrão (nome, avatar, escudo/uniforme/vitrine…) nunca apaga o que o outro lado
+ * escolheu. O clube (nome, sigla e cor) vai inteiro de um lado só. Os dois escolheram: vale o de `keep`.
  */
 export function mergeProfileUnlocks(keep: Profile, other: Partial<Profile> | undefined): Profile {
     const filled: Partial<Profile> = {};
@@ -743,6 +745,11 @@ export function mergeProfileUnlocks(keep: Profile, other: Partial<Profile> | und
     for (const k of CHOSEN_FIELDS)
         if (isDefault(k, keep[k]) && other?.[k] !== undefined && !isDefault(k, other[k]))
             Object.assign(filled, { [k]: other[k] });
+    // o clube inteiro vem do outro lado só se o de `keep` está todo no padrão; mexeu em um campo, vale o clube de `keep`
+    const chose = (p: Partial<Profile> | undefined) =>
+        CLUB_FIELDS.some((k) => p?.[k] !== undefined && !isDefault(k, p[k]));
+    if (!chose(keep) && chose(other))
+        for (const k of CLUB_FIELDS) if (other?.[k] !== undefined) Object.assign(filled, { [k]: other[k] });
     return {
         ...keep,
         ...filled,

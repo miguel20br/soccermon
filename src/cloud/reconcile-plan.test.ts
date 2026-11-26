@@ -273,8 +273,13 @@ describe('mergeSaves: junção sem perder copa', () => {
         const other: Profile = { ...DEFAULT_PROFILE, avatar: { kind: 'google' }, clubName: 'Viridian' };
         const m = mergeSaves(save({ profile: chosen }), save({ profile: other }), 'cloud').profile;
         expect(m.avatar).toEqual({ kind: 'google' });
-        expect(m.clubName).toBe('Viridian');
         expect(m.trainerName).toBe('Davi');
+        // o clube vai inteiro: `keep` mexeu no nome, então a sigla e a cor também são as dele (não DAV/azul do outro)
+        expect([m.clubName, m.clubTag, m.clubColor]).toEqual([
+            'Viridian',
+            DEFAULT_PROFILE.clubTag,
+            DEFAULT_PROFILE.clubColor,
+        ]);
     });
 
     it('levar para a conta sem save na nuvem: o save do aparelho vai inteiro', () => {
