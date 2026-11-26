@@ -230,7 +230,8 @@ export const profile = {
         more: 'Recordes',
         bestStreak: 'Títulos seguidos',
         score: '{a}x{b}',
-        note: 'Partidas e gols contam as copas (Relâmpago, Rota e Dia).',
+        note: 'Partidas e vitórias somam as copas e o Time Ultimate. Gols, só as copas.',
+        split: 'Copas: {c} · Time Ultimate: {u}',
     },
     numbers: {
         emptyTitle: 'Sua história começa na primeira copa',
@@ -638,6 +639,28 @@ export const profile = {
         plusTitle: '+ título',
         allDone: 'Todos os prêmios ganhos.',
         prize: 'Prêmio',
+    },
+    /** Perfil (revisão dos menus, 26/11): o cartão editado numa folha só, o nível, os atalhos e a nuvem. */
+    edit: {
+        open: 'Editar cartão',
+        tabsAria: 'Partes do cartão',
+        tabs: { nome: 'Nome', personagem: 'Personagem', titulo: 'Título', uniforme: 'Uniforme', vitrine: 'Vitrine' },
+        cardsPick: 'Escolher cartas no Álbum',
+    },
+    level: {
+        missions: '{n}/{goal} missões',
+        next: 'Próximo prêmio',
+        aria: 'Nível {n}: ver o Caminho do treinador',
+    },
+    shortcuts: {
+        aria: 'Atalhos',
+        trophies: 'Troféus',
+        collection: 'Coleção',
+        friends: 'Amigos',
+    },
+    cloud: {
+        save: 'Salvar na nuvem',
+        hint: 'Entre com o Google e não perca o progresso',
     },
     unlocked: {
         trainer: 'Treinador novo desbloqueado: {name}',

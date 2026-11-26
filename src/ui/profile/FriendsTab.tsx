@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { signInWithGoogle, useCloud } from '../../cloud/cloud';
 import {
     buildVitrine,
@@ -19,6 +19,7 @@ import {
 import { playSfx } from '../../game/audio';
 import { rich, useT } from '../../i18n/react';
 import { useGame } from '../../store/game-store';
+import { careerWithUltimate } from '../../store/profile';
 import { HudIcon } from '../components/MatchHud';
 import { duelLink, isLocalDuel } from '../duel/link';
 import { useAskText } from './AddFriendButton';
@@ -447,7 +448,12 @@ export function FriendInvite() {
 export function FriendVitrine() {
     const pub = usePublicPeer();
     const code = useFriends((s) => s.code);
-    const career = useGame((s) => s.career);
+    const cups = useGame((s) => s.career);
+    const ultimate = useGame((s) => s.ultimate);
+    // o amigo vê os mesmos números do seu Perfil (copas + Time Ultimate); muda só quando o total muda, não a cada Ficha
+    const total = careerWithUltimate(cups, ultimate);
+    // biome-ignore lint/correctness/useExhaustiveDependencies: o total só muda com estes três números (ou as copas)
+    const career = useMemo(() => total, [cups, total.matches, total.wins, total.losses]);
     const records = useGame((s) => s.records);
     const hall = useGame((s) => s.hall);
     const dex = useGame((s) => s.dex);

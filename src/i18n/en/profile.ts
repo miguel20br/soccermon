@@ -229,7 +229,8 @@ export const profile: typeof pt = {
         more: 'Records',
         bestStreak: 'Titles in a row',
         score: '{a}-{b}',
-        note: 'Matches and goals count the cups (Lightning, Road and Daily).',
+        note: 'Matches and wins add up the cups and Ultimate Team. Goals, only the cups.',
+        split: 'Cups: {c} · Ultimate Team: {u}',
     },
     numbers: {
         emptyTitle: 'Your story starts with your first cup',
@@ -632,6 +633,27 @@ export const profile: typeof pt = {
         plusTitle: '+ title',
         allDone: 'All prizes earned.',
         prize: 'Prize',
+    },
+    edit: {
+        open: 'Edit card',
+        tabsAria: 'Card parts',
+        tabs: { nome: 'Name', personagem: 'Character', titulo: 'Title', uniforme: 'Kit', vitrine: 'Showcase' },
+        cardsPick: 'Pick cards in the Album',
+    },
+    level: {
+        missions: '{n}/{goal} missions',
+        next: 'Next prize',
+        aria: 'Level {n}: see the Trainer path',
+    },
+    shortcuts: {
+        aria: 'Shortcuts',
+        trophies: 'Trophies',
+        collection: 'Collection',
+        friends: 'Friends',
+    },
+    cloud: {
+        save: 'Save to the cloud',
+        hint: 'Sign in with Google and keep your progress',
     },
     unlocked: {
         trainer: 'New trainer unlocked: {name}',

@@ -3,7 +3,7 @@ import { species } from '../../engine/data';
 import { useT } from '../../i18n/react';
 import { duelWins as duelWinsOf } from '../../store/duels';
 import { useGame } from '../../store/game-store';
-import { clubColorHex, favoriteSpecies, playedCount } from '../../store/profile';
+import { careerWithUltimate, clubColorHex, favoriteSpecies, playedCount } from '../../store/profile';
 import { BELT_STEPS, bestTitle, cupMetal, TITLE_STEPS, tierMetal, titlesByMode } from '../../store/trophies';
 import { speciesCard } from '../components/EvoChain';
 import { FutCard } from '../components/FutCard';
@@ -21,14 +21,19 @@ function Big({ v, label, sub }: { v: number | string; label: string; sub?: strin
     );
 }
 
-/** Partidas, vitórias, aproveitamento e títulos: a faixa do Perfil (o mesmo que o amigo vê) e o topo da folha. */
+/**
+ * Partidas, vitórias, aproveitamento e títulos: a faixa do Perfil (o mesmo que o amigo vê) e o topo da folha.
+ * `career` soma as copas e o Time Ultimate; `cups` é só das copas (gols por jogo).
+ */
 export function useMyNumbers() {
-    const career = useGame((s) => s.career);
+    const cups = useGame((s) => s.career);
+    const ultimate = useGame((s) => s.ultimate);
     const records = useGame((s) => s.records);
     const hall = useGame((s) => s.hall);
+    const career = useMemo(() => careerWithUltimate(cups, ultimate), [cups, ultimate]);
     const titles = Math.max(records.titles, hall.length);
     const pct = career.matches ? Math.round((career.wins / career.matches) * 100) : 0;
-    return { career, records, titles, pct };
+    return { career, cups, records, titles, pct };
 }
 
 /** A faixa de números grandes no Perfil: tocar abre "Seus números". */
@@ -57,7 +62,7 @@ export function StatsStrip({ onOpen }: { onOpen: () => void }) {
  */
 export function MyStats() {
     const { t, tn, d, lang } = useT();
-    const { career, records, titles, pct } = useMyNumbers();
+    const { career, cups, records, titles, pct } = useMyNumbers();
     const hall = useGame((s) => s.hall);
     const daily = useGame((s) => s.daily);
     const duels = useGame((s) => s.duels);
@@ -71,7 +76,7 @@ export function MyStats() {
     const loc = lang === 'pt' ? 'pt-BR' : 'en-US';
     const per = (n: number) =>
         t('profile.stats.perGame', {
-            n: (n / Math.max(1, career.matches)).toLocaleString(loc, {
+            n: (n / Math.max(1, cups.matches)).toLocaleString(loc, {
                 minimumFractionDigits: 1,
                 maximumFractionDigits: 1,
             }),
@@ -103,6 +108,9 @@ export function MyStats() {
                     <i style={{ width: `${pct}%` }} />
                 </div>
                 <small>{t('profile.stats.record', { w: career.wins, l: career.losses, n: career.matches })}</small>
+                {career.matches > cups.matches && (
+                    <small>{t('profile.stats.split', { c: cups.matches, u: career.matches - cups.matches })}</small>
+                )}
             </section>
 
             <div className="pf-career wide three">
