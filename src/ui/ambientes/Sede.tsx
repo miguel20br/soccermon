@@ -1,6 +1,8 @@
 import { type CSSProperties, useMemo } from 'react';
+import { useFriends } from '../../friends/api';
 import { useT } from '../../i18n/react';
 import { lookOfProfile } from '../../store/club-kit';
+import { duelWins } from '../../store/duels';
 import { useGame } from '../../store/game-store';
 import { cupCounts, METALS } from '../../store/trophies';
 import { HudIcon } from '../components/MatchHud';
@@ -8,10 +10,12 @@ import { PixelTrophy } from '../components/PixelTrophy';
 import { openDoor, openMetas } from '../doors';
 import { playDoor } from '../kit/DoorWipe';
 import { Crest, KitShirt } from '../profile/Crest';
-import { hexCss, missionText } from '../profile/club';
+import { hexCss, titleName, trainerName } from '../profile/club';
+import { NewDot, newsCount, useNews } from '../profile/news';
 import { useSaveView } from '../profile/TrainerTab';
+import { trainerSrc } from '../tema';
 import { ClockCtx, useSceneClock } from './clock';
-import { closestMissions } from './metas';
+import { levelOfDone, type PathStep, pathWindow, trainerPath } from './metas';
 import { BIG, floorZone, Mi, ROOM, SMALL } from './Room';
 import { SceneHotspot } from './SceneHotspot';
 import { sceneScale } from './sprite-scale';
@@ -21,11 +25,25 @@ import type { Wild } from './wild';
 /** Bandeirinhas do varal na parede (12, alternando as duas cores do clube). */
 const FLAGS = Array.from({ length: 12 }, (_, i) => i);
 
+/** O prêmio de um passo do Caminho no tapete: o treinador (sprite), o título (coroa), o cinturão ou a sala. */
+function PathIcon({ s }: { s: PathStep }) {
+    const p = s.prize;
+    if (p.kind === 'belt') return <PixelTrophy kind="cinturao" metal={p.metal} />;
+    if (p.kind === 'room') return <HudIcon kind="building" />;
+    return p.m.trainer ? (
+        <img className="pixel" src={trainerSrc(p.m.trainer)} alt="" draggable={false} />
+    ) : (
+        <HudIcon kind="crown" />
+    );
+}
+
 /**
  * Sede do clube (Perfil + Sala de troféus): a sala de madeira com o escudo na parede, o varal de bandeirinhas e o
  * tapete nas cores do clube, as taças em cima da vitrine e a lareira (só fora do celular). O botão principal abre as
- * Metas (missões e medalhas, numa folha por cima da Sede, `DoorSheets`) com a missão mais perto de sair. Os objetos da cena abrem o
- * resto: a vitrine é a Sala de troféus, o escudo é o Clube, o mural é Amigos e o armário é o Perfil.
+ * Metas (missões e medalhas, numa folha por cima da Sede, `DoorSheets`) com o nível do treinador e o próximo prêmio; o
+ * tapete é o Caminho do treinador e também abre as Metas. Os objetos da cena abrem o resto, e a plaquinha de cada um
+ * diz o estado: a vitrine (títulos) é a Sala de troféus, o escudo (TAG) é o Clube, o mural (pedidos) é Amigos e o
+ * armário (novidades) é o Perfil.
  */
 /** O mural de amigos (cortiça com 3 fotos presas), 30 x 24 pixels de arte no traço do kit. */
 function Mural() {
@@ -67,10 +85,31 @@ export function Sede({ active, wild, near }: { active: boolean; wild: Wild[]; ne
     const profile = useGame((s) => s.profile);
     const hall = useGame((s) => s.hall);
     const titles = useGame((s) => Math.max(s.records.titles, s.hall.length));
+    const wins = useGame((s) => duelWins(s.records, s.duels));
     const view = useSaveView();
     const look = lookOfProfile(profile);
     const cups = useMemo(() => cupCounts(hall), [hall]);
-    const goal = useMemo(() => closestMissions(view, 1)[0], [view]);
+    // o Caminho do treinador: o nível no botão Metas e os 3 passos no tapete (revisão dos menus, S1 e S2)
+    const lv = levelOfDone(profile.missionsDone);
+    const path = useMemo(
+        () => trainerPath(view, profile.missionsDone, wins, titles),
+        [view, profile.missionsDone, wins, titles],
+    );
+    const next = path.steps[path.next];
+    const rug = pathWindow(path.steps, path.next);
+    const prizeName = (s: PathStep) =>
+        s.prize.kind === 'mission'
+            ? s.prize.m.trainer
+                ? trainerName(s.prize.m.trainer)
+                : titleName(s.prize.m.title ?? '')
+            : s.prize.kind === 'belt'
+              ? t('trophies.belt', { n: s.goal })
+              : d.trophies.level[s.prize.level];
+    // o estado de cada objeto na plaquinha (S3): pedidos de amizade e novidades do Perfil e das medalhas
+    const asked = useFriends((s) => s.rows?.filter((r) => r.status === 'recebido').length ?? 0);
+    const news = useNews();
+    const profileNews = newsCount(news, 'treinador') + newsCount(news, 'clube');
+    const medalNews = newsCount(news, 'medalhas');
     const club = profile.clubName || 'Pallet FC';
     const vars = { '--club': hexCss(look.color), '--club2': hexCss(look.color2) } as CSSProperties;
 
@@ -87,7 +126,32 @@ export function Sede({ active, wild, near }: { active: boolean; wild: Wild[]; ne
                                     <li key={i} />
                                 ))}
                             </ol>
-                            <i className="sd-rug" />
+                            {/* o tapete é o Caminho do treinador: o último prêmio ganho, o próximo e o seguinte */}
+                            <div className="sd-rug-at">
+                                <SceneHotspot
+                                    x={35}
+                                    bottom={122}
+                                    w={120}
+                                    h={40}
+                                    label={t('profile.path.title')}
+                                    onClick={openMetas}
+                                >
+                                    <span className="sd-rug rm-prop">
+                                        <ol className="sd-path">
+                                            {rug.map((s) => (
+                                                <li
+                                                    key={s.id}
+                                                    className={s.done ? 'done' : s === next ? 'next' : undefined}
+                                                    title={prizeName(s)}
+                                                >
+                                                    <PathIcon s={s} />
+                                                    {s.done && <HudIcon kind="check" className="sd-path-ok" />}
+                                                </li>
+                                            ))}
+                                        </ol>
+                                    </span>
+                                </SceneHotspot>
+                            </div>
                             <Mi k="plant" x={-72} bottom={76} />
                             <Mi k="lamp" x={-38} bottom={74} />
                             <span className="sd-frame">
@@ -98,6 +162,7 @@ export function Sede({ active, wild, near }: { active: boolean; wild: Wild[]; ne
                                 x={4}
                                 bottom={72}
                                 label={t('home.amb.sedeTrophies')}
+                                sub={titles ? tn('home.amb.sedeTitles', titles) : undefined}
                                 plate={8}
                                 onClick={() => playDoor(() => openDoor('trophies'))}
                             />
@@ -122,6 +187,7 @@ export function Sede({ active, wild, near }: { active: boolean; wild: Wild[]; ne
                                 w={40}
                                 h={44}
                                 label={d.profile.tabs.clube}
+                                sub={profile.clubTag || undefined}
                                 onClick={() => openDoor('profile', 'clube')}
                             >
                                 <Crest look={look} className="sd-crest" />
@@ -132,6 +198,7 @@ export function Sede({ active, wild, near }: { active: boolean; wild: Wild[]; ne
                                 w={30}
                                 h={24}
                                 label={d.profile.tabs.amigos}
+                                sub={asked ? tn('home.amb.sedeAsked', asked) : undefined}
                                 onClick={() => openDoor('profile', 'amigos')}
                             >
                                 <Mural />
@@ -141,6 +208,7 @@ export function Sede({ active, wild, near }: { active: boolean; wild: Wild[]; ne
                                 x={131}
                                 bottom={72}
                                 label={t('profile.title')}
+                                sub={profileNews ? tn('profile.news.count', profileNews) : undefined}
                                 onClick={() => openDoor('profile')}
                             />
                             {/* fora do celular: a lareira acesa e a palmeira */}
@@ -169,12 +237,27 @@ export function Sede({ active, wild, near }: { active: boolean; wild: Wild[]; ne
                 </header>
                 <div className="rm-actions">
                     {/* a ação principal é o que não tem porta na cena: as Metas (Troféus é a vitrine, o contador e a porta) */}
-                    <button type="button" className="btn big cup-go rm-go cb cb-blue" onClick={openMetas}>
+                    {/* o nível do treinador (as Metas é que sobem ele) e o próximo prêmio; a missão da Pokédex fica no Lab */}
+                    <button
+                        type="button"
+                        className="btn big cup-go rm-go cb cb-blue"
+                        onClick={openMetas}
+                        aria-label={`${t('home.amb.sedeMetas')} · ${t('home.amb.resLevel', { n: lv.level, x: lv.n, y: lv.goal })}`}
+                    >
                         <span className="cup-go-txt">
                             <b>{t('home.amb.sedeMetas')}</b>
-                            <small>{goal ? missionText(goal.m) : t('home.amb.sedeBoard')}</small>
+                            <small>
+                                {t('home.amb.sedeLevel', { n: lv.level })}
+                                {next && (
+                                    <span className="sd-next">
+                                        {' '}
+                                        · {t('home.amb.sedeNext', { name: prizeName(next) })}
+                                    </span>
+                                )}
+                            </small>
                         </span>
-                        {goal && <em className="door-count">{`${goal.n}/${goal.goal}`}</em>}
+                        <em className="door-count">{`${lv.n}/${lv.goal}`}</em>
+                        <NewDot on={medalNews > 0} className="sd-dot" />
                         <HudIcon kind="next" />
                     </button>
                 </div>

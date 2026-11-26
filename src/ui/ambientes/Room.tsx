@@ -64,8 +64,11 @@ export const floorZone = (scale: number, ok: ZoneDef['ok'] = () => true): Record
     floor: { ok: (x, y) => y > 0.12 && y < 0.9 && ok(x, y), speed: 0.2, scale },
 });
 
-/** Nas salas, os Pokémon contornam a base dos móveis (passar na frente pode), os botões e as plaquinhas dos objetos. */
-export const ROOM: Blockers = { feet: '.mi', ui: '.amb-ui > *, .hs-plate' };
+/**
+ * Nas salas, os Pokémon contornam a base dos móveis (passar na frente pode), os botões e as plaquinhas dos objetos; o que
+ * fica no chão (`.rm-prop`: o quadro dos 151, o Carvalho, o tapete do Caminho) eles não pisam.
+ */
+export const ROOM: Blockers = { feet: '.mi', ui: '.amb-ui > *, .hs-plate', props: '.rm-prop' };
 
 /** Botão menor do lugar (ícone, nome e uma linha); `soon` = ainda não abre (tracejado, sem clique). */
 export function Tile({
@@ -100,11 +103,11 @@ export function Tile({
 }
 
 /**
- * A fala do Carvalho só na 1ª vez (depois é ruído): `true` se ainda não foi vista quando o save carregou. Marca como
+ * A fala da Rota só na 1ª vez (depois é ruído): `true` se ainda não foi vista quando o save carregou. Marca como
  * vista em `profile.coach` (o mesmo "visto" do tutorial, no save e na nuvem) assim que a aba está na tela; a fala
  * fica até a pessoa sair da Home.
  */
-export function useTalkOnce(id: 'falaLab' | 'falaRota', active: boolean): boolean {
+export function useTalkOnce(id: 'falaRota', active: boolean): boolean {
     const hydrated = useHydrated();
     const [show, setShow] = useState(false);
     useEffect(() => {

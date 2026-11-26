@@ -90,7 +90,15 @@ export const home = {
         labLeft: 'Faltam {n}',
         labFull: 'Pokédex completa',
         labTalk: 'Faltam {n} pra fechar a Pokédex. Draft e rival já contam.',
-        labTalkDone: 'Os 151 de Kanto, todos vistos! Agora é encher o Álbum.',
+        /** A fala muda com o progresso (`oakLine`, metas.ts): o tipo que falta, depois o Álbum e a Golpedex. */
+        labTalkType: 'Falta {n} do tipo {type} pra fechar a Pokédex.|Faltam {n} do tipo {type} pra fechar a Pokédex.',
+        labTalkAlbum:
+            'Os 151 de Kanto, todos vistos! Falta {n} figurinha no Álbum.|Os 151 de Kanto, todos vistos! Faltam {n} figurinhas no Álbum.',
+        labTalkMoves: 'Álbum completo! Falta {n} golpe na Golpedex.|Álbum completo! Faltam {n} golpes na Golpedex.',
+        labTalkDone: 'Coleção completa! Nem o meu laboratório tem uma assim.',
+        /** O quadro dos 151 no chão do Lab: aceso = jogou pelo seu time, claro = visto. */
+        labBoard: 'Kanto',
+        labBoardSub: '{n} jogaram',
         /** Arena: o Duelo na frente, o cinturão como meta, o resto chegando. */
         /** O Duelo no seletor de modos do Estádio. */
         signDuel: 'Com amigos',
@@ -114,6 +122,10 @@ export const home = {
         sedeTrophies: 'Troféus',
         sedeTitles: '{n} título|{n} títulos',
         sedeKit: 'Escudo e uniforme',
+        /** O botão Metas da Sede e as plaquinhas dos objetos com o estado de cada um. */
+        sedeLevel: 'Nível {n}',
+        sedeNext: 'Próximo: {name}',
+        sedeAsked: '{n} pedido|{n} pedidos',
         /** A estrela do nível na barra de cima. */
         resLevel: 'Nível {n} do treinador ({x} de {y} missões pro próximo)',
     },

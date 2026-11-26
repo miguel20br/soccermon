@@ -84,7 +84,13 @@ export const home: typeof pt = {
         labLeft: '{n} to go',
         labFull: 'Pokédex complete',
         labTalk: '{n} to go for the Pokédex. Drafts and rivals count.',
-        labTalkDone: 'All 151 of Kanto seen! Now go fill the Album.',
+        labTalkType: '{n} {type}-type left for the Pokédex.|{n} {type}-types left for the Pokédex.',
+        labTalkAlbum:
+            'All 151 of Kanto seen! {n} sticker left in the Album.|All 151 of Kanto seen! {n} stickers left in the Album.',
+        labTalkMoves: 'Album complete! {n} move left in the Movedex.|Album complete! {n} moves left in the Movedex.',
+        labTalkDone: 'Collection complete! Not even my lab has one like it.',
+        labBoard: 'Kanto',
+        labBoardSub: '{n} played',
         signDuel: 'With friends',
         /** The arrows on the Stadium mode pill. */
         modePrev: 'Previous mode',
@@ -105,6 +111,9 @@ export const home: typeof pt = {
         sedeTrophies: 'Trophies',
         sedeTitles: '{n} title|{n} titles',
         sedeKit: 'Crest and kit',
+        sedeLevel: 'Level {n}',
+        sedeNext: 'Next: {name}',
+        sedeAsked: '{n} request|{n} requests',
     },
     modes: {
         aria: 'Game modes',
