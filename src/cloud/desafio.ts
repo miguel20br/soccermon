@@ -1,5 +1,12 @@
 import { create } from 'zustand';
-import { DEGRAUS, DESAFIO_TO, degrausBatidos, desafioForced, desafioPhase, payDesafio } from '../store/desafio-natal';
+import {
+    DEGRAUS,
+    degrausBatidos,
+    desafioForced,
+    desafioListens,
+    desafioPhase,
+    payDesafio,
+} from '../store/desafio-natal';
 import { type GameState, useGame } from '../store/game-store';
 import { pushReveals } from '../store/reveal';
 import { utNow } from '../store/ultimate/clock';
@@ -170,7 +177,8 @@ function startDemo(search: string): boolean {
 
 export function startDesafio() {
     if (__SMOKE__ && startDemo(window.location.search)) return;
-    if (!cloudApi || utNow() >= DESAFIO_TO + 30 * 86_400_000) return;
+    // a mesma data do payDesafio: quem marcou em dezembro e só volta em março ainda abre o prêmio
+    if (!cloudApi || !desafioListens(utNow())) return;
     useGame.subscribe((s, prev) => {
         // save carregando ou vindo da nuvem não é partida nova
         if (isApplyingCloud() || !useGame.persist.hasHydrated() || !prev.ultimate) return;

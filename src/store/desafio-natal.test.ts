@@ -8,6 +8,7 @@ import {
     daysToOpen,
     degrausBatidos,
     desafioForced,
+    desafioListens,
     desafioPhase,
     payDesafio,
     proximoDegrau,
@@ -66,6 +67,13 @@ describe('Desafio de Natal: quem ganha e o prêmio uma vez só', () => {
     it('antes de abrir e depois da Temporada 1 não abre', () => {
         expect(payDesafio(saves(), 10000, 5, DESAFIO_FROM - 1)).toBeNull();
         expect(payDesafio(saves(), 10000, 5, DESAFIO_CLAIM_TO)).toBeNull();
+    });
+
+    it('quem volta em março ainda abre: o jogo escuta o desafio até a mesma data do prêmio', () => {
+        const marco = at('2027-03-15T12:00:00-03:00');
+        expect(desafioListens(marco)).toBe(true);
+        expect(payDesafio(saves(), 10000, 5, marco)).not.toBeNull();
+        expect(desafioListens(DESAFIO_CLAIM_TO)).toBe(false);
     });
 
     it('abre só os degraus batidos, cada prêmio na conta', () => {

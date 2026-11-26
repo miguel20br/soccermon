@@ -12,6 +12,8 @@ export const DESAFIO_FROM = Date.parse('2026-12-07T00:00:00-03:00');
 export const DESAFIO_TO = Date.parse('2027-01-06T00:00:00-03:00');
 /** O prêmio abre até o fim da Temporada 1 do Time Ultimate (os pacotes e o Pick vivem nela; a 2 zera o modo). */
 export const DESAFIO_CLAIM_TO = SEASONS[0].end;
+/** O jogo escuta o desafio (soma, seus gols, prêmios) até o último dia de abrir prêmio: depois disso não há o que fazer. */
+export const desafioListens = (now: number) => now < DESAFIO_CLAIM_TO;
 /** O evento do Time Ultimate cujas cartas Evento os pacotes e os Picks do desafio trazem. */
 export const DESAFIO_EVENT = 'natal-2026';
 
@@ -112,7 +114,7 @@ function give(s: Saves, item: DesafioItem, uid: string): Saves | null {
  * partir da abertura e até DESAFIO_CLAIM_TO. null = nada a abrir.
  */
 export function payDesafio(s: Saves, total: number, meus: number, now: number): (Saves & { got: DesafioGot[] }) | null {
-    if (meus < 1 || now < DESAFIO_FROM || now >= DESAFIO_CLAIM_TO) return null;
+    if (meus < 1 || now < DESAFIO_FROM || !desafioListens(now)) return null;
     let cur = s;
     const got: DesafioGot[] = [];
     for (let i = 0; i < degrausBatidos(total); i++) {
