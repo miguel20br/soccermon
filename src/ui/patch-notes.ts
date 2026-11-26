@@ -9,6 +9,19 @@ export interface PatchNotes {
 
 export const PATCH_NOTES: PatchNotes[] = [
     {
+        version: '0.9.53.2',
+        date: '2026-11-26',
+        title: 'Conserto do nome do clube',
+        sections: [
+            {
+                title: 'Consertos',
+                lines: [
+                    'Nome do clube: apagar o nome não volta mais sozinho pra Pallet FC, e a caixa não perde o foco a cada letra',
+                ],
+            },
+        ],
+    },
+    {
         version: '0.9.53.1',
         date: '2026-11-23',
         title: 'Comemorações próprias e cut-in de dupla',
@@ -3069,6 +3082,19 @@ export const PATCH_NOTES: PatchNotes[] = [
 
 /** Notes in English (same versions; a version missing here falls back to Portuguese). */
 export const PATCH_NOTES_EN: PatchNotes[] = [
+    {
+        version: '0.9.53.2',
+        date: '2026-11-26',
+        title: 'Club name fix',
+        sections: [
+            {
+                title: 'Fixes',
+                lines: [
+                    'Club name: clearing the name no longer resets it to Pallet FC, and the field no longer loses focus on every letter',
+                ],
+            },
+        ],
+    },
     {
         version: '0.9.53.1',
         date: '2026-11-23',
