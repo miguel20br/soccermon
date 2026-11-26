@@ -373,7 +373,6 @@ export function Profile() {
                     className="pf-cloud bc-tile"
                     disabled={busy}
                     onClick={() => {
-                        // junção: openAccount() da menus-a
                         setBusy(true);
                         signInWithGoogle().catch(() => setBusy(false));
                     }}
