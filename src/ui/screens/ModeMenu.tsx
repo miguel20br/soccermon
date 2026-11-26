@@ -358,7 +358,7 @@ export function Play({ sub, off, onClick }: { sub?: string; off?: boolean; onCli
             <i ref={ring} className="mm-play-ring" aria-hidden />
             <i className="mm-play-glow" aria-hidden />
             <i className="cb-shine" aria-hidden />
-            <b>{t('home.modes.play')}</b>
+            <b className="es-play-verb">{t('home.modes.play')}</b>
             {sub && <small>{sub}</small>}
         </button>
     );

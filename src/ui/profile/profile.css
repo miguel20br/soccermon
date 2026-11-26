@@ -392,11 +392,6 @@ button.pf-trainer:focus-visible,
     display: grid;
     gap: 14px;
 }
-.pf-mission-summary {
-    display: grid;
-    gap: 6px;
-    padding: 0 2px;
-}
 .pf-mission-list {
     display: grid;
     gap: 8px;

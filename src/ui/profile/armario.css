@@ -15,6 +15,13 @@
     grid-template-columns: auto minmax(0, 1fr);
     animation: pf-arm-in 260ms var(--ease-out) both;
 }
+/* o cartão com a mesma moldura do nível, dos números e dos atalhos ao lado (contorno escuro de 3 px e base dura), sem
+   a faixa lateral que só ele tinha; a cor do clube fica no brilho do fundo e no escudo */
+.pf-arm .pf-head:not(.gold-frame, .holo-frame) {
+    border: 3px solid var(--bc-ink);
+    border-radius: 8px;
+    box-shadow: 0 3px 0 var(--bc-ink);
+}
 /* a vitrine de cartas desce pra linha dela, centralizada (o cartão aqui é estreito) */
 .pf-arm .pf-cards,
 .pf-arm .pf-cards-empty {
@@ -604,6 +611,10 @@
     display: grid;
     gap: 4px;
     font-size: 13px;
+    /* cada missão no mesmo cartão das medalhas logo abaixo (.md-card) e dos objetivos do Time Ultimate */
+    padding: 10px 12px;
+    border-radius: 6px;
+    background: var(--bc-ink-2, #141a33);
 }
 .pf-near-bar {
     display: flex;
@@ -840,9 +851,11 @@
 .pf-fig-grid .pf-trainer b {
     font-size: 11px;
     max-width: 100%;
+    /* nome comprido ("Blue (Campeão)", "Tenente Surge") quebra em 2 linhas centralizadas, entre palavras */
     overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+    white-space: normal;
+    text-align: center;
+    line-height: 1.15;
 }
 .pf-fig-grid .pf-trainer.picked {
     outline: 2px solid var(--yellow);

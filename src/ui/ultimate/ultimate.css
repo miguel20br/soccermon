@@ -790,19 +790,25 @@
 .ut-grp .bc-fold > div > :first-child {
     margin-top: 10px;
 }
+/* a mesma barra do resto do jogo (.k-bar: chanfrada, fundo escuro, enche de amarelo), com o número por dentro */
 .ut-bar {
     position: relative;
     display: block;
     height: 18px;
-    border-radius: 8px;
-    background: var(--bc-ink-2, #0e1430);
+    border: 2px solid var(--cb-ink);
+    border-radius: 4px;
+    background: var(--bc-ink-3);
+    box-shadow:
+        inset 0 2px 0 rgb(0 0 0 / 35%),
+        0 2px 0 var(--cb-ink);
     overflow: hidden;
 }
 .ut-bar > i {
     position: absolute;
     inset: 0 auto 0 0;
     width: 100%;
-    background: var(--green);
+    background: linear-gradient(180deg, var(--gold-hi) 0 45%, var(--yellow) 45%);
+    box-shadow: inset 0 -2px 0 var(--gold-lo);
     transform: scaleX(var(--p));
     transform-origin: left;
     transition: transform 280ms var(--ease-out);
@@ -812,7 +818,7 @@
     display: block;
     padding: 0 8px;
     font-size: 11px;
-    line-height: 18px;
+    line-height: 14px;
     color: #fff;
     /* contorno inteiro: o número passa por cima do verde (branco sobre verde sem contorno não lê) */
     text-shadow:
@@ -1533,13 +1539,21 @@
     }
     .ut-ind::before {
         inset: 3px 0;
-        border-bottom: 0;
-        border-left: 3px solid var(--yellow);
     }
     .ut-tab .hud-icon {
         width: 20px;
         height: 20px;
     }
+}
+/* a aba acesa igual à da barra dos ambientes (Lab, Rota, Estádio…): o botão azul chanfrado e o rótulo branco, no
+   lugar do sublinhado amarelo que só o Time Ultimate tinha */
+.ut-ind::before {
+    border: 3px solid var(--cb-ink);
+    background: linear-gradient(180deg, var(--blue-hi) 0 44%, var(--blue-c) 44%);
+    box-shadow: inset 0 -4px 0 var(--blue-lo);
+}
+.ut-tab.on {
+    color: #fff;
 }
 
 /* Início: o mosaico de blocos, cada um com o estado dele; o JOGAR gordo embaixo */

@@ -1,6 +1,7 @@
 import { type CSSProperties, type KeyboardEvent, useEffect, useId } from 'react';
 import { useCloud } from '../../cloud/cloud';
 import { useT } from '../../i18n/react';
+import { CARD_SHOWCASE_MAX } from '../../store/binder';
 import { lookOfProfile } from '../../store/club-kit';
 import { useGame } from '../../store/game-store';
 import { activeTitle, activeTrainer } from '../../store/missions';
@@ -88,7 +89,12 @@ function ShowcaseTab() {
     };
     return (
         <>
-            <h3 className="bc-lbl">{t('profile.card.cards')}</h3>
+            <h3 className="bc-lbl">
+                {t('profile.card.cards')}
+                <span className="pf-count">
+                    {cards.length}/{CARD_SHOWCASE_MAX}
+                </span>
+            </h3>
             <div className={`pf-ed-cards bd-showcase${incoming ? ' picking' : ''}`}>
                 <ShowcaseEditor
                     shown={cards}

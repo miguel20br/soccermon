@@ -228,7 +228,7 @@ export function Profile() {
                 </>
             }
         >
-            <header className={`panel pf-head bc-surface bc-stripe${trainerFrame(activeTrainer(profile))}`}>
+            <header className={`panel pf-head bc-surface${trainerFrame(activeTrainer(profile))}`}>
                 {/* o personagem em pé, grande (tocar troca); o avatar vai ao lado do nome */}
                 <button
                     type="button"

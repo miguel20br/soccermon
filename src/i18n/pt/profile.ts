@@ -367,7 +367,6 @@ export const profile = {
         diplomaKanto: 'Diploma de Kanto',
     } as Record<string, string>,
     missions: {
-        summary: '{done} de {total} missões cumpridas',
         done: 'Cumprida',
         progressAria: '{n} de {goal}',
         rewardTrainer: 'Personagem',
@@ -542,7 +541,7 @@ export const profile = {
         swipe: 'Arraste pro lado ou use as setas pra virar a página.',
     },
     medals: {
-        summary: '{n} de {total}',
+        summary: '{n}/{total}',
         tiers: { nenhum: 'Sem medalha', bronze: 'Bronze', prata: 'Prata', ouro: 'Ouro', platina: 'Platina' },
         none: 'Sem medalha',
         next: '{tier}: {n}/{goal}',

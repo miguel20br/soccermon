@@ -364,7 +364,6 @@ export const profile: typeof pt = {
         diplomaKanto: 'Kanto Diploma',
     },
     missions: {
-        summary: '{done} of {total} missions done',
         done: 'Done',
         progressAria: '{n} of {goal}',
         rewardTrainer: 'Character',
@@ -537,7 +536,7 @@ export const profile: typeof pt = {
         swipe: 'Swipe sideways or use the arrows to turn the page.',
     },
     medals: {
-        summary: '{n} of {total}',
+        summary: '{n}/{total}',
         tiers: { nenhum: 'No medal', bronze: 'Bronze', prata: 'Silver', ouro: 'Gold', platina: 'Platinum' },
         none: 'No medal',
         next: '{tier}: {n}/{goal}',

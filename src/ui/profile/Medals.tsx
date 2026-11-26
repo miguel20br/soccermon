@@ -177,28 +177,38 @@ export function MedalsTab({ save, onEdit }: { save: (patch: Partial<Profile>) =>
         );
     };
 
+    // título de seção da folha: o mesmo rótulo de "Cartas da vitrine" e das Missões, com a conta à direita
+    const medalsLbl = (
+        <h3 className="bc-lbl">
+            {t('profile.tabs.medalhas')}
+            <span className="pf-count">{t('profile.medals.summary', { n: earned, total: progress.length })}</span>
+        </h3>
+    );
     return (
         <div className="pf-medals">
             {onEdit ? (
-                <button type="button" className="k-sheetrow md-edit" onClick={onEdit}>
-                    <HudIcon kind="medal" />
-                    <b>
-                        {d.profile.medals.showcase}{' '}
-                        <span className="pf-count">
-                            {shown.length}/{SHOWCASE_MAX}
-                        </span>
-                    </b>
-                    <span className="muted">{t('profile.edit.open')}</span>
-                    <HudIcon kind="next" />
-                </button>
+                <>
+                    {medalsLbl}
+                    <button type="button" className="k-sheetrow md-edit" onClick={onEdit}>
+                        <HudIcon kind="medal" />
+                        <b>
+                            {d.profile.medals.showcase}{' '}
+                            <span className="pf-count">
+                                {shown.length}/{SHOWCASE_MAX}
+                            </span>
+                        </b>
+                        <span className="muted">{t('profile.edit.open')}</span>
+                        <HudIcon kind="next" />
+                    </button>
+                </>
             ) : (
                 <section className="panel pf-card md-showcase">
-                    <h2>
-                        {d.profile.medals.showcase}{' '}
+                    <h3 className="bc-lbl">
+                        {d.profile.medals.showcase}
                         <span className="pf-count">
                             {shown.length}/{SHOWCASE_MAX}
                         </span>
-                    </h2>
+                    </h3>
                     <div className="md-slots">
                         {Array.from({ length: SHOWCASE_MAX }, (_, i) => {
                             const it = shown[i];
@@ -241,12 +251,7 @@ export function MedalsTab({ save, onEdit }: { save: (patch: Partial<Profile>) =>
             )}
 
             <section className="panel pf-card">
-                <h2>
-                    {t('profile.tabs.medalhas')}{' '}
-                    <span className="pf-count">
-                        {t('profile.medals.summary', { n: earned, total: progress.length })}
-                    </span>
-                </h2>
+                {!onEdit && medalsLbl}
                 <ul className="md-grid">
                     {progress.map(({ medal, value, tier, next }) => {
                         const key = `m:${medal.id}`;

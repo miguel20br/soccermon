@@ -682,6 +682,13 @@
         --juggle: calc(var(--px) * -15);
     }
 }
+/* 320x568: entre o telão e as placas Modos/Ranking sobram ~90 px de quadra; com 25cqh o capitão ficava atrás das
+   placas (só as orelhas). Ele sobe pro meio dessa faixa */
+@media (max-height: 600px) and (orientation: portrait) {
+    .es-captain {
+        top: 17cqh;
+    }
+}
 .es-shadow {
     position: absolute;
     left: calc(var(--px) * -6);
@@ -3422,7 +3429,9 @@
     letter-spacing: 1px;
     text-transform: uppercase;
 }
-:is(.amb, .ut-home) .es-play .es-play-verb {
+/* o mesmo JOGAR no Estádio, no Time Ultimate e no menu de modos (.mm-play): letra, contorno marrom e sombra */
+:is(.amb, .ut-home) .es-play .es-play-verb,
+.mm-play .es-play-verb {
     --ol: #3d1c00;
     text-shadow:
         -3px -3px 0 var(--ol),
