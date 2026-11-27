@@ -436,5 +436,9 @@ export const ultimate: typeof pt = {
         gift: 'You got 2 packs to start again. The Cup, your Profile and the Pokédex did not change.',
         ok: 'Got it',
     },
-    match: { stage: 'Team Ultimate', stageShort: 'ULTIMATE' },
+    match: {
+        stage: 'Team Ultimate',
+        stageShort: 'ULTIMATE',
+        locked: 'Resumed match: you can watch or skip, but not change tactics or the team.',
+    },
 };

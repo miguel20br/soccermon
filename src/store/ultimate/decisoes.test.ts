@@ -1,10 +1,23 @@
 import { describe, expect, it } from 'vitest';
+import { ENGINE_VERSION } from '../../engine/config';
 import { species } from '../../engine/data';
 import { createInstance, evolutionBonus, type PokemonInstance, viewInstance } from '../../engine/instance';
 import { Rng } from '../../engine/rng';
 import { evoPaths, evoPreview, newEvo } from './evolutions';
 import { MATCH_FICHAS_DAY_MAX, PAID_EVO_MAX, TRAIN_STEPS } from './rules';
-import { buyCard, buyPick, cappedFichas, newUltimate, pickable, pickOptions, startEvo, type UtPick } from './ultimate';
+import {
+    buyCard,
+    buyPick,
+    cappedFichas,
+    homeTeam,
+    newUltimate,
+    ordersLocked,
+    pickable,
+    pickOptions,
+    startEvo,
+    type UtPick,
+    ultimateRun,
+} from './ultimate';
 
 // decisões do Miguel depois da auditoria do Time Ultimate (27/11/2026)
 const T = Date.UTC(2026, 11, 1, 15);
@@ -62,5 +75,26 @@ describe('Evolução da carta comprada, uma de cada no Clube e Treino', () => {
         expect(done.trained).toBe(TRAIN_STEPS);
         expect(done.evolved).toBeUndefined();
         expect(evolutionBonus(done)).toBe(TRAIN_STEPS);
+    });
+});
+
+describe('partida do Time Ultimate retomada no meio', () => {
+    it('trava as ordens (só assistir ou Pular); a que ainda não começou, não', () => {
+        expect(ordersLocked(null)).toBe(false);
+        expect(ordersLocked({ tick: 0 })).toBe(false);
+        expect(ordersLocked({ tick: 240 })).toBe(true);
+        // o que a tela da partida recebe ao recarregar: o ponto salvo da partida aberta
+        const u = newUltimate('dec', T);
+        const home = homeTeam(u, 'Eu', 0);
+        const live = {
+            n: 0,
+            level: 'normal' as const,
+            home,
+            rival: home,
+            orders: [],
+            tick: 240,
+            engine: ENGINE_VERSION,
+        };
+        expect(ordersLocked(ultimateRun({ ultimate: { ...u, live } })?.live ?? null)).toBe(true);
     });
 });
