@@ -1,16 +1,15 @@
 import { describe, expect, it } from 'vitest';
-import { createInstance, viewInstance } from '../../engine/instance';
-import { Rng } from '../../engine/rng';
+import { viewInstance } from '../../engine/instance';
 import { evoPaths, evoPreview, newEvo } from './evolutions';
 import { FICHAS, STARTERS } from './rules';
-import { cappedFichas, cardPrice, newUltimate, pickable } from './ultimate';
+import { buyCard, cappedFichas, cardPrice, newUltimate, pickable } from './ultimate';
 
 /**
  * Guarda da economia do Time Ultimate (auditoria de 27/11/2026, `scripts/balance/quebrador-ut.ts`). Conta pura, sem
  * motor: se um número mudar e reabrir o furo, isto avisa.
  *
- * O do Pular passa desde 27/11/2026 (acima do teto a partida paga 0 Fichas, era 10). O da Evolução ainda falha (por isso
- * `it.fails`): a Bronze de 240 Fichas evolui pra 90+. Com o conserto, troque `it.fails` por `it`.
+ * Fechados com as decisões do Miguel (27/11/2026): acima do teto a partida paga 0 Fichas (era 10) e a Bronze/Prata comprada
+ * evolui só até PAID_EVO_MAX (o Machop de 240 Fichas virava Machamp 95); o Treino dá +1 por passo (era +2).
  */
 
 /** Farmador: 8 h por dia de Pular no Difícil, 15 s por partida (JOGAR, Pular, Continuar). */
@@ -31,13 +30,14 @@ describe('guarda da economia do Time Ultimate', () => {
         expect(paid).toBeLessThanOrEqual(FARM_DAY_MAX);
     });
 
-    it.fails('um time titular 85+ custa mais que a 1ª semana do jogador ativo (comprando ou evoluindo)', () => {
+    it('um time titular 85+ custa mais que a 1ª semana do jogador ativo (comprando ou evoluindo)', () => {
         const u = newUltimate('guarda');
         // cada espécie que dá pra escolher com Fichas: o preço dela, se ela chega a 85+ comprada ou com Evolução/Treino
         const cost: number[] = [];
         for (const metal of ['bronze', 'prata', 'ouro'] as const)
             for (const id of pickable(u, metal)) {
-                const card = { ...createInstance(id, new Rng('guarda', `${id}`)), shiny: false };
+                // a carta como a loja entrega (com a marca de comprada)
+                const card = buyCard({ ...u, fichas: 1e9 }, id)!.card;
                 const best = Math.max(
                     viewInstance(card).overall,
                     ...evoPaths(card).map((path) => viewInstance(evoPreview(card, newEvo(card, path))).overall),

@@ -3,13 +3,13 @@ import { SPECIES, species } from '../../engine/data';
 import { evolveInstance } from '../../engine/evolution';
 import { type PokemonInstance, viewInstance } from '../../engine/instance';
 import type { PlayerSummary } from '../../engine/runners/batch-runner';
-import { EVO_STEP, TRAIN_STEPS } from './rules';
+import { EVO_STEP, PAID_EVO_MAX, TRAIN_STEPS } from './rules';
 
 /**
  * Evoluções do Time Ultimate (as Evolutions do FUT com evolução de verdade): você escolhe a carta, vê a forma final
  * antes de começar e cumpre o objetivo de cada passo jogando com ela. A carta continua a mesma (uid, edição, vaga);
  * a evolução usa a regra de sempre (`evolveInstance`, +2 em tudo por evolução). Quem não evolui mais faz Treino: até
- * TRAIN_STEPS subidas, cada uma valendo o mesmo que uma evolução (a mesma conta, `evolved`), sem fórmula nova.
+ * TRAIN_STEPS subidas de +1 em tudo (`trained`, na mesma conta do bônus de evolução).
  */
 export interface UtEvo {
     uid: string;
@@ -24,14 +24,30 @@ export interface UtEvo {
 
 const MAX_ID = SPECIES.length;
 
-/** Caminhos possíveis da carta até a forma final (Eevee tem 3); [[]] = não evolui mais, faz Treino. */
-export function evoPaths(inst: Pick<PokemonInstance, 'speciesId' | 'ability'>): number[][] {
+/**
+ * Caminhos possíveis da carta até a forma final (Eevee tem 3); [[]] = não evolui mais, faz Treino. Com o Clube (`club`):
+ * não vira espécie que outra carta dele já é (uma de cada). Bronze/Prata comprada com Fichas (`paid`) para antes de
+ * passar de PAID_EVO_MAX (o Treino dela, só se o Treino inteiro couber); vazio = não tem Evolução nem Treino.
+ */
+export function evoPaths(
+    inst: Pick<PokemonInstance, 'speciesId' | 'ability'> | PokemonInstance,
+    club: readonly PokemonInstance[] = [],
+): number[][] {
     if (inst.ability === 'imposter') return [[]];
     const walk = (id: number): number[][] => {
         const next = species(id).evolvesTo.filter((e) => e.id <= MAX_ID);
         return next.length ? next.flatMap((e) => walk(e.id).map((p) => [e.id, ...p])) : [[]];
     };
-    return walk(inst.speciesId);
+    const taken = new Set(club.filter((c) => !('uid' in inst) || c.uid !== inst.uid).map((c) => c.speciesId));
+    const paths = walk(inst.speciesId).filter((p) => !p.some((id) => taken.has(id)));
+    if (!('uid' in inst) || !inst.paid || viewInstance(inst).overall > PAID_EVO_MAX) return paths;
+    const fits = (p: number[]) => viewInstance(evoPreview(inst, newEvo(inst, p))).overall <= PAID_EVO_MAX;
+    const cut = paths.map((p) => {
+        let k = p.length;
+        while (k > 1 && !fits(p.slice(0, k))) k--;
+        return p.slice(0, k);
+    });
+    return [...new Map(cut.filter(fits).map((p) => [p.join(), p])).values()];
 }
 
 export const evoSteps = (e: Pick<UtEvo, 'path'>) => e.path.length || TRAIN_STEPS;
@@ -45,10 +61,10 @@ export const evoReady = (e: UtEvo) =>
     e.prog.goals >= evoGoalsNeed(e) &&
     e.prog.mvp >= EVO_STEP.mvp;
 
-/** Um passo: evolui pra próxima espécie do caminho, ou (Treino) +1 evolução de bônus sem mudar a espécie. */
+/** Um passo: evolui pra próxima espécie do caminho, ou (Treino) +1 subida de Treino sem mudar a espécie. */
 export function evoStep(inst: PokemonInstance, e: Pick<UtEvo, 'path' | 'role' | 'step'>): PokemonInstance {
     const into = e.path[e.step];
-    return into ? evolveInstance(inst, into, e.role) : { ...inst, evolved: (inst.evolved ?? 0) + 1 };
+    return into ? evolveInstance(inst, into, e.role) : { ...inst, trained: (inst.trained ?? 0) + 1 };
 }
 
 /** A prévia: a carta depois de todos os passos que faltam (o que ela vai ser no fim). */

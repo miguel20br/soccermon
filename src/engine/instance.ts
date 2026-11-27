@@ -61,11 +61,17 @@ export interface PokemonInstance {
      * docs/planos/evolucao-sem-perda.md). Carta do pacote e saves antigos não têm o campo.
      */
     evolvedFrom?: number[];
+    /** Subidas de Treino do Time Ultimate: +TRAIN_BONUS em tudo cada (o Treino antigo, +2, contava em `evolved`). */
+    trained?: number;
+    /** Time Ultimate: comprada com Fichas (Escolher carta ou Pick pago). Carta antiga sem o campo conta como de pacote. */
+    paid?: boolean;
 }
 
 /** Pontos em todos os atributos por evolução da carta (18/10/2026). */
 export const EVOLUTION_BONUS = 2;
-export const evolutionBonus = (inst: PokemonInstance) => EVOLUTION_BONUS * (inst.evolved ?? 0);
+export const TRAIN_BONUS = 1;
+export const evolutionBonus = (inst: PokemonInstance) =>
+    EVOLUTION_BONUS * (inst.evolved ?? 0) + TRAIN_BONUS * (inst.trained ?? 0);
 
 export const DEFAULT_LEVEL = 50;
 const SHINY_CHANCE = 1 / 64; // bem mais generoso que os jogos — é um fan game, deixa a alegria acontecer
