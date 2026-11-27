@@ -145,7 +145,7 @@ Aprovadas pelo Miguel ("1a a 9a"); **cada tarefa é avaliada por si**, não é a
 
 ## Estado atual (27/11/2026, v0.9.53.4)
 
-No ar: 0.9.53.4 (27/11): economia do UT (teto de Fichas, ouro pela nota, sem lendários, recomeço). UT aberto desde 27/11. Motor 32 (`liga` também). Liga fechada até `LIGA_OPENS_AT`. Tela grande: `calc(N * var(--vw))` e `uiZoom()`. Histórico: [historico.md](docs/planos/historico.md); índice: `node scripts/indice.mjs`.
+No ar: 0.9.53.4 (27/11). Motor 32 (`liga` também). Liga fechada até `LIGA_OPENS_AT`. Tela grande: `calc(N * var(--vw))` e `uiZoom()`. Histórico: [historico.md](docs/planos/historico.md); índice: `node scripts/indice.mjs`.
 ## Armadilhas (o porquê de cada uma)
 
 - **Motor sem `Math.random()`/`Date`:** quebra o Duelo, a Liga e os replays (mesma seed tem que dar a mesma partida). Use o `Rng` do estado. Resultado mudou? Suba `ENGINE_VERSION`.
