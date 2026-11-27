@@ -1,10 +1,11 @@
 import { useCloud } from '../cloud/cloud';
-import { type GameStore, useGame } from '../store/game-store';
+import { type GameStore, playerTeam, useGame } from '../store/game-store';
 import { type DailyReport, league } from './api';
 
 /**
  * Manda cada partida da Copa do Dia pro ranking, na ordem, logo depois do apito (com o time escalado e as ordens, pra
- * auditoria). Sem rede, tenta de novo; recarregou antes de mandar, manda o placar sem o time (o servidor aceita).
+ * auditoria). Sem rede, tenta de novo; recarregou antes de mandar, manda o time da copa do dia ainda aberta (o servidor
+ * recusa partida sem time desde a 0.10.0; a copa que já acabou fica sem as partidas que faltaram).
  */
 const queue: DailyReport[] = [];
 let sending = false;
@@ -35,13 +36,14 @@ async function flush() {
 }
 
 /** Partidas que ficaram sem mandar (a página fechou antes). */
-function pendingFromSave(s: Pick<GameStore, 'daily'>) {
+function pendingFromSave(s: Pick<GameStore, 'daily' | 'run'>) {
     for (const e of s.daily) {
         if (!e.ranked) continue;
         for (let stage = e.reported ?? 0; stage < e.results.length; stage++) {
             if (queue.some((q) => q.day === e.day && q.stage === stage)) continue;
             const r = e.results[stage];
-            queue.push({ day: e.day, stage, score: r.score, shootout: r.shootout, team: {}, orders: [] });
+            const team = s.run?.daily === e.day ? (s.run.lockedTeam ?? playerTeam(s.run)) : {};
+            queue.push({ day: e.day, stage, score: r.score, shootout: r.shootout, team, orders: [] });
         }
     }
 }
