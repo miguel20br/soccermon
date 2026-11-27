@@ -102,18 +102,33 @@ const SLOTS = (u: UltimateSave) => FORMATIONS[u.team.formation].slots;
 
 /** As 5 melhores na vaga (quem está em Evolução entra primeiro: só evolui jogando) + 2 no banco. */
 function bestTeam(u: UltimateSave, evoFirst = true): UltimateSave {
-    const evo = new Set(evoFirst ? u.evos.map((e) => e.uid) : []);
+    const slots = SLOTS(u);
+    const at: (string | null)[] = slots.map(() => null);
     const free = [...u.cards];
-    const order: string[] = [];
-    for (const role of SLOTS(u)) {
+    // quem está em Evolução entra primeiro, na vaga em que rende mais pro papel dele (o goleiro no gol, os outros na linha)
+    for (const e of evoFirst ? u.evos : []) {
+        const i = free.findIndex((c) => c.uid === e.uid);
+        if (i < 0) continue;
+        let slot = -1;
+        let score = -1;
+        slots.forEach((role, k) => {
+            if (at[k] || (role === 'GK') !== (e.role === 'GK')) return;
+            const s = slotRating(free[i], role);
+            if (s > score) [slot, score] = [k, s];
+        });
+        if (slot >= 0) at[slot] = free.splice(i, 1)[0].uid;
+    }
+    slots.forEach((role, k) => {
+        if (at[k]) return;
         let best = -1;
         let score = -1;
         free.forEach((c, i) => {
-            const s = slotRating(c, role) + (evo.has(c.uid) ? 1000 : 0);
+            const s = slotRating(c, role);
             if (s > score) [best, score] = [i, s];
         });
-        if (best >= 0) order.push(free.splice(best, 1)[0].uid);
-    }
+        if (best >= 0) at[k] = free.splice(best, 1)[0].uid;
+    });
+    const order = at.filter((x): x is string => !!x);
     free.sort((a, b) => ovr(b) - ovr(a));
     order.push(...free.slice(0, TEAM_SIZE - STARTERS).map((c) => c.uid));
     const starters = u.cards.filter((c) => order.slice(0, STARTERS).includes(c.uid));
@@ -343,7 +358,9 @@ interface Row {
     matches: number;
 }
 console.log(`\nRobô quebrador: ${SAVES} saves, ${DAYS} dias desde 30/11/2026, Pular = ${CYCLE_S} s por partida`);
-for (const p of PROFILES) {
+// --perfil 5: só um perfil (índice em PROFILES)
+const ONLY = args.includes('--perfil') ? arg('--perfil', 0) : null;
+for (const p of ONLY === null ? PROFILES : [PROFILES[ONLY]]) {
     const rows: Row[] = [];
     for (let s = 0; s < SAVES; s++) {
         let u = newUltimate(`ut-quebra-${s}`, T0);
