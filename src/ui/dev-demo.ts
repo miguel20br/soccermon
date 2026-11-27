@@ -75,6 +75,7 @@ import { isTrailerScene, trailerPicks } from './trailer-scenes';
  * `?demo=bicuda` abre na escalação uma partida que, ao começar, está a 3 s do duelo da bicuda (motor 21): o capitão
  * rival solta o N3 e o seu goleiro capitão segura (a cutscene com as falas e o gol). `&gk=` e `&atk=` escolhem o par
  * (nome ou número da Pokédex; padrão Charmander no gol e Charizard chutando), ex. `&gk=weedle&atk=wartortle`.
+ * `&rival=1`: o contrário, o seu pivô capitão chuta o N3 e o goleiro capitão RIVAL segura (o aviso da 1ª vez).
  * `?demo=combo` abre na escalação o time do `ditto` a 3 s do primeiro combo seu (o cut-in de dupla da sinergia).
  * `?demo=secreta&id=vermilion|aberturaRG|aberturaYellow|meowth|clone|classicoVersao` abre na escalação (com o "???"
  * da sinergia secreta com o rival) uma partida que, ao começar, está a 3 s do lance em que ela se revela. `&visto=1`:
@@ -1131,16 +1132,23 @@ export function runDevDemo() {
             store.newRun('Demo FC', seed);
             const base = useGame.getState().run!;
             const rng = new Rng(seed, 'demo');
+            // `&rival=1`: o contrário, VOCÊ chuta o N3 (o atacante é o seu pivô capitão) e o goleiro capitão rival segura
+            const rivalGk = q.get('rival') === '1';
             // o seu goleiro capitão, fixo Machamp, alas Gyarados e Pidgeot, pivô Dragonite; banco Onix e Pikachu
-            const lineup = [gkId, 68, 130, 18, 149].map((id) => createInstance(id, rng));
+            const lineup = (rivalGk ? [68, 130, 18, 149, atkId] : [gkId, 68, 130, 18, 149]).map((id) =>
+                createInstance(id, rng),
+            );
             const bench = [95, 25].map((id) => createInstance(id, rng));
             // o rival com o atacante escolhido de capitão, no lugar do pivô (a última vaga)
             const opp = base.opponents[0];
-            const atk = createInstance(atkId, rng);
+            const atk = createInstance(rivalGk ? gkId : atkId, rng);
+            const at = 300;
             const rival = {
                 ...opp,
-                lineup: opp.lineup.map((p, i) => (i === opp.lineup.length - 1 ? atk : p)),
+                // `&rival=1`: o goleiro capitão rival no gol (vaga 0), e é o rival que carrega o lance do demo
+                lineup: opp.lineup.map((p, i) => (i === (rivalGk ? 0 : opp.lineup.length - 1) ? atk : p)),
                 captainUid: atk.uid,
+                ...(rivalGk ? { demoBicudaAt: at } : {}),
             };
             const run = {
                 ...base,
@@ -1149,12 +1157,11 @@ export function runDevDemo() {
                 picks: [...lineup, ...bench],
                 lineup: lineup.map((p) => p.uid),
                 bench: bench.map((p) => p.uid),
-                captainUid: lineup[0].uid,
+                captainUid: lineup[rivalGk ? 4 : 0].uid,
                 draftRound: 7,
                 status: 'lineup' as const,
             };
-            const at = 300;
-            const team = { ...playerTeam(run), manualSubs: true, demoBicudaAt: at };
+            const team = { ...playerTeam(run), manualSubs: true, ...(rivalGk ? {} : { demoBicudaAt: at }) };
             const r = runMatch(FUTSAL_5, team, cupRival(run.opponents[0], true), `${run.seed}-stage-0`, {
                 snapshots: false,
             });
