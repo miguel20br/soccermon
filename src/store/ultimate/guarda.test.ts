@@ -17,12 +17,12 @@ import { cappedFichas, cardPrice, newUltimate, pickable } from './ultimate';
 const FARM_MATCHES = (8 * 3600) / 15;
 /**
  * Teto de Fichas de partida por dia do farmador: 1.000. O jogador ativo (6 partidas por dia no Difícil) ganha ~600 por dia
- * somando tudo (partida, objetivos, passe, pacote aberto, venda; robô, 3 saves x 30 dias); 8 h de Pular podem render no
+ * somando tudo (partida, objetivos, passe, pacote aberto, venda; robô: 576 por dia, 3 saves x 30 dias); 8 h de Pular podem render no
  * máximo umas 1,5 vezes isso, não 30.
  */
 const FARM_DAY_MAX = 1000;
-/** O que o jogador ativo ganha na 1ª semana (robô: ~500 por dia). Um time 85+ não pode custar menos que isso. */
-const ATIVO_SEMANA = 3500;
+/** O que o jogador ativo ganha na 1ª semana (robô: 465 por dia). Um time 85+ não pode custar menos que isso. */
+const ATIVO_SEMANA = 7 * 465;
 
 describe('guarda da economia do Time Ultimate', () => {
     it.fails('8 h de Pular no Difícil não passam do teto de Fichas por dia', () => {
