@@ -9,8 +9,8 @@ import { cappedFichas, cardPrice, newUltimate, pickable } from './ultimate';
  * Guarda da economia do Time Ultimate (auditoria de 27/11/2026, `scripts/balance/quebrador-ut.ts`). Conta pura, sem
  * motor: se um número mudar e reabrir o furo, isto avisa.
  *
- * HOJE OS DOIS FALHAM (por isso `it.fails`): o Pular paga FICHAS_OVER_CAP por partida sem fim, e a Bronze de 240 Fichas
- * evolui pra 90+. Quando o Miguel decidir o conserto, troque `it.fails` por `it`: daí pra frente o teste segura.
+ * O do Pular passa desde 27/11/2026 (acima do teto a partida paga 0 Fichas, era 10). O da Evolução ainda falha (por isso
+ * `it.fails`): a Bronze de 240 Fichas evolui pra 90+. Com o conserto, troque `it.fails` por `it`.
  */
 
 /** Farmador: 8 h por dia de Pular no Difícil, 15 s por partida (JOGAR, Pular, Continuar). */
@@ -25,7 +25,7 @@ const FARM_DAY_MAX = 1000;
 const ATIVO_SEMANA = 7 * 465;
 
 describe('guarda da economia do Time Ultimate', () => {
-    it.fails('8 h de Pular no Difícil não passam do teto de Fichas por dia', () => {
+    it('8 h de Pular no Difícil não passam do teto de Fichas por dia', () => {
         let paid = 0;
         for (let i = 0; i < FARM_MATCHES; i++) paid += cappedFichas(paid, FICHAS.dificil.win);
         expect(paid).toBeLessThanOrEqual(FARM_DAY_MAX);
