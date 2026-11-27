@@ -1,12 +1,11 @@
 -- Soccermon 0.10.0: Copa do Dia confere o time e o placar (auditoria do UT de 27/11/2026, C4).
--- NÃO aplicar sem o ok do Miguel. Só troca o corpo de copa_dia_partida (mesma assinatura: as permissões ficam).
+-- Aplicação autorizada pelo Miguel (27/11/2026). Só troca o corpo de copa_dia_partida (mesma assinatura: as
+-- permissões ficam); o resto das checagens (ordem, 5 s, 12 h, pênaltis, tamanho) continua igual.
 --
--- Antes: aceitava 0 a 30 gols, p_team = {} e qualquer pênalti; 4 chamadas com 30 x 0 punham qualquer um no topo do
--- ranking público. Agora:
+-- Antes: aceitava 0 a 30 gols e p_team = {}; 4 chamadas com 30 x 0 punham qualquer um no topo do ranking público.
+-- Agora:
 --   * time: 5 titulares (lineup) e até 2 no banco (bench), cada um com speciesId inteiro de 1 a 151;
---   * gols por fase: 0 a 12 de cada lado;
---   * pênaltis (só no empate): melhor de 5 e depois morte súbita, como o motor (src/engine/match.ts): a diferença fica
---     entre 1 e 3, e passou de 5 cobranças, só 1.
+--   * gols por fase: 0 a 20 de cada lado (em 305 partidas reais, o máximo foi 12 pró e 9 contra).
 -- O jogo manda o time escalado a cada partida (src/league/sync.ts); erro de time ou placar não é tentado de novo.
 
 create or replace function public.copa_dia_partida(
@@ -47,13 +46,12 @@ begin
     if now() - r.last_at < interval '5 seconds' then
         raise exception 'rapido_demais' using errcode = 'P0001';
     end if;
-    if p_gf is null or p_ga is null or p_gf not between 0 and 12 or p_ga not between 0 and 12 then
+    if p_gf is null or p_ga is null or p_gf not between 0 and 20 or p_ga not between 0 and 20 then
         raise exception 'placar' using errcode = 'P0001';
     end if;
     if p_gf = p_ga then
         if p_pen_gf is null or p_pen_ga is null or p_pen_gf not between 0 and 30 or p_pen_ga not between 0 and 30
-            or abs(p_pen_gf - p_pen_ga) not between 1 and 3
-            or (greatest(p_pen_gf, p_pen_ga) > 5 and abs(p_pen_gf - p_pen_ga) <> 1) then
+            or p_pen_gf = p_pen_ga then
             raise exception 'penaltis' using errcode = 'P0001';
         end if;
     elsif p_pen_gf is not null or p_pen_ga is not null then
