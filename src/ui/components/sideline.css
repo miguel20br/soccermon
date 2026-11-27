@@ -819,3 +819,40 @@
     inset: 0;
     background: #fff;
 }
+
+/* Metas de gol do Time Ultimate (GoalCue.tsx): aviso pequeno no canto de cima, no estilo da Charanga */
+.goal-cue {
+    position: absolute;
+    top: 8px;
+    left: 8px;
+    z-index: 4;
+    display: grid;
+    gap: 4px;
+    pointer-events: none;
+    /* entra depois do GOOOOL (o grito é do gol; a meta vem logo atrás) */
+    animation: sl-charanga-fade 3s linear 0.8s both;
+}
+.goal-cue p {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin: 0;
+    padding: 4px 9px;
+    border-bottom: 2px solid var(--yellow);
+    border-radius: 6px;
+    background: var(--bc-ink);
+    color: var(--text);
+    font-size: 12px;
+    white-space: nowrap;
+}
+.goal-cue .hud-icon {
+    width: 14px;
+    height: 14px;
+    color: var(--yellow);
+}
+.goal-cue p.is-full {
+    border-bottom-color: var(--green);
+}
+.goal-cue p.is-full .hud-icon {
+    color: var(--green);
+}

@@ -33,6 +33,7 @@ import { liveOf, type PlaybackSpeed, playerTeam, useGame } from '../../store/gam
 import { isFinalStage, isLong, titleCeremony } from '../../store/long-cup';
 import { rivalColor, tagFromName } from '../../store/profile';
 import { matchSecrets } from '../../store/secret-links';
+import { utNow } from '../../store/ultimate/clock';
 import { ordersLocked, ultimateRun } from '../../store/ultimate/ultimate';
 import { Coach } from '../coach/Coach';
 import { countStrongFixos, pickHalftimeCoach } from '../coach-tips';
@@ -40,6 +41,7 @@ import { Commentator, type CommentLine } from '../commentary';
 import { BattleText } from '../components/BattleText';
 import { EvolutionOverlay } from '../components/EvolutionOverlay';
 import { FinalCard } from '../components/FinalCard';
+import { GoalCue } from '../components/GoalCue';
 import { HalftimePanel, rivalHtSubs } from '../components/HalftimePanel';
 import { MatchHighlight } from '../components/MatchHighlight';
 import {
@@ -91,12 +93,22 @@ import { VersusIntro } from '../components/VersusIntro';
 import { useCourtFollow } from '../court-follow';
 import { RivalEmotes } from '../duel/Emotes';
 import { rivalEmotes } from '../duel/emote-faces';
+import { utGoalTracks } from '../goal-cue';
 import { readHud } from '../hud-lab';
 import { CourtStands } from '../kit/backdrop';
 import { playMoment } from '../kit/MomentWipe';
 import { Sheet } from '../kit/Sheet';
 import { LeaveConfirm } from '../leave-guard';
-import { captainAt, clockExtrasAt, type MaxWait, maxOrderTick, maxWaitNext, roleAt, snapAt } from '../match-view';
+import {
+    captainAt,
+    clockExtrasAt,
+    type MaxWait,
+    maxOrderTick,
+    maxWaitNext,
+    roleAt,
+    snapAt,
+    whoAt,
+} from '../match-view';
 import { maxTap } from '../max-beat';
 import { matchMusic, penaltyMusic } from '../music-sync';
 import { bannerText, useClubColor } from '../profile/club';
@@ -166,6 +178,8 @@ export function Match({ liga = false, ultimate = false }: { liga?: boolean; ulti
     // a partida da Liga vira uma copa de 1 fase (montada uma vez: as ordens vêm do estado da tela)
     const ligaRunRef = useRef(liga && ligaOpen ? ligaRun(ligaOpen, useLiga.getState().live) : null);
     const ultimateRunRef = useRef(ultimate ? ultimateRun(useGame.getState()) : null);
+    // metas de gol do UT como estavam no apito inicial (o save só conta no fim): o aviso do canto soma a partida
+    const [goalTracks] = useState(() => (ultimate ? utGoalTracks(useGame.getState().ultimate, utNow()) : []));
     const run = liga ? ligaRunRef.current : ultimate ? ultimateRunRef.current : cupRun;
     const saveLive = liga ? useLiga.getState().saveLive : ultimate ? useGame.getState().ultimateSaveLive : cupSaveLive;
     // na Liga quem grava é o servidor: o apito final manda as ordens e ele refaz a partida
@@ -552,6 +566,7 @@ export function Match({ liga = false, ultimate = false }: { liga?: boolean; ulti
 
     // beira da quadra: tempo, goleiro-linha e golpe máximo, pelo mesmo caminho das ordens
     const setups: [TeamSetup, TeamSetup] = [lockedSetup, opponent];
+    const uidAt = (idx: number, tick: number) => whoAt(match, setups, idx, tick).inst?.uid;
     // só com o chute certo (`maxCueAt` com `certain`): sem o botão firme do Duelo, que ficava aceso sem a bola no pé
     const cue = maxCueAt(match, setups, 0, clock.tick, true);
     const agency = agencyView(match.events, orders, 0, clock.tick, cue);
@@ -936,6 +951,9 @@ export function Match({ liga = false, ultimate = false }: { liga?: boolean; ulti
                         )}
                         <SidelineOverlay events={match.events} tick={clock.tick} colors={colors} names={teamNames} />
                         <CharangaCue events={match.events} tick={clock.tick} setups={setups} colors={colors} />
+                        {goalTracks.length > 0 && (
+                            <GoalCue match={match} tick={clock.tick} tracks={goalTracks} uidAt={uidAt} />
+                        )}
                         <MaxLevelCue
                             events={match.events}
                             tick={clock.tick}

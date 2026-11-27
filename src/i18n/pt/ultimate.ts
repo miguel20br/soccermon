@@ -412,6 +412,13 @@ export const ultimate = {
             evo: 'Comece uma Evolução (aba Objetivos)',
         },
     },
+    /** Aviso no canto da partida quando um gol seu faz uma meta andar (src/ui/components/GoalCue.tsx). */
+    cue: {
+        day: 'Objetivo do dia: {n}/{of} gols',
+        week: 'Objetivo da semana: {n}/{of} gols',
+        event: 'Objetivo do evento: {n}/{of} gols',
+        evo: 'Evolução de {name}: {n}/{of} gols',
+    },
     result: {
         toOpen: 'Pra resgatar',
         picks: '+{n} Pokémon Pick|+{n} Pokémon Picks',

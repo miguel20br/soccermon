@@ -409,6 +409,12 @@ export const ultimate: typeof pt = {
             evo: 'Start an Evolution (Objectives tab)',
         },
     },
+    cue: {
+        day: 'Daily objective: {n}/{of} goals',
+        week: 'Weekly objective: {n}/{of} goals',
+        event: 'Event objective: {n}/{of} goals',
+        evo: '{name} Evolution: {n}/{of} goals',
+    },
     result: {
         toOpen: 'To redeem',
         picks: '+{n} Pokémon Pick|+{n} Pokémon Picks',

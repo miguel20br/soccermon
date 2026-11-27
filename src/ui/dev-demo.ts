@@ -8,7 +8,7 @@ import { SPECIES, species } from '../engine/data';
 import { aiDraftTeam } from '../engine/draft';
 import type { Stone } from '../engine/evolution';
 import { FORMATIONS, type FormationId } from '../engine/formations';
-import { createInstance, type PokemonInstance } from '../engine/instance';
+import { createInstance, type PokemonInstance, viewInstance } from '../engine/instance';
 import { inMaxZoneOf } from '../engine/match';
 import { rewardOptions, withSponsor } from '../engine/rewards';
 import { Rng } from '../engine/rng';
@@ -30,6 +30,9 @@ import { earnedKeys, medalViewOf } from '../store/news';
 import { EDITION_BIT, editionBits } from '../store/profile';
 import { type House, houseOf } from '../store/rota-map';
 import { matchSecrets } from '../store/secret-links';
+import { evoPaths, newEvo } from '../store/ultimate/evolutions';
+import { objectivesAt } from '../store/ultimate/objectives';
+import { fillTeam, homeTeam, newUltimate, teamStrength, ultimateRival, ultimateSeed } from '../store/ultimate/ultimate';
 import { namedDribblesOf } from './match-view';
 import { isTrailerScene, trailerPicks } from './trailer-scenes';
 
@@ -100,6 +103,7 @@ export function runDevDemo() {
     if (
         demo !== 'penaltis' &&
         demo !== 'draft' &&
+        demo !== 'ut-meta' &&
         demo !== 'ditto' &&
         demo !== 'monotipo' &&
         demo !== 'evolucao' &&
@@ -163,6 +167,12 @@ export function runDevDemo() {
         if (fase === 'vaga' || fase === 'opcoes') g().pick(g().run!.options[0].uid, { zone: 'lineup', index: 1 });
         if (fase === 'opcoes') g().chooseSlot({ zone: 'lineup', index: 2 });
         g().go('draft');
+        return;
+    }
+    // ?demo=ut-meta: partida do Time Ultimate com o objetivo de gols do dia em 1/4 e Evolução nos 2 primeiros de linha
+    // (o aviso do canto a cada gol seu; use com &vel=16)
+    if (demo === 'ut-meta') {
+        demoUtGoals();
         return;
     }
     if (demo === 'colecao') {
@@ -1971,4 +1981,28 @@ function demoDuelEnd(played: boolean) {
             result: { score: [m.score[0], m.score[1]], shootout: m.shootout ?? null, winner },
         },
     });
+}
+
+function demoUtGoals() {
+    const now = Date.now();
+    const rng = new Rng('ut-meta', 'demo');
+    const cards = [25, 6, 9, 68, 94, 65, 130].map((id) => createInstance(id, rng));
+    let u = newUltimate('ut-meta', now);
+    u = { ...u, cards, team: fillTeam(u.team, cards) };
+    const g0 = objectivesAt(u.objectives, now);
+    const lineup = homeTeam(u, 'Pallet FC', 0x3a7bd5).lineup;
+    const evos = lineup
+        .filter((c) => viewInstance(c).naturalPosition !== 'GK')
+        .slice(0, 2)
+        .map((c) => newEvo(c, evoPaths(c)[0] ?? []));
+    u = { ...u, evos, objectives: { ...g0, prog: { ...g0.prog, 'd-goals': 1 } } };
+    const home = homeTeam(u, 'Pallet FC', 0x3a7bd5);
+    const rival = ultimateRival(u.salt, 0, 'normal', teamStrength(home));
+    useGame.setState({ ultimate: u });
+    useGame.getState().ultimateStart({ n: 0, level: 'normal', home, rival });
+    const m = runMatch(FUTSAL_5, home, cupRival(rival, true), `${ultimateSeed(u.salt, 0)}-stage-0`, {
+        snapshots: true,
+    });
+    useGame.getState().setMatch(m);
+    useGame.getState().go('ultimate-match');
 }
