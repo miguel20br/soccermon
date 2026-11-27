@@ -32,6 +32,15 @@
 - Desafios de Montagem: troque cartas por pacotes e Picks montando times com regra
 - Duelo com o time do Time Ultimate: cada um joga com o próprio time, sem draft
 
+### Menus
+- Botão Modos no Estádio, pra trocar de modo sem voltar ao menu
+- Editar cartão: nome, personagem, título, uniforme e vitrine numa folha só
+- Perfil novo, com o nível, os números do Time Ultimate junto e atalhos pra Troféus, Coleção e Amigos
+- Nomes novos: Personagem (era Seu treinador), Uniforme (era Clube, na Sede) e Objetivos (eram as Metas do Time Ultimate)
+- Barra de cima com Amigos, Notícias e Configurações; a Ajuda foi pras Configurações, que agora começam pela conta
+- Laboratório com o quadro dos 151 e Sede com o tapete do Caminho do treinador
+- As telas ganharam o mesmo estilo de título, painel e botão, e o que está escolhido ganha o anel dourado
+
 ### Perfil
 - Seletor de título novo, com prévia do efeito
 - Cartão do perfil com nível e enfeites
