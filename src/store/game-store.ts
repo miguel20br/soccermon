@@ -133,7 +133,7 @@ import { screenTransition } from './screen-transition';
 import { combosFoundOf, freshCombos } from './secret-links';
 import { dailyTitlesOf } from './trophies';
 import { sbcDeliver, sbcPlace, sbcRemove } from './ultimate/challenges';
-import { utNow } from './ultimate/clock';
+import { utFloor, utNow, utSeen } from './ultimate/clock';
 import { draftClose, draftEnter, draftPick } from './ultimate/draft';
 import {
     bridgePays,
@@ -1076,7 +1076,8 @@ export const savePart = (s: PersistedSave): PersistedSave => ({
     duels: s.duels,
     daily: s.daily,
     binder: s.binder,
-    ultimate: s.ultimate,
+    // o relógio do Time Ultimate vai junto (nunca volta: clock.ts)
+    ultimate: s.ultimate && utFloor() > s.ultimate.seen ? { ...s.ultimate, seen: utFloor() } : s.ultimate,
 });
 /** As chaves do save, tiradas do próprio `savePart`: campo novo no save entra sozinho na sincronização com a nuvem. */
 export const SAVE_KEYS = Object.keys(savePart({} as PersistedSave)) as (keyof PersistedSave)[];
@@ -2570,3 +2571,9 @@ export const useGame = create<GameStore>()(
         },
     ),
 );
+
+// o relógio do Time Ultimate não volta: o save (carregado, da nuvem ou de um backup) puxa o piso do relógio (clock.ts)
+utSeen(useGame.getState().ultimate.seen);
+useGame.subscribe((s, prev) => {
+    if (s.ultimate.seen !== prev.ultimate.seen) utSeen(s.ultimate.seen);
+});
