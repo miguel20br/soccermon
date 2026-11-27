@@ -688,6 +688,29 @@ pequena: um campo novo com padrão vazio continua sem migração de verdade).
 13. **Aviso da ponte** no resultado da Copa campeã ("+1 Pacote Mini no Time Ultimate") **(recomendado)** / calado como
     hoje.
 
+## Missões do UT no Caminho do treinador (Miguel, 26/11)
+
+0 XP por partida: o nível continua vindo só de missões. 8 missões num grupo novo (`ultimate`, `src/store/missions.ts`),
+de 63 para 71, que fecham o nível 16. Contam as temporadas de verdade (a prévia não): partidas, vitórias e pacotes
+somam o legado; insígnias e Desafios de Montagem são da temporada de agora; o passe vale o de agora ou um completo do
+legado. A temporada zera, a missão cumprida fica em `missionsDone`.
+
+| Missão | Meta | Prêmio |
+|---|---|---|
+| Jogue 1 partida | 1 | 150 Fichas |
+| Vença 25 | 25 | símbolo de escudo |
+| Jogue 100 | 100 | padrão de uniforme |
+| Vença os 8 líderes numa temporada | 8 | personagem |
+| 3 Desafios de Montagem diferentes (a faxina conta uma vez) | 3 | carta de presente (Pick de 1, Prata ou melhor) |
+| Marco 40 do passe numa temporada | 40 | título + moldura dourada (`UT_FRAME_TITLE`) |
+| Vença 50 | 50 | título |
+| Abra 10 pacotes | 10 | 150 Fichas |
+
+Fichas e carta caem no UT por `MISSION_GIFTS` (`ultimate.ts`), um presente por save em `gifts`: passam a virada da
+temporada e, na junção com a nuvem, o que só o lado que perdeu recebeu vai pro lado que ficou. O legado guarda os
+pacotes abertos de cada temporada (`opened`). As missões do UT ficam fora da platina da Gen 1. Arte (símbolo, padrão,
+personagem) e nomes de título estão provisórios (opção 1): o Miguel escolhe.
+
 ## Fontes
 
 - [EA, Pitch Notes: FC 27 Launch Update (nomes Mini a Giant, sem mínimo de raras, Holográficas, Streamlined SBC, passe 1–30)](https://www.ea.com/games/ea-sports-fc/fc-27/news/pitch-notes-fc27-launch-update)
