@@ -1,7 +1,9 @@
 import { existsSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
-import { SPECIES } from '../engine/data';
+import { MOVES, SPECIES } from '../engine/data';
 import type { PlayerLine } from '../engine/match-stats';
+import { defaultMoveset } from '../engine/moves';
+import { rareMovePool } from '../engine/tm';
 import { avatarImage, avatarWire, peerAvatar } from '../ui/profile/club';
 import {
     albumSlots,
@@ -13,11 +15,13 @@ import {
     EDITION_BIT,
     editionBits,
     GENERATIONS,
+    gameMoveIds,
     hasSticker,
     isPlayed,
     kantoComplete,
     markSeen,
     mergeDex,
+    movesMissing,
     recordEditions,
     recordMatchInDex,
     recordMovesSeen,
@@ -292,5 +296,19 @@ describe('avatar', () => {
             {},
         ])
             expect(peerAvatar(bad)).toEqual({ src: 'assets/avatars/25.gif', google: false });
+    });
+});
+
+describe('movesMissing (o "faltam N golpes" da Golpedex e do Carvalho)', () => {
+    it('separa os que só chegam por MT: vistos todos os golpes de moveset, o que falta é só MT', () => {
+        expect(movesMissing({}, {})).toEqual({ n: gameMoveIds().size, tm: rareMovePool().length });
+        const carried: Record<string, number> = {};
+        for (const sp of SPECIES) for (const m of defaultMoveset(sp)) carried[m] = 1;
+        const left = movesMissing(carried, {});
+        expect(left.n).toBeGreaterThan(0);
+        expect(left.tm).toBe(left.n);
+        const normal = movesMissing(carried, {}, 'Normal');
+        expect(normal.n).toBe(rareMovePool().filter((m) => MOVES[m].type === 'Normal').length);
+        expect(normal.tm).toBe(normal.n);
     });
 });

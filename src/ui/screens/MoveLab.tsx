@@ -7,6 +7,7 @@ import { LAB_H, LAB_W, MoveLabScene } from '../../game/scenes/MoveLabScene';
 import { moveFutsal, plural, typeName } from '../../i18n';
 import { rich, useT } from '../../i18n/react';
 import { useGame } from '../../store/game-store';
+import { movesMissing } from '../../store/profile';
 import { HudIcon } from '../components/MatchHud';
 import { MenuHead } from '../components/MenuHead';
 import { TypeIcon, TypeIcons } from '../components/TypeIcon';
@@ -203,7 +204,7 @@ function MoveBrowser({ onExit }: { onExit: () => void }) {
         if (style && r.style !== style) return false;
         return true;
     });
-    const hiddenOfType = type && !REVIEW ? GAME_ROWS.filter((r) => r.type === type && !(seen[r.id] > 0)).length : 0;
+    const hiddenOfType = type && !REVIEW ? movesMissing(moves, dex, type) : { n: 0, tm: 0 };
     const types = useMemo(() => [...new Set(GAME_ROWS.map((r) => r.type))].sort(), []);
 
     // ---------- por Pokémon ----------
@@ -678,10 +679,11 @@ function MoveBrowser({ onExit }: { onExit: () => void }) {
 
                     {view === 'golpe' && (
                         <>
-                            {hiddenOfType > 0 && (
+                            {hiddenOfType.n > 0 && (
                                 <p className="muted gdx-note">
                                     <GdxIcon kind="lock" size={12} />{' '}
-                                    {tn('stats.lab.missingOfType', hiddenOfType, { type: typeName(type) })}
+                                    {tn('stats.lab.missingOfType', hiddenOfType.n, { type: typeName(type) })}
+                                    {hiddenOfType.tm > 0 && ` ${tn('stats.lab.missingTm', hiddenOfType.tm)}`}
                                 </p>
                             )}
                             {shown.length ? (

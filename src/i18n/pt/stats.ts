@@ -205,6 +205,8 @@ export const stats = {
         searchMon: 'Nome ou número…',
         searchMonAria: 'Buscar Pokémon por nome ou número',
         missingOfType: 'Faltam {n} golpe de {type} pra descobrir.|Faltam {n} golpes de {type} pra descobrir.',
+        missingTm:
+            '{n} deles só chega por MT (recompensa de ginásio).|{n} deles só chegam por MT (recompensa de ginásio).',
         noMoves: 'Nenhum golpe com esses filtros.',
         monMoves: 'Os {n} golpes que {name} leva pra quadra.',
         monPlayed: ' Jogou {n} partida pelo seu time.| Jogou {n} partidas pelo seu time.',

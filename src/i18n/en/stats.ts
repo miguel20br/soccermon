@@ -203,6 +203,7 @@ export const stats: typeof pt = {
         searchMon: 'Name or number…',
         searchMonAria: 'Search Pokémon by name or number',
         missingOfType: '{n} {type} move left to discover.|{n} {type} moves left to discover.',
+        missingTm: '{n} of them only comes via TM (gym reward).|{n} of them only come via TM (gym reward).',
         noMoves: 'No moves match these filters.',
         monMoves: 'The {n} moves {name} brings to the court.',
         monPlayed: ' Played {n} match for your team.| Played {n} matches for your team.',

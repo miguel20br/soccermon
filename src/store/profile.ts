@@ -329,6 +329,24 @@ export function movesFound(moves: MoveDex, dex: Dex): number {
     return n;
 }
 
+let carried: ReadonlySet<string> | null = null;
+/**
+ * Golpes do jogo que faltam descobrir (`type` filtra) e quantos deles só chegam por MT: ninguém leva no moveset
+ * padrão, então ver os Pokémon que faltam não fecha esses (o playtester via "faltam 11 golpes" com 2 Pokémon
+ * faltando e achava que a conta estava errada).
+ */
+export function movesMissing(moves: MoveDex, dex: Dex, type?: string): { n: number; tm: number } {
+    carried ??= new Set(SPECIES.flatMap((sp) => defaultMoveset(sp)));
+    let n = 0;
+    let tm = 0;
+    for (const id of gameMoveIds()) {
+        if ((type && MOVES[id].type !== type) || timesSeen(id, moves, dex) > 0) continue;
+        n++;
+        if (!carried.has(id)) tm++;
+    }
+    return { n, tm };
+}
+
 /** Números da carreira do treinador (somam todas as copas). */
 export interface Career {
     matches: number;

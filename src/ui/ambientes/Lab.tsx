@@ -4,7 +4,7 @@ import { LINKS } from '../../engine/links';
 import { typeName } from '../../i18n';
 import { useT } from '../../i18n/react';
 import { useGame } from '../../store/game-store';
-import { albumCount, type Dex, gameMoveIds, isPlayed, movesFound, seenCount } from '../../store/profile';
+import { albumCount, type Dex, gameMoveIds, isPlayed, movesMissing, seenCount } from '../../store/profile';
 import { combosFoundOf, SECRET_TOTAL } from '../../store/secret-links';
 import { HudIcon } from '../components/MatchHud';
 import { openDoor } from '../doors';
@@ -69,12 +69,13 @@ export function Lab({ active, wild, near }: { active: boolean; wild: Wild[]; nea
     const moves = useGame((s) => s.moves);
     const seen = seenCount(dex);
     const album = useMemo(() => albumCount(dex), [dex]);
-    const found = useMemo(() => movesFound(moves, dex), [moves, dex]);
+    const missingMoves = useMemo(() => movesMissing(moves, dex), [moves, dex]);
     const played = useMemo(() => SPECIES.slice(0, DEX_TOTAL).filter((sp) => isPlayed(dex[sp.id])).length, [dex]);
     const combos = useGame((s) => s.profile.combosFound);
     const links = STORY_LINKS + combosFoundOf({ combosFound: combos }).length;
     const left = DEX_TOTAL - seen;
     const moveTotal = gameMoveIds().size;
+    const found = moveTotal - missingMoves.n;
     const line = useMemo(
         () => oakLine((id) => !!dex[id], album.total - album.got, moveTotal - found, SPECIES.slice(0, DEX_TOTAL)),
         [dex, album, found, moveTotal],
@@ -87,7 +88,7 @@ export function Lab({ active, wild, near }: { active: boolean; wild: Wild[]; nea
               : line.k === 'album'
                 ? tn('home.amb.labTalkAlbum', line.n)
                 : line.k === 'moves'
-                  ? tn('home.amb.labTalkMoves', line.n)
+                  ? `${tn('home.amb.labTalkMoves', line.n)}${missingMoves.tm ? ` ${tn('stats.lab.missingTm', missingMoves.tm)}` : ''}`
                   : t('home.amb.labTalkDone');
 
     return (
