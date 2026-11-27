@@ -1504,6 +1504,26 @@ export function startEvo(u: UltimateSave, uid: string, path: readonly number[]):
     return firstStep({ ...u, evos: [...u.evos, newEvo(card, [...path])] }, 'evo');
 }
 
+/**
+ * A ação de Evolução na ficha da carta (Clube): Evoluir ou Treinar, Ver se já está em andamento, e o motivo quando não
+ * dá pra começar (`block`), com a mesma regra do `startEvo`.
+ */
+export function evoAction(
+    u: UltimateSave,
+    card: PokemonInstance,
+): { kind: 'evolve' | 'train' | 'view'; block?: 'done' | 'live' | 'full' } {
+    if (u.evos.some((e) => e.uid === card.uid)) return { kind: 'view' };
+    const kind = evoPaths(card)[0].length ? 'evolve' : 'train';
+    const block = u.evoDone.includes(card.uid)
+        ? 'done'
+        : u.live
+          ? 'live'
+          : u.evos.length >= EVO_ACTIVE_MAX
+            ? 'full'
+            : undefined;
+    return block ? { kind, block } : { kind };
+}
+
 /** Desiste da Evolução (o que a carta já evoluiu fica). */
 export const dropEvo = (u: UltimateSave, uid: string): UltimateSave => ({
     ...u,

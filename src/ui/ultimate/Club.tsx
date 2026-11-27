@@ -8,10 +8,11 @@ import { abilityName, typeName } from '../../i18n';
 import { useT } from '../../i18n/react';
 import { useGame } from '../../store/game-store';
 import { objectiveById } from '../../store/ultimate/objectives';
-import { STARTERS, TEAM_SIZE } from '../../store/ultimate/rules';
+import { EVO_ACTIVE_MAX, STARTERS, TEAM_SIZE } from '../../store/ultimate/rules';
 import {
     canSell,
     canUndoSell,
+    evoAction,
     prizePacks,
     sellFichas,
     swapBlock,
@@ -29,6 +30,7 @@ import { TypeIcon } from '../components/TypeIcon';
 import { ConfirmSheet, Sheet } from '../kit/Sheet';
 import { type Metal, metalLabel, metalOf } from '../rarity';
 import { type ClubStatus, STATUSES, statusesOf } from './club-status';
+import { EvoRow, EvoStart } from './Goals';
 import { useMarkText } from './Season';
 import { Squad } from './Squad';
 
@@ -165,6 +167,7 @@ function Cards({ onSquad }: { onSquad: () => void }) {
     const [place, setPlace] = useState<PokemonInstance | null>(null);
     const [compare, setCompare] = useState<PokemonInstance | null>(null);
     const [sell, setSell] = useState<PokemonInstance | null>(null);
+    const [evo, setEvo] = useState<PokemonInstance | null>(null);
     const lock = useGame((s) => s.ultimateLock);
     const quickSell = useGame((s) => s.ultimateQuickSell);
     const views = useMemo(() => new Map(u.cards.map((c) => [c.uid, viewInstance(c)])), [u.cards]);
@@ -196,8 +199,31 @@ function Cards({ onSquad }: { onSquad: () => void }) {
         );
     const on = [f.metal, f.edition, f.type, f.status].filter(Boolean).length;
     if (!u.cards.length) return <p className="panel ut-empty">{t('ultimate.collection.empty')}</p>;
+    // a Evolução na ficha da carta (o jogador procura aqui, não na aba Objetivos): o motivo fica no botão, que não some
+    const evoChip = (c: PokemonInstance): CardAction => {
+        const a = evoAction(u, c);
+        const label =
+            a.kind === 'view'
+                ? t('ultimate.evo.view')
+                : a.kind === 'evolve'
+                  ? t('ultimate.evo.evolve')
+                  : t('ultimate.evo.train');
+        return {
+            label:
+                a.block === 'done'
+                    ? t('ultimate.evo.doneCard')
+                    : a.block === 'full'
+                      ? t('ultimate.evo.busy', { a: label, n: EVO_ACTIVE_MAX })
+                      : a.block === 'live'
+                        ? t('ultimate.evo.afterMatch', { a: label })
+                        : label,
+            disabled: !!a.block,
+            onClick: () => setEvo(c),
+        };
+    };
     const actions = (c: PokemonInstance): CardAction[] => [
         { label: t('ultimate.club.place'), primary: true, onClick: () => setPlace(c) },
+        evoChip(c),
         { label: t('ultimate.club.compare'), onClick: () => setCompare(c) },
         {
             label: u.locked.includes(c.uid) ? t('ultimate.club.unlock') : t('ultimate.club.lock'),
@@ -370,6 +396,7 @@ function Cards({ onSquad }: { onSquad: () => void }) {
                 }}
             />
             <CompareSheet card={compare} onClose={() => setCompare(null)} />
+            <EvoSheet card={evo} onClose={() => setEvo(null)} />
             <ConfirmSheet
                 open={!!sell}
                 onClose={() => setSell(null)}
@@ -442,6 +469,42 @@ function PlaceSheet({
                         );
                     })}
                 </ul>
+            )}
+        </Sheet>
+    );
+}
+
+/** O Evoluir da ficha da carta: o mesmo fluxo da aba Objetivos (prévia e Começar, ou o andamento), já com a carta. */
+function EvoSheet({ card, onClose }: { card: PokemonInstance | null; onClose: () => void }) {
+    const { t } = useT();
+    const u = useGame((s) => s.ultimate);
+    // a carta de agora (o Treino sobe a nota com a folha aberta)
+    const cur = card && u.cards.find((c) => c.uid === card.uid);
+    const e = cur && u.evos.find((x) => x.uid === cur.uid);
+    return (
+        <Sheet open={!!card} onClose={onClose} title={t('ultimate.evo.title')}>
+            {cur && (
+                <>
+                    <small className="muted">{t('ultimate.evo.hint')}</small>
+                    {e ? (
+                        // a tela de evolução fica embaixo da folha: fecha antes
+                        <EvoRow e={e} card={cur} onGo={onClose} />
+                    ) : u.evoDone.includes(cur.uid) ? (
+                        <p className="ut-evo-start">
+                            <FutCard inst={cur} size="sm" />
+                            <b>{t('ultimate.evo.doneCard')}</b>
+                        </p>
+                    ) : (
+                        <EvoStart
+                            cards={[cur]}
+                            pick={cur.uid}
+                            // começou: a folha fica e mostra o andamento; Cancelar fecha
+                            onClose={() => {
+                                if (!useGame.getState().ultimate.evos.some((x) => x.uid === cur.uid)) onClose();
+                            }}
+                        />
+                    )}
+                </>
             )}
         </Sheet>
     );

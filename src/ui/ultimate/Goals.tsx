@@ -245,8 +245,9 @@ function Evolutions() {
     );
 }
 
-/** Uma Evolução em andamento: a carta agora, a prévia do fim e o objetivo do passo. */
-function EvoRow({ e, card }: { e: UtEvo; card: PokemonInstance }) {
+/** Uma Evolução em andamento: a carta agora, a prévia do fim e o objetivo do passo. `onGo`: antes da tela de evolução
+ * (a folha do Clube fecha, senão fica por cima dela). */
+export function EvoRow({ e, card, onGo }: { e: UtEvo; card: PokemonInstance; onGo?: () => void }) {
     const { t } = useT();
     const live = useGame((s) => !!s.ultimate.live);
     const evolve = useGame((s) => s.ultimateEvolve);
@@ -275,6 +276,7 @@ function EvoRow({ e, card }: { e: UtEvo; card: PokemonInstance }) {
             EventBus.off('match:evolution-done', done);
             evolve(e.uid);
         };
+        onGo?.();
         EventBus.on('match:evolution-done', done);
         EventBus.emit('match:evolution', ev);
     };
@@ -311,11 +313,14 @@ function EvoRow({ e, card }: { e: UtEvo; card: PokemonInstance }) {
     );
 }
 
-/** Começar: escolhe a carta, o caminho (Eevee) e vê a forma final antes de confirmar. */
-function EvoStart({ cards, onClose }: { cards: PokemonInstance[]; onClose: () => void }) {
+/**
+ * Começar: escolhe a carta, o caminho (Eevee) e vê a forma final antes de confirmar. `pick`: a carta já escolhida (o
+ * Evoluir da ficha da carta), sem a lista.
+ */
+export function EvoStart({ cards, pick, onClose }: { cards: PokemonInstance[]; pick?: string; onClose: () => void }) {
     const { t } = useT();
     const start = useGame((s) => s.ultimateStartEvo);
-    const [uid, setUid] = useState<string | null>(null);
+    const [uid, setUid] = useState<string | null>(pick ?? null);
     const [path, setPath] = useState(0);
     const card = cards.find((c) => c.uid === uid);
     const paths = card ? evoPaths(card) : [];
@@ -323,24 +328,28 @@ function EvoStart({ cards, onClose }: { cards: PokemonInstance[]; onClose: () =>
     const preview = card && chosen ? evoPreview(card, newEvo(card, chosen)) : null;
     return (
         <div className="ut-evo-start">
-            <span className="bc-lbl">{t('ultimate.evo.pickCard')}</span>
-            <div className="ut-chips">
-                {cards.map((c) => (
-                    <button
-                        type="button"
-                        key={c.uid}
-                        aria-pressed={uid === c.uid}
-                        className={`btn k-chip ut-chip${uid === c.uid ? ' on' : ''}`}
-                        onClick={() => {
-                            setUid(c.uid);
-                            setPath(0);
-                        }}
-                    >
-                        <MonIcon id={c.speciesId} shiny={c.shiny} />
-                        {viewInstance(c).displayName}
-                    </button>
-                ))}
-            </div>
+            {!pick && (
+                <>
+                    <span className="bc-lbl">{t('ultimate.evo.pickCard')}</span>
+                    <div className="ut-chips">
+                        {cards.map((c) => (
+                            <button
+                                type="button"
+                                key={c.uid}
+                                aria-pressed={uid === c.uid}
+                                className={`btn k-chip ut-chip${uid === c.uid ? ' on' : ''}`}
+                                onClick={() => {
+                                    setUid(c.uid);
+                                    setPath(0);
+                                }}
+                            >
+                                <MonIcon id={c.speciesId} shiny={c.shiny} />
+                                {viewInstance(c).displayName}
+                            </button>
+                        ))}
+                    </div>
+                </>
+            )}
             {card && chosen && preview && (
                 <>
                     {paths.length > 1 && (

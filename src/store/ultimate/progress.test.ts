@@ -23,6 +23,7 @@ import {
     buyCard,
     buyPack,
     cupBridge,
+    evoAction,
     evolveCard,
     fillTeam,
     finishMatch,
@@ -343,6 +344,23 @@ describe('Evoluções com prévia', () => {
         expect(done).toEqual(preview);
         expect(done.speciesId).toBe(128);
         expect(viewInstance(done).overall).toBeGreaterThan(viewInstance(c).overall);
+    });
+});
+
+describe('Evoluir na ficha da carta (Clube)', () => {
+    it('Evoluir, Treinar, Ver em andamento e o motivo de não dar, com a regra do startEvo', () => {
+        const u0 = ready();
+        const [a, b, c] = [card(4, 'char'), card(128, 'tauros'), card(1, 'bulba')];
+        let u: UltimateSave = { ...u0, cards: [...u0.cards, a, b, c] };
+        expect(evoAction(u, a)).toEqual({ kind: 'evolve' });
+        expect(evoAction(u, b)).toEqual({ kind: 'train' });
+        u = startEvo(startEvo(u, a.uid, [5, 6])!, b.uid, [])!;
+        expect(evoAction(u, a)).toEqual({ kind: 'view' });
+        // duas em andamento: a terceira mostra o motivo, e o startEvo recusa
+        expect(evoAction(u, c)).toEqual({ kind: 'evolve', block: 'full' });
+        expect(startEvo(u, c.uid, [2, 3])).toBeNull();
+        expect(evoAction(live({ ...u, evos: [] }), c).block).toBe('live');
+        expect(evoAction({ ...u, evos: [], evoDone: ['bulba'] }, c).block).toBe('done');
     });
 });
 

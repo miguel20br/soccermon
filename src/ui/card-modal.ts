@@ -6,6 +6,8 @@ import type { PokemonInstance } from '../engine/instance';
 export interface CardAction {
     label: string;
     primary?: boolean;
+    /** Não dá agora: o botão fica, apagado, com o motivo no próprio texto. */
+    disabled?: boolean;
     onClick: () => void;
 }
 

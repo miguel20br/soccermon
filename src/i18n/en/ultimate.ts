@@ -511,6 +511,10 @@ export const ultimate: typeof pt = {
         trained: '{name} leveled up in Training: +2 to everything',
         none: 'No Evolution in progress',
         noCards: 'No card can start right now',
+        view: 'View Evolution',
+        busy: '{a} · {n} in progress',
+        afterMatch: '{a} · after the match',
+        doneCard: 'Evolution complete',
     },
     /** Walkout (ut-walkout.md): a silhueta e o laboratório (?lab=walkout). */
     walkout: {

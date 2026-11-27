@@ -514,6 +514,10 @@ export const ultimate = {
         trained: '{name} subiu no Treino: +2 em tudo',
         none: 'Nenhuma Evolução em andamento',
         noCards: 'Nenhuma carta pode começar agora',
+        view: 'Ver Evolução',
+        busy: '{a} · {n} em andamento',
+        afterMatch: '{a} · depois da partida',
+        doneCard: 'Evolução concluída',
     },
     /** Walkout (ut-walkout.md): a silhueta e o laboratório (?lab=walkout). */
     walkout: {

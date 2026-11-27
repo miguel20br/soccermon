@@ -242,6 +242,7 @@ function CardBody({
                                 key={a.label}
                                 type="button"
                                 className={a.primary ? 'btn confirm' : main ? 'btn small k-chip' : 'btn'}
+                                disabled={a.disabled}
                                 onClick={() => {
                                     close();
                                     a.onClick();
