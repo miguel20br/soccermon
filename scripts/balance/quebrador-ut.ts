@@ -77,6 +77,8 @@ interface Profile {
     level: Level;
     evoBuy: boolean;
     seller: boolean;
+    /** false = nunca compra Ouro (só a Bronze/Prata que evolui). */
+    goldBuy?: boolean;
 }
 const FARM = Math.floor((8 * 3600) / CYCLE_S);
 const PROFILES: Profile[] = [
@@ -85,6 +87,14 @@ const PROFILES: Profile[] = [
     { id: `farmador Pular Difícil (${FARM}/dia)`, perDay: FARM, level: 'dificil', evoBuy: true, seller: false },
     { id: `farmador Pular Fácil (${FARM}/dia)`, perDay: FARM, level: 'facil', evoBuy: true, seller: false },
     { id: 'colecionador vende tudo (4/dia)', perDay: 4, level: 'normal', evoBuy: false, seller: true },
+    {
+        id: `evolucionista: Pular Difícil, só compra Bronze/Prata que evolui (${FARM}/dia)`,
+        perDay: FARM,
+        level: 'dificil',
+        evoBuy: true,
+        seller: false,
+        goldBuy: false,
+    },
 ];
 
 const ovr = (c: PokemonInstance) => viewInstance(c).overall;
@@ -203,7 +213,7 @@ function spend(u0: UltimateSave, p: Profile, spent: { n: number }): UltimateSave
         u = next;
     }
     // Ouro que entra no time: a de maior nota que cabe nas Fichas
-    for (;;) {
+    for (; p.goldBuy !== false; ) {
         const w = worst();
         const gold = pickable(u, 'ouro')
             .filter((id) => cardPrice(id) <= u.fichas)
@@ -263,6 +273,51 @@ function draftRun(u0: UltimateSave, now: number): { u: UltimateSave; wins: numbe
 }
 
 const dayKey = (now: number) => new Date(now - 3 * 3600_000).toISOString().slice(0, 10);
+
+/**
+ * --evo: quantas partidas no Difícil (com o Pular, a partida conta inteira) cada Bronze/Prata comprada leva até a forma
+ * final, titular num time de 2 pacotes + o 1º Pick. Uma linha por espécie: partidas de cada passo, em cada save.
+ */
+if (args.includes('--evo')) {
+    const IDS = [1, 4, 7, 60, 66, 74, 79, 88, 133, 147];
+    console.log(`\nEvolução da Bronze/Prata comprada, Difícil, ${SAVES} saves (partidas por passo; o mínimo é 3)`);
+    console.log('| Carta | Final | Passos | Partidas por save (passo 1 + passo 2) | Média |\n|---|---|---|---|---|');
+    for (const id of IDS) {
+        const per: string[] = [];
+        const tot: number[] = [];
+        let final = '';
+        for (let s = 0; s < SAVES; s++) {
+            let u = openAll(newUltimate(`ut-evo-${s}`, T0), T0);
+            const r = buyCard({ ...u, fichas: 1e6 }, id);
+            if (!r) break;
+            u = r.u;
+            const path = evoPaths(r.card).reduce((b, x) =>
+                ovr(evoPreview(r.card, newEvo(r.card, x))) > ovr(evoPreview(r.card, newEvo(r.card, b))) ? x : b,
+            );
+            u = startEvo(u, r.card.uid, path) ?? u;
+            const steps: number[] = [];
+            let n = 0;
+            for (let k = 0; k < 120 && !u.evoDone.includes(r.card.uid); k++) {
+                u = play(u, 'dificil', T0 + k * 60_000);
+                n++;
+                const e = evolveCard(u, r.card.uid);
+                if (e) {
+                    u = e.u;
+                    steps.push(n);
+                    n = 0;
+                    final = `${species(e.card.speciesId).name} ${ovr(e.card)}`;
+                }
+            }
+            per.push(u.evoDone.includes(r.card.uid) ? steps.join(' + ') : `>120 (${steps.join(' + ')})`);
+            tot.push(steps.reduce((a, b) => a + b, 0) + (u.evoDone.includes(r.card.uid) ? 0 : n));
+        }
+        const name = `${species(id).name} ${ovr(buyCard({ ...newUltimate('x'), fichas: 1e6 }, id)!.card)} (${cardPrice(id)} F)`;
+        console.log(
+            `| ${name} | ${final} | ${evoPaths({ speciesId: id, ability: '' })[0].length} | ${per.join(' / ')} | ${(tot.reduce((a, b) => a + b, 0) / tot.length).toFixed(1)} |`,
+        );
+    }
+    process.exit(0);
+}
 
 if (DRAFTS) {
     const wins = [0, 0, 0, 0, 0];
