@@ -153,7 +153,7 @@ export const match = {
             /** Fala da quadra quando o item entra. */
             line: '{team} usou {item}!',
             items: {
-                potion: { name: 'Poção', desc: 'O fôlego de 1 jogador volta a 100%.', pop: 'Fôlego 100%' },
+                potion: { name: 'Poção', desc: 'O fôlego de 1 jogador volta a 100% e o resto do time ganha +15%.', pop: 'Fôlego 100%' },
                 xattack: { name: 'X Attack', desc: 'Chute e drible +30% no time por 5 minutos.', pop: 'Ataque +' },
                 xdefense: {
                     name: 'X Defense',

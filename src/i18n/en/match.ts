@@ -136,7 +136,7 @@ export const match: typeof pt = {
             rewardHint: "Goes to the coach's Bag. In the match, use 1 per half.",
             line: '{team} used {item}!',
             items: {
-                potion: { name: 'Potion', desc: "1 player's stamina back to 100%.", pop: 'Stamina 100%' },
+                potion: { name: 'Potion', desc: "1 player's stamina back to 100%, +15% for the rest of the team.", pop: 'Stamina 100%' },
                 xattack: {
                     name: 'X Attack',
                     desc: 'Shooting and dribbling +30% for the team for 5 minutes.',
