@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { cloudEnabled, cloudUserId, loadCloud, useCloud } from '../cloud/cloud';
+import { cloudEnabled, cloudUserId, duelUserId, loadCloud, useCloud } from '../cloud/cloud';
 import { type PublicInfo, publicInfo } from '../league/api';
 import type { Peer } from '../net/duel-state';
 import { type ClubLook, lookOfPeer } from '../store/club-kit';
@@ -111,6 +111,11 @@ export interface FriendsServer {
     vitrine(p: FriendProfile): Promise<boolean>;
     /** A vitrine de um amigo (null = não é amigo, ou ele ainda não abriu a versão com vitrine). Dado de fora. */
     profile(code: string): Promise<unknown>;
+    /**
+     * Perfil público de qualquer um pelo código (20261126120000_perfil_publico.sql): a vitrine, sem a foto do Google
+     * pra quem não é amigo. Vale a sessão anônima do Duelo. null = sem sessão, não achou, ou o banco ainda sem a função.
+     */
+    publicProfile(code: string): Promise<unknown>;
     /** "Estou com o jogo aberto" (os amigos veem online). */
     ping(): Promise<void>;
     /** Ouve os avisos na hora (pedido, amizade aceita, desafio). Devolve a função que para de ouvir. */
@@ -249,6 +254,12 @@ const real: FriendsServer = {
         const sb = await sbOrNull();
         if (!sb) return null;
         const { data, error } = await sb.rpc('amigos_perfil', { p_code: code });
+        return error ? null : data;
+    },
+    async publicProfile(code) {
+        const sb = duelUserId() ? await loadCloud().catch(() => null) : null;
+        if (!sb) return null;
+        const { data, error } = await sb.rpc('perfil_publico', { p_code: code });
         return error ? null : data;
     },
 };

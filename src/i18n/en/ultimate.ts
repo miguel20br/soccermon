@@ -522,5 +522,14 @@ export const ultimate: typeof pt = {
         open: 'Open pack',
         again: 'Again',
     },
+    /** Reset notice (day-one economy, 11/27/2026): once, for whoever had already played. */
+    reset: {
+        title: 'Team Ultimate has restarted',
+        body: 'We had a problem with the Team Ultimate economy: you could earn too many Coins and buy the best cards on the very first day. We made balance changes and, to keep it fair for everyone, we had to restart your Team Ultimate. We are sorry.',
+        changes:
+            'What changed: match Coins have a daily limit, gold cards cost more the higher their rating, Ditto only comes from packs and legendaries are out of Team Ultimate for now.',
+        gift: 'You got 2 packs to start again. The Cup, your Profile and the Pokédex did not change.',
+        ok: 'Got it',
+    },
     match: { stage: 'Team Ultimate', stageShort: 'ULTIMATE' },
 };

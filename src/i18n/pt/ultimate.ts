@@ -525,5 +525,14 @@ export const ultimate = {
         open: 'Abrir pacote',
         again: 'De novo',
     },
+    /** Aviso do recomeço (economia do 1º dia, 27/11/2026): uma vez, pra quem já tinha jogado. */
+    reset: {
+        title: 'O Time Ultimate recomeçou',
+        body: 'Tivemos um problema na economia do Time Ultimate: dava pra ganhar Fichas demais e comprar as melhores cartas logo no primeiro dia. Fizemos mudanças de balanceamento e, pra ficar justo pra todo mundo, tivemos que recomeçar o seu Time Ultimate. Pedimos desculpas.',
+        changes:
+            'O que mudou: as Fichas de partida têm um limite por dia, a carta ouro custa mais quanto maior a nota, o Ditto só sai em pacote e os lendários ficam fora do Time Ultimate por enquanto.',
+        gift: 'Você ganhou 2 pacotes pra começar de novo. A Copa, o Perfil e a Pokédex não mudaram.',
+        ok: 'Entendi',
+    },
     match: { stage: 'Time Ultimate', stageShort: 'ULTIMATE' },
 };

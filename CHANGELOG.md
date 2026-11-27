@@ -32,13 +32,31 @@
 - Desafios de Montagem: troque cartas por pacotes e Picks montando times com regra
 - Duelo com o time do Time Ultimate: cada um joga com o próprio time, sem draft
 
+### Menus
+- Botão Modos no Estádio, pra trocar de modo sem voltar ao menu
+- Editar cartão: nome, personagem, título, uniforme e vitrine numa folha só
+- Perfil novo, com o nível, os números do Time Ultimate junto e atalhos pra Troféus, Coleção e Amigos
+- Nomes novos: Personagem (era Seu treinador), Uniforme (era Clube, na Sede) e Objetivos (eram as Metas do Time Ultimate)
+- Barra de cima com Amigos, Notícias e Configurações; a Ajuda foi pras Configurações, que agora começam pela conta
+- Laboratório com o quadro dos 151 e Sede com o tapete do Caminho do treinador
+- As telas ganharam o mesmo estilo de título, painel e botão, e o que está escolhido ganha o anel dourado
+
 ### Perfil
 - Seletor de título novo, com prévia do efeito
 - Cartão do perfil com nível e enfeites
 - Legado do Time Ultimate no Perfil: a melhor carta e cada temporada
 - Título no VERSUS e na imagem de Compartilhar
 - Caminho do treinador nas Metas da Sede, com o prêmio de cada missão
+- Tocar no nome de outro jogador (ranking, Liga, Desafio, histórico do Duelo) abre o perfil dele, mesmo sem ser amigo; a foto do Google continua só pra amigos
 - Entrar com a conta não volta mais o avatar, o nome e o clube pro padrão quando o aparelho ainda não tinha perfil
+
+## 0.9.53.4 · Economia do Time Ultimate (2026-11-27)
+
+### Time Ultimate
+- Fichas de partida agora têm limite de 400 por dia; depois dele, cada partida paga 10 Fichas
+- Escolher carta ouro: o preço sobe com a nota (1.600 Fichas na 75, mais 200 por ponto acima)
+- Os lendários ficam fora do Time Ultimate por enquanto, e o Ditto só sai em pacote
+- O Time Ultimate de quem já tinha jogado recomeçou, com 2 pacotes de presente. A Copa, o Perfil e a Pokédex não mudaram
 
 ## 0.9.53.3 · Conserto do Time Ultimate na nuvem (2026-11-26)
 
