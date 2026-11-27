@@ -20,6 +20,7 @@ import { useT } from '../../i18n/react';
 import { shopRerollTicket, useGame } from '../../store/game-store';
 import { useCardModal } from '../card-modal';
 import { CardPack, isBigCard, PackArt, packLookOf } from '../components/CardPack';
+import { DittoMask } from '../components/DittoMask';
 import { FormationBoard } from '../components/FormationBoard';
 import { FutCard } from '../components/FutCard';
 import { HudIcon } from '../components/MatchHud';
@@ -511,14 +512,19 @@ function PackMoment({
                                     held ? ' walk-held' : i === walkAt ? ' k-pop' : ''
                                 }`}
                             >
-                                <FutCard
+                                <DittoMask
                                     inst={inst}
-                                    selected={pick === i}
-                                    action={{
-                                        label: t(pick === i ? 'reward.chosen' : 'reward.pick'),
-                                        primary: true,
-                                        onClick: () => onPick(pick === i ? null : i),
-                                    }}
+                                    render={(face) => (
+                                        <FutCard
+                                            inst={face}
+                                            selected={pick === i}
+                                            action={{
+                                                label: t(pick === i ? 'reward.chosen' : 'reward.pick'),
+                                                primary: true,
+                                                onClick: () => onPick(pick === i ? null : i),
+                                            }}
+                                        />
+                                    )}
                                 />
                             </div>
                         );

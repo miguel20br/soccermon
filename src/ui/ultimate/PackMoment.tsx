@@ -1,9 +1,11 @@
 import { type CSSProperties, type PointerEvent, useEffect, useRef, useState } from 'react';
+import type { PokemonInstance } from '../../engine/instance';
 import { walkoutLast } from '../../game/walkout-plan';
 import { useT } from '../../i18n/react';
 import { OPEN_FICHAS } from '../../store/ultimate/rules';
 import type { PackKind, PackOpen } from '../../store/ultimate/ultimate';
 import { CardPack, isBigCard, packLookOf } from '../components/CardPack';
+import { DittoMask } from '../components/DittoMask';
 import { FutCard } from '../components/FutCard';
 import { HudIcon } from '../components/MatchHud';
 import { MomentStage } from '../kit/MomentStage';
@@ -116,6 +118,9 @@ export function UtPackMoment({
     const [torn, setTorn] = useState(false);
     const tear = useTear();
     const acts = packActs(at, packs.length, revealed, walkHere >= 0 && walk !== 'done');
+    const face = (inst: PokemonInstance, repeat: boolean) => (
+        <FutCard inst={inst} ribbon={repeat ? t('ultimate.packs.repeat') : t('ultimate.packs.fresh')} />
+    );
     const fresh = pack.repeat.filter((r) => !r).length;
     const repeats = open.packs.reduce((n, p) => n + p.repeat.filter(Boolean).length, 0);
     return (
@@ -148,10 +153,12 @@ export function UtPackMoment({
                                     i === walkHere ? (walk === 'done' ? ' k-pop' : ' walk-held') : ''
                                 }`}
                             >
-                                <FutCard
-                                    inst={c}
-                                    ribbon={repeat ? t('ultimate.packs.repeat') : t('ultimate.packs.fresh')}
-                                />
+                                {/* a carta do walkout já tem o momento dela: o Ditto disfarçado é só no leque */}
+                                {i === walkHere ? (
+                                    face(c, repeat)
+                                ) : (
+                                    <DittoMask inst={c} render={(inst) => face(inst, repeat)} />
+                                )}
                             </div>
                         ))}
                     </div>

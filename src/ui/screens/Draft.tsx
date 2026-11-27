@@ -15,6 +15,7 @@ import { useCardModal } from '../card-modal';
 import { Coach } from '../coach/Coach';
 import { CardPack, isBigCard, packLookOf } from '../components/CardPack';
 import { CountUp } from '../components/CountUp';
+import { DittoMask } from '../components/DittoMask';
 import { FormationBoard } from '../components/FormationBoard';
 import { FormationCarousel } from '../components/FormationCarousel';
 import { FutCard } from '../components/FutCard';
@@ -473,24 +474,29 @@ export function Draft() {
                                                     </div>
                                                 );
                                             })()}
-                                        <FutCard
+                                        <DittoMask
                                             inst={o}
-                                            captain={isCaptain}
-                                            action={{
-                                                label: isCaptain
-                                                    ? t('team.draft.chooseThis')
-                                                    : // vaga do banco: só "Escalar" (o título já diz que é pro banco;
-                                                      // "Escalar (o banco)" não cabia no chip e vazava pra carta do lado)
-                                                      roleLabel && role !== 'ANY'
-                                                      ? t('team.draft.signAs', { pos: roleLabel })
-                                                      : t('team.draft.sign'),
-                                                primary: true,
-                                                onClick: () => {
-                                                    // sem grito: no draft só a música (o Miguel, 22/10/2026)
-                                                    if (isCaptain) setSelected(o.uid);
-                                                    else flyCard(o.uid, () => pick(o.uid));
-                                                },
-                                            }}
+                                            render={(inst) => (
+                                                <FutCard
+                                                    inst={inst}
+                                                    captain={isCaptain}
+                                                    action={{
+                                                        label: isCaptain
+                                                            ? t('team.draft.chooseThis')
+                                                            : // vaga do banco: só "Escalar" (o título já diz que é pro banco;
+                                                              // "Escalar (o banco)" não cabia no chip e vazava pra carta do lado)
+                                                              roleLabel && role !== 'ANY'
+                                                              ? t('team.draft.signAs', { pos: roleLabel })
+                                                              : t('team.draft.sign'),
+                                                        primary: true,
+                                                        onClick: () => {
+                                                            // sem grito: no draft só a música (o Miguel, 22/10/2026)
+                                                            if (isCaptain) setSelected(o.uid);
+                                                            else flyCard(o.uid, () => pick(o.uid));
+                                                        },
+                                                    }}
+                                                />
+                                            )}
                                         />
                                         {isCaptain && <CaptainMax inst={o} />}
                                     </div>

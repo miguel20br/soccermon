@@ -14,7 +14,8 @@ import { SPONSOR_IDS } from '../../engine/sponsors';
 import { isProtectedMove, teachMove } from '../../engine/tm';
 import { useT } from '../../i18n/react';
 import { type CareerSeal, type DexEntry, EMPTY_ENTRY } from '../../store/profile';
-import { PackArt } from '../components/CardPack';
+import { CardPack, PackArt } from '../components/CardPack';
+import { DittoMask } from '../components/DittoMask';
 import { FormationBoard } from '../components/FormationBoard';
 import { FoulCard } from '../components/FoulCard';
 import { FutCard } from '../components/FutCard';
@@ -403,6 +404,15 @@ function CurrentCards({ onExit }: { onExit: () => void }) {
                         ))}
                     </div>
                 </section>
+                <section className="panel" id="ditto">
+                    <h2>Ditto disfarçado no pacote</h2>
+                    <p className="tactic-desc">
+                        O Ditto sai do pacote como outro Pokémon do mesmo metal e, logo depois de pousar, derrete em
+                        roxo e vira o Ditto. Vale no Time Ultimate, no draft, na recompensa e no Mercado. Toque no
+                        pacote pra abrir; Repetir fecha de novo.
+                    </p>
+                    <DittoReplay />
+                </section>
                 <section className="panel" id="patrocinios">
                     <h2>Patrocínios (Mercado da Copa rápida) · proposta pro ok do Miguel</h2>
                     <p className="tactic-desc">
@@ -625,6 +635,28 @@ function FoulReplay() {
             <FoulCard kind="forgiven" />
             <FoulCard kind="yellow" />
             <FoulCard kind="red" remaining={4} />
+            <button type="button" className="btn small" onClick={() => setN(n + 1)}>
+                Repetir
+            </button>
+        </div>
+    );
+}
+
+/** O pacote do Ditto disfarçado: Bulbasaur, Ditto e Squirtle (o Ditto vira outro do mesmo metal até pousar). */
+const DITTO_PACK = [sample(1), sample(132), sample(7)];
+function DittoReplay() {
+    const [n, setN] = useState(0);
+    return (
+        <div key={n} className="cg-ditto">
+            <CardPack sealed look="" label="Pacote" revealKey="ditto">
+                <div className="k-pick3" style={{ '--k-n': DITTO_PACK.length } as React.CSSProperties}>
+                    {DITTO_PACK.map((c) => (
+                        <div key={c.uid} className="cpack-card">
+                            <DittoMask inst={c} render={(inst) => <FutCard inst={inst} />} />
+                        </div>
+                    ))}
+                </div>
+            </CardPack>
             <button type="button" className="btn small" onClick={() => setN(n + 1)}>
                 Repetir
             </button>

@@ -7130,6 +7130,65 @@ p.muted.center a {
         transform: scale(1) rotate(60deg);
     }
 }
+/* Ditto disfarçado (DittoMask.tsx): o disfarce fica por cima e, 0,95 s depois de a carta sair, derrete em roxo; o
+   Ditto sobe da gosma. Fora da abertura (pulou, reduzir movimento) o disfarce some e fica o Ditto. --ditto = o roxo do
+   Épico (rarity.ts) */
+.ditto-swap {
+    --ditto: #a45cff;
+    display: grid;
+}
+.ditto-swap > * {
+    grid-area: 1 / 1;
+    min-width: 0;
+}
+.ditto-mask {
+    z-index: 1;
+    visibility: hidden;
+    pointer-events: none;
+    transform-origin: 50% 100%;
+}
+.is-revealing .ditto-mask {
+    visibility: visible;
+    animation: ditto-melt 0.5s calc(var(--rd, 0ms) + 0.95s) ease-in both;
+}
+.is-revealing .ditto-real {
+    transform-origin: 50% 100%;
+    animation: ditto-in 0.45s calc(var(--rd, 0ms) + 1.15s) var(--ease-pop) both;
+}
+@keyframes ditto-melt {
+    0% {
+        opacity: 1;
+        filter: none;
+        transform: none;
+    }
+    25% {
+        opacity: 1;
+        filter: brightness(1.8) drop-shadow(0 0 14px var(--ditto));
+        transform: scale(1.04);
+    }
+    55% {
+        opacity: 1;
+        filter: grayscale(1) sepia(1) hue-rotate(220deg) saturate(4) drop-shadow(0 0 10px var(--ditto));
+        transform: scale(1.1, 0.7);
+    }
+    100% {
+        opacity: 0;
+        filter: grayscale(1) sepia(1) hue-rotate(220deg) saturate(4);
+        transform: scale(1.25, 0.08);
+    }
+}
+@keyframes ditto-in {
+    from {
+        opacity: 0;
+        filter: drop-shadow(0 0 16px var(--ditto)) brightness(1.5);
+        transform: scale(1.15, 0.2);
+    }
+    to {
+        opacity: 1;
+        filter: none;
+        transform: none;
+    }
+}
 
 /* ---------- tecido entre os momentos (varredura de animação, 16/10) ---------- */
 /* tela nova entra com um fade curto (só opacidade: transform num pai quebraria os modais "fixed"). Só onde não há View

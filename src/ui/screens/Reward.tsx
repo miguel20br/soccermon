@@ -13,6 +13,7 @@ import { ROTA_VALUES, rewardRerollable, skipEvoTarget, skipTagOf } from '../../s
 import { isNovo } from '../../store/profile';
 import { useCardModal } from '../card-modal';
 import { CardPack, isBigCard, packLookOf } from '../components/CardPack';
+import { DittoMask } from '../components/DittoMask';
 import { FormationBoard } from '../components/FormationBoard';
 import { ExpandIcon, FutCard } from '../components/FutCard';
 import { HudIcon } from '../components/MatchHud';
@@ -161,30 +162,39 @@ export function Reward() {
                                     </div>
                                 )}
                                 {r.kind === 'pokemon' ? (
-                                    <FutCard
+                                    <DittoMask
                                         inst={r.inst}
-                                        selected={chosen === i}
-                                        ribbon={
-                                            r.from
-                                                ? t(
-                                                      /^(Equipe|Liga) /.test(r.from)
-                                                          ? 'reward.fromClubF'
-                                                          : 'reward.fromClub',
-                                                      {
-                                                          club: clubName(r.from, lang),
-                                                      },
-                                                  )
-                                                : t('reward.reinforcement')
-                                        }
-                                        action={{
-                                            label: t(
-                                                chosen === i ? 'reward.chosen' : r.from ? 'reward.sign' : 'reward.pick',
-                                            ),
-                                            primary: true,
-                                            onClick: () => {
-                                                setChosen(chosen === i ? null : i);
-                                            },
-                                        }}
+                                        render={(face) => (
+                                            <FutCard
+                                                inst={face}
+                                                selected={chosen === i}
+                                                ribbon={
+                                                    r.from
+                                                        ? t(
+                                                              /^(Equipe|Liga) /.test(r.from)
+                                                                  ? 'reward.fromClubF'
+                                                                  : 'reward.fromClub',
+                                                              {
+                                                                  club: clubName(r.from, lang),
+                                                              },
+                                                          )
+                                                        : t('reward.reinforcement')
+                                                }
+                                                action={{
+                                                    label: t(
+                                                        chosen === i
+                                                            ? 'reward.chosen'
+                                                            : r.from
+                                                              ? 'reward.sign'
+                                                              : 'reward.pick',
+                                                    ),
+                                                    primary: true,
+                                                    onClick: () => {
+                                                        setChosen(chosen === i ? null : i);
+                                                    },
+                                                }}
+                                            />
+                                        )}
                                     />
                                 ) : (
                                     // item e MT com o mesmo botão "Escolher" da carta do Pokémon (antes parecia que só o
