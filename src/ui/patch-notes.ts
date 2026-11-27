@@ -11,13 +11,20 @@ export const PATCH_NOTES: PatchNotes[] = [
     {
         version: '0.10.1',
         date: '2026-12-07',
-        title: 'Ditto disfarçado e metas na partida',
+        title: 'Ditto disfarçado, loja no Duelo e metas na partida',
         sections: [
             {
                 title: 'Cartas e pacotes',
                 lines: [
-                    'O Ditto sai do pacote disfarçado de outro Pokémon do mesmo metal e se transforma depois de aparecer',
+                    'O Ditto sai do pacote disfarçado de outro Pokémon do mesmo metal, com os olhinhos de ponto do Ditto, e fica disfarçado até você tocar nele',
                     'Carta Shiny, Destaque, Ícone ou Evento na recompensa da Copa ganha a mesma entrada do pacote do Mercado',
+                ],
+            },
+            {
+                title: 'Duelo',
+                lines: [
+                    'Melhor de 3 de draft com Mercado entre os jogos: as mesmas ofertas pros dois, ₽10 pra cada um (₽13 pra quem perdeu o jogo anterior) e o que sobrar não passa pro próximo',
+                    'O intervalo entre os jogos do melhor de 3 passou de 30 para 45 segundos',
                 ],
             },
             {
@@ -3253,13 +3260,20 @@ export const PATCH_NOTES_EN: PatchNotes[] = [
     {
         version: '0.10.1',
         date: '2026-12-07',
-        title: 'Disguised Ditto and goals during the match',
+        title: 'Disguised Ditto, Duel shop and goals during the match',
         sections: [
             {
                 title: 'Cards and packs',
                 lines: [
-                    'Ditto comes out of the pack disguised as another Pokémon of the same metal and transforms after it shows up',
+                    "Ditto comes out of the pack disguised as another Pokémon of the same metal, with Ditto's dot eyes, and stays disguised until you tap it",
                     'A Shiny, Star Player, Icon or Event card in the Cup reward gets the same entrance as the Market pack',
+                ],
+            },
+            {
+                title: 'Duel',
+                lines: [
+                    'Draft best of 3 with a Market between games: the same offers for both, ₽10 each (₽13 for whoever lost the last game) and leftover ₽ does not carry over',
+                    'The break between best of 3 games went from 30 to 45 seconds',
                 ],
             },
             {

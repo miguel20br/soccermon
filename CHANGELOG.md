@@ -1,10 +1,14 @@
 # Novidades
 
-## 0.10.1 · Ditto disfarçado e metas na partida (2026-12-07)
+## 0.10.1 · Ditto disfarçado, loja no Duelo e metas na partida (2026-12-07)
 
 ### Cartas e pacotes
-- O Ditto sai do pacote disfarçado de outro Pokémon do mesmo metal e se transforma depois de aparecer
+- O Ditto sai do pacote disfarçado de outro Pokémon do mesmo metal, com os olhinhos de ponto do Ditto, e fica disfarçado até você tocar nele
 - Carta Shiny, Destaque, Ícone ou Evento na recompensa da Copa ganha a mesma entrada do pacote do Mercado
+
+### Duelo
+- Melhor de 3 de draft com Mercado entre os jogos: as mesmas ofertas pros dois, ₽10 pra cada um (₽13 pra quem perdeu o jogo anterior) e o que sobrar não passa pro próximo
+- O intervalo entre os jogos do melhor de 3 passou de 30 para 45 segundos
 
 ### Time Ultimate
 - Aviso no canto da partida quando um gol seu avança o objetivo de gols ou a Evolução de quem marcou
