@@ -38,6 +38,7 @@ import {
     type Shared,
     SIDE,
     type StampedOrder,
+    shopOf,
     specialLimitOf,
     stampOrder,
     tickTimers,
@@ -1015,7 +1016,9 @@ class DuelSession {
             if (s.phase === 'preview' && !mineOk && c.until !== undefined && now >= c.until && this.due('pv-auto')) {
                 const team = s.teams[role];
                 const draft =
-                    this.previewDraft && team && applyPreview(team, this.previewDraft, captainSwapOk(s))
+                    this.previewDraft &&
+                    team &&
+                    applyPreview(team, this.previewDraft, captainSwapOk(s), shopOf(s, role))
                         ? this.previewDraft
                         : null;
                 const cfg =

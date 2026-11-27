@@ -156,6 +156,13 @@ export const duel = {
         formation: 'Formação',
         tactic: 'Tática',
     },
+    /** Mercado entre os jogos do melhor de 3 (draft): a mesma vitrine pros dois, ₽ só deste intervalo. */
+    shop: {
+        hint: '₽{n} pra gastar agora. O que você comprar entra no time deste jogo; o ₽ que sobrar não passa pro próximo.',
+        hintLoser: '₽{n} pra gastar agora (+₽3 de quem perdeu o jogo anterior). O que sobrar não passa pro próximo.',
+        undo: 'Desfazer compra',
+        captain: 'Capitão',
+    },
     /** Pronto que dá pra desfazer (escolha do time, escalação e intervalo) enquanto o rival não deu o dele. */
     ready: {
         you: 'Você',

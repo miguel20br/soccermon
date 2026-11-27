@@ -1029,3 +1029,67 @@ button.sb-title:hover {
         top: calc(var(--k-gap-y) - var(--wall-top) - var(--wall-h) + 36px);
     }
 }
+
+/* Mercado entre os jogos do melhor de 3 (DuelShopPanel): a vitrine numa fila que corre de lado, em cima da escalação */
+.duel-shop {
+    min-width: 0;
+}
+.duel-shop-head {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+.duel-shop-head h2 {
+    margin: 0;
+}
+.duel-shop-head .btn {
+    margin-left: auto;
+}
+.duel-shop-hint {
+    margin: 4px 0 8px;
+    font-size: 12px;
+}
+.duel-shop-row {
+    --fut-w: 118px;
+    display: flex;
+    gap: 10px;
+    overflow-x: auto;
+    padding-bottom: 4px;
+}
+.duel-shop-row .shop-offer {
+    display: flex;
+    flex: 0 0 auto;
+    flex-direction: column;
+    gap: 6px;
+    width: var(--fut-w);
+    transition: opacity var(--dur-ui) var(--ease-out);
+}
+.duel-shop-row .fut-wrap {
+    --fut-w: 118px;
+    width: var(--fut-w);
+}
+.duel-shop-row .item-card {
+    flex: 1;
+    min-height: 0;
+    font-size: 11px;
+}
+.duel-shop-who {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 8px;
+}
+.duel-shop-mon {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    text-align: left;
+}
+.duel-shop-mon img {
+    width: 32px;
+    height: 32px;
+    object-fit: contain;
+}
+.duel-shop-mon span {
+    flex: 1;
+    min-width: 0;
+}

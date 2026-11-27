@@ -14,6 +14,7 @@ import { DEFAULT_FORMATION, FORMATIONS, type FormationId, formationOf } from '..
 import { type PokemonInstance, slotRating } from '../engine/instance';
 import { Rng } from '../engine/rng';
 import { CORNER_PLANS, validOrder } from '../engine/runners/live-runner';
+import { type ShopOffer, shopOffers } from '../engine/shop';
 import {
     type CornerOrder,
     type CornerPlan,
@@ -74,6 +75,8 @@ export const bestOfOf = (s: Pick<Shared, 'bestOf'>): DuelBestOf => (s.bestOf ===
 export const PICK_MS = 20_000;
 export const CAPTAIN_PICK_MS = 30_000;
 export const PREVIEW_MS = 30_000;
+/** Entre um jogo e outro do melhor de 3: a Escalação e o Mercado (Miguel, 07/12/2026). */
+export const INTERVAL_MS = 45_000;
 export const HALFTIME_MS = 20_000;
 export const SPEED_ASK_MS = 5_000;
 /** Folga pra mensagem chegar antes de a sala considerar que alguém está travando o jogo. */
@@ -221,6 +224,8 @@ export interface Shared {
     rematch: Record<Role, boolean>;
     /** Lacre (x[0]) da partida seguinte, mandado junto com o pedido de revanche (a revanche pula o lobby). */
     rematchCommits?: Partial<Record<Role, string>>;
+    /** Mercado entre os jogos do melhor de 3 de draft (`duelShop`): a mesma vitrine pros dois e o ₽ de cada um. */
+    shop?: DuelShop;
 }
 
 const both = <T>(v: T): Record<Role, T> => ({ host: v, guest: v });
@@ -273,6 +278,8 @@ export interface PreviewCfg {
     cornerTaker?: string | null;
     /** Capitão novo: só do 2º jogo em diante do melhor de 3 (`captainSwapOk`); sem o campo fica o do draft. */
     captain?: string | null;
+    /** Compras no Mercado entre os jogos (`Shared.shop`), na ordem: a oferta e quem sai (Pokémon) ou quem segura (item). */
+    buys?: DuelBuy[];
 }
 
 export type OrderBody =
@@ -496,9 +503,95 @@ const TACTICS: Tactic[] = ['balanced', 'offensive', 'defensive', 'counter'];
  */
 export const captainSwapOk = (s: Pick<Shared, 'bestOf' | 'series'>) => bestOfOf(s) === 3 && (s.series?.length ?? 0) > 0;
 
-/** Aplica a prévia aberta (mesmo elenco, formação e tática válidas; o capitão pode começar no banco, como na copa). */
-export function applyPreview(team: TeamSetup, cfg: PreviewCfg, captainOk = false): TeamSetup | null {
+// ------------------------------------------------------------------ Mercado entre os jogos
+
+export interface DuelShop {
+    offers: ShopOffer[];
+    money: Record<Role, number>;
+}
+export interface DuelBuy {
+    offer: number;
+    uid: string;
+}
+/** ₽ de cada um por intervalo e o a mais de quem perdeu o jogo anterior. O que sobra não passa pro jogo seguinte. */
+export const DUEL_SHOP_MONEY = 10;
+export const DUEL_SHOP_LOSER = 3;
+
+/**
+ * Mercado do intervalo do melhor de 3 (Miguel, 07/12/2026): a vitrine do Mercado da Copa (2 Pokémon e 1 item; pacote e
+ * Patrocínio não cabem num intervalo de 45 s), sorteada da seed da sala e do jogo: os dois veem as mesmas ofertas, sem
+ * Pokémon que algum dos dois já tem. Só no Duelo de draft: o Time pronto e o do Time Ultimate jogam com o time do save.
+ */
+export function duelShop(s: Shared, game: number, last: DuelResult): DuelShop | undefined {
+    if (bestOfOf(s) !== 3 || s.mode === 'ready' || s.ut || !s.teams.host || !s.teams.guest || last.desync) return;
+    const team = ROLES.flatMap((r) => [...s.teams[r]!.lineup, ...s.teams[r]!.bench]);
+    const offers = shopOffers({
+        seed: `${s.seed}-duelo-${game}`,
+        stage: Math.max(0, game - 2),
+        reroll: 0,
+        team,
+        sponsors: [],
+        eventType: null,
+        captain: null,
+    }).filter((o) => o.kind === 'pokemon' || o.kind === 'item');
+    const money = (r: Role) => DUEL_SHOP_MONEY + (last.winner === other(r) ? DUEL_SHOP_LOSER : 0);
+    return { offers, money: { host: money('host'), guest: money('guest') } };
+}
+
+/** A vitrine e o ₽ de um dos lados (nada = sem Mercado neste intervalo). */
+export const shopOf = (s: Pick<Shared, 'shop'>, role: Role) =>
+    s.shop ? { offers: s.shop.offers, money: s.shop.money[role] } : null;
+
+/**
+ * As compras no time, na ordem: Pokémon entra no lugar de quem sai (não o capitão nem uma espécie que já está no time),
+ * item vai pra quem segura (troca o que ele tinha). Cada oferta uma vez, dentro do ₽. O time que sai passa pela mesma
+ * conferência do Time pronto (`validarTimeDuelo`). `null` = compra que não vale.
+ */
+export function applyBuys(
+    team: TeamSetup,
+    shop: { offers: ShopOffer[]; money: number } | null,
+    buys: unknown,
+): TeamSetup | null {
+    if (buys === undefined || (Array.isArray(buys) && !buys.length)) return team;
+    if (!shop || !Array.isArray(buys) || buys.length > shop.offers.length) return null;
+    let t = team;
+    let spent = 0;
+    const seen = new Set<number>();
+    for (const b of buys as DuelBuy[]) {
+        const o = Number.isInteger(b?.offer) ? shop.offers[b.offer] : undefined;
+        const all = [...t.lineup, ...t.bench];
+        if (!o || seen.has(b.offer) || !all.some((p) => p.uid === b.uid)) return null;
+        seen.add(b.offer);
+        spent += o.price;
+        const put = (fn: (p: PokemonInstance) => PokemonInstance) => ({
+            ...t,
+            lineup: t.lineup.map((p) => (p.uid === b.uid ? fn(p) : p)),
+            bench: t.bench.map((p) => (p.uid === b.uid ? fn(p) : p)),
+        });
+        if (o.kind === 'pokemon') {
+            if (b.uid === t.captainUid || all.some((p) => p.speciesId === o.inst.speciesId)) return null;
+            t = put(() => o.inst);
+            if (t.cornerTakerUid === b.uid) t = { ...t, cornerTakerUid: null };
+        } else if (o.kind === 'item') t = put((p) => ({ ...p, item: o.item }));
+        else return null;
+    }
+    if (spent > shop.money || validarTimeDuelo(teamRecipe(t)).length) return null;
+    return t;
+}
+
+/**
+ * Aplica a prévia aberta (mesmo elenco, formação e tática válidas; o capitão pode começar no banco, como na copa). Com
+ * o Mercado do intervalo (`shop`), as compras entram antes e o elenco já é o de depois delas.
+ */
+export function applyPreview(
+    team0: TeamSetup,
+    cfg: PreviewCfg,
+    captainOk = false,
+    shop: { offers: ShopOffer[]; money: number } | null = null,
+): TeamSetup | null {
     if (!cfg || !FORMATIONS[cfg.formation] || !TACTICS.includes(cfg.tactic)) return null;
+    const team = applyBuys(team0, shop, cfg.buys);
+    if (!team) return null;
     const all = [...team.lineup, ...team.bench];
     if (!Array.isArray(cfg.order) || cfg.order.length !== all.length || new Set(cfg.order).size !== all.length)
         return null;
@@ -691,6 +784,7 @@ function startPlay(s: Shared, now: number): Shared {
         halftime: undefined,
         secondHalf: false,
         voided: undefined,
+        shop: undefined,
         speedAsk: undefined,
         waitFor: undefined,
         waitSince: undefined,
@@ -785,7 +879,8 @@ function nextSeriesGame(s: Shared, commits: Record<Role, string>, now: number): 
         commits,
         phase: 'preview',
         teams: { host: s.teams.host, guest: s.teams.guest },
-        choice: emptyChoice(now + PREVIEW_MS),
+        shop: duelShop(s, (s.series?.length ?? 0) + 2, s.result!),
+        choice: emptyChoice(now + INTERVAL_MS),
     };
 }
 
@@ -871,7 +966,7 @@ function applyChoice(s: Shared, by: Role, value: unknown, now: number): Shared {
         team = teamFromRecipe(value as DuelTeamRecipe, '');
         if (s.ut) team = { ...team, lineup: noMidEvo(team.lineup), bench: noMidEvo(team.bench) };
     } else if (s.phase === 'preview' && s.teams[by])
-        team = applyPreview(s.teams[by]!, value as PreviewCfg, captainSwapOk(s));
+        team = applyPreview(s.teams[by]!, value as PreviewCfg, captainSwapOk(s), shopOf(s, by));
     if (!team) return s;
     const choice = { ...c, opened: { ...c.opened, [by]: true } };
     const next = { ...s, choice, teams: { ...s.teams, [by]: team } };

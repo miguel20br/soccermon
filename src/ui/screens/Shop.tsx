@@ -416,7 +416,7 @@ function Rail({ children, className = '', label }: { children: ReactNode; classN
 }
 
 /** A carta de cada coisa da vitrine (o botão de comprar fica embaixo, igual pra todas). */
-function OfferCard({
+export function OfferCard({
     offer: o,
     lack,
     selected,

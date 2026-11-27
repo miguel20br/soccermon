@@ -156,6 +156,12 @@ export const duel: typeof pt = {
         formation: 'Formation',
         tactic: 'Tactic',
     },
+    shop: {
+        hint: '₽{n} to spend now. What you buy joins your team for this game; leftover ₽ does not carry over.',
+        hintLoser: '₽{n} to spend now (+₽3 for losing the last game). Leftover ₽ does not carry over.',
+        undo: 'Undo purchase',
+        captain: 'Captain',
+    },
     ready: {
         you: 'You',
         on: 'ready',

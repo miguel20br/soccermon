@@ -29,6 +29,9 @@ import {
     canUnorder,
     captainSwapOk,
     clockAdjust,
+    DUEL_SHOP_LOSER,
+    DUEL_SHOP_MONEY,
+    type DuelBuy,
     disputaOptions,
     duelNames,
     duelOutcome,
@@ -36,6 +39,7 @@ import {
     duelTags,
     emoteAllowed,
     HALFTIME_MS,
+    INTERVAL_MS,
     type Intent,
     isRoomCode,
     leadTicks,
@@ -1550,5 +1554,124 @@ describe('Duelo com o time do Time Ultimate', () => {
         expect(r.game).toBe(done.game + 1);
         expect(r.ut).toBe(true);
         expect(r.phase).toBe('team');
+    });
+});
+
+describe('Mercado entre os jogos do melhor de 3', () => {
+    // melhor de 3 de draft (a sala de teste é Time pronto; o modo só decide se tem Mercado)
+    const md3 = (mode: Shared['mode'] = 'disputa'): Shared => ({ ...inMatch(), bestOf: 3, mode });
+    const end = (s: Shared, w: 0 | 1) =>
+        reduce(s, { k: 'ended' }, 'host', ctx(1000, { final: { score: [2, 1], shootout: null, winner: w } }));
+    const next = (s: Shared) => {
+        s = reduce(s, { k: 'rematch', commit: H('7') }, 'guest', ctx(2000));
+        return reduce(s, { k: 'rematch', commit: H('8') }, 'host', ctx(2000));
+    };
+    const cfgOf = (tm: TeamSetup, buys?: DuelBuy[]) => ({
+        formation: tm.formation ?? '1-2-1',
+        tactic: tm.tactic,
+        order: [...tm.lineup, ...tm.bench].map((p) => p.uid),
+        ...(buys ? { buys } : {}),
+    });
+    /** Os dois lacram e abrem; `guest` = a escalação (com as compras) do convidado. */
+    const play = (s: Shared, guest: object) => {
+        s = reduce(s, { k: 'choiceSeal', seal: H('5') }, 'host', ctx(3000));
+        s = reduce(s, { k: 'choiceSeal', seal: H('6') }, 'guest', ctx(3000));
+        s = reduce(s, { k: 'choiceOpen', value: cfgOf(s.teams.host!), salt: 'a' }, 'host', ctx(3000));
+        return reduce(s, { k: 'choiceOpen', value: guest, salt: 'b' }, 'guest', ctx(3000));
+    };
+
+    it('abre com a mesma vitrine pros dois, 10 de ₽ e +3 pra quem perdeu, em 45 s', () => {
+        const s = next(end(md3(), 0));
+        expect(s.phase).toBe('preview');
+        expect(s.choice?.until).toBe(2000 + INTERVAL_MS);
+        expect(INTERVAL_MS).toBe(45_000);
+        expect(s.shop?.money).toEqual({ host: DUEL_SHOP_MONEY, guest: DUEL_SHOP_MONEY + DUEL_SHOP_LOSER });
+        expect(s.shop?.money.guest).toBe(13);
+        // a vitrine sai da seed da sala: o mesmo jogo dá a mesma, nos dois lados (o estado é um só)
+        expect(JSON.stringify(next(end(md3(), 0)).shop)).toBe(JSON.stringify(s.shop));
+        const kinds = s.shop!.offers.map((o) => o.kind);
+        expect(kinds).toContain('pokemon');
+        expect(kinds.every((k) => k === 'pokemon' || k === 'item')).toBe(true);
+        // nenhuma contratação que algum dos dois já tem
+        const have = new Set(
+            ['host', 'guest']
+                .flatMap((r) => [...s.teams[r as Role]!.lineup, ...s.teams[r as Role]!.bench])
+                .map((p) => p.speciesId),
+        );
+        for (const o of s.shop!.offers) if (o.kind === 'pokemon') expect(have.has(o.inst.speciesId)).toBe(false);
+    });
+
+    it('a compra entra no time do jogo seguinte (o rival recebe o time com ela) e o ₽ não passa adiante', () => {
+        let s = next(end(md3(), 0));
+        const g = s.teams.guest!;
+        const offers = s.shop!.offers;
+        const mon = offers.findIndex((o) => o.kind === 'pokemon');
+        const item = offers.findIndex((o) => o.kind === 'item');
+        const out = g.bench[0].uid;
+        const holder = g.lineup[1].uid;
+        const bought = offers[mon].kind === 'pokemon' ? offers[mon].inst : null;
+        const buys = [
+            { offer: mon, uid: out },
+            { offer: item, uid: holder },
+        ];
+        const order = cfgOf(g).order.map((u) => (u === out ? bought!.uid : u));
+        s = play(s, { ...cfgOf(g), order, buys });
+        expect(s.phase).toBe('match');
+        const after = s.teams.guest!;
+        const all = [...after.lineup, ...after.bench];
+        expect(all.some((p) => p.speciesId === bought!.speciesId)).toBe(true);
+        expect(all.some((p) => p.uid.startsWith(out.replace(/~[hg]$/, '')))).toBe(false);
+        expect(after.lineup[1].item).toBe(offers[item].kind === 'item' ? offers[item].item : '');
+        expect(s.shop).toBeUndefined();
+        // o jogo 3 começa do time com a compra; a vitrine é outra e o ₽ volta pros 10 (+3 de quem perdeu)
+        s = next(end(s, 1));
+        expect([...s.teams.guest!.lineup, ...s.teams.guest!.bench].some((p) => p.speciesId === bought!.speciesId)).toBe(
+            true,
+        );
+        expect(s.shop?.money).toEqual({ host: DUEL_SHOP_MONEY + DUEL_SHOP_LOSER, guest: DUEL_SHOP_MONEY });
+    });
+
+    it('compra que não vale não abre: acima do ₽, a mesma oferta duas vezes, vender o capitão ou sem a compra na ordem', () => {
+        const s = next(end(md3(), 1));
+        const h = s.teams.host!;
+        const offers = s.shop!.offers;
+        const mon = offers.findIndex((o) => o.kind === 'pokemon');
+        const inst = offers[mon].kind === 'pokemon' ? offers[mon].inst : null;
+        const order = cfgOf(h).order.map((u) => (u === h.bench[0].uid ? inst!.uid : u));
+        const open = (value: object) => {
+            let x = reduce(s, { k: 'choiceSeal', seal: H('5') }, 'host', ctx(3000));
+            x = reduce(x, { k: 'choiceSeal', seal: H('6') }, 'guest', ctx(3000));
+            const y = reduce(x, { k: 'choiceOpen', value, salt: 'a' }, 'host', ctx(3000));
+            return y === x;
+        };
+        expect(open({ ...cfgOf(h), order, buys: [{ offer: mon, uid: h.bench[0].uid }] })).toBe(false);
+        expect(
+            open({
+                ...cfgOf(h),
+                order,
+                buys: [
+                    { offer: mon, uid: h.bench[0].uid },
+                    { offer: mon, uid: h.bench[1].uid },
+                ],
+            }),
+        ).toBe(true);
+        expect(open({ ...cfgOf(h), buys: [{ offer: mon, uid: h.bench[0].uid }] })).toBe(true);
+        const capOrder = cfgOf(h).order.map((u) => (u === h.captainUid ? inst!.uid : u));
+        expect(open({ ...cfgOf(h), order: capOrder, buys: [{ offer: mon, uid: h.captainUid! }] })).toBe(true);
+        // sem ₽ (o host ganhou: 10) não leva tudo se passar do que tem
+        const rich = { ...s, shop: { ...s.shop!, money: { host: 0, guest: 0 } } };
+        let x = reduce(rich, { k: 'choiceSeal', seal: H('5') }, 'host', ctx(3000));
+        x = reduce(x, { k: 'choiceSeal', seal: H('6') }, 'guest', ctx(3000));
+        const value = { ...cfgOf(h), order, buys: [{ offer: mon, uid: h.bench[0].uid }] };
+        expect(reduce(x, { k: 'choiceOpen', value, salt: 'a' }, 'host', ctx(3000))).toBe(x);
+        // a prévia sem compra continua valendo, com ou sem Mercado
+        expect(applyPreview(h, cfgOf(h), true, null)).not.toBeNull();
+    });
+
+    it('sem Mercado no Time pronto, no Time Ultimate e no duelo de 1 jogo', () => {
+        expect(next(end(md3('ready'), 0)).shop).toBeUndefined();
+        expect(next(end({ ...md3(), ut: true }, 0)).shop).toBeUndefined();
+        const one = { ...inMatch(), mode: 'disputa' as const };
+        expect(next(end(one, 0)).shop).toBeUndefined();
     });
 });

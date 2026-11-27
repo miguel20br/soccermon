@@ -8,14 +8,17 @@ import type { TeamSetup } from '../../engine/state';
 import { formationText } from '../../i18n';
 import { useT } from '../../i18n/react';
 import {
+    applyBuys,
     bothSealed,
     captainSwapOk,
     DUEL_ROUNDS,
+    DUEL_SHOP_MONEY,
     other,
     type PreviewCfg,
     packOptions,
     type Role,
     type Shared,
+    shopOf,
     specialLimitOf,
     teamProblems,
     utRecipe,
@@ -35,6 +38,7 @@ import { Stage } from '../kit/Stage';
 import { lineupAverage } from '../rating';
 import { DraftTeam } from '../screens/Draft';
 import { LineupEditor } from '../screens/Lineup';
+import { OfferCard } from '../screens/Shop';
 import '../draft.css';
 import { seriesLabel, useCountdown } from './DuelMatch';
 import { ReadyBar } from './ReadyBar';
@@ -471,24 +475,28 @@ export function DuelDraft({ s, role }: { s: Shared; role: Role }) {
 export function DuelPreview({ s, role }: { s: Shared; role: Role }) {
     const { t, d, lang } = useT();
     const openCard = useCardModal((v) => v.open);
-    const team = s.teams[role]!;
+    const base = s.teams[role]!;
     const rivalRole = other(role);
     const rivalTeam = s.teams[rivalRole]!;
     const rival = s.peers[rivalRole]?.name ?? '';
     const left = useCountdown(s.choice?.until);
     const sealed = useDuel((v) => v.choiceSealed);
-    const all = [...team.lineup, ...team.bench];
     const [cfg, setCfg] = useState<PreviewCfg>(() => ({
-        formation: team.formation ?? '1-2-1',
-        tactic: team.tactic,
-        order: all.map((p) => p.uid),
-        corner: team.corner ?? 'mixed',
-        cornerTaker: team.cornerTakerUid ?? null,
+        formation: base.formation ?? '1-2-1',
+        tactic: base.tactic,
+        order: [...base.lineup, ...base.bench].map((p) => p.uid),
+        corner: base.corner ?? 'mixed',
+        cornerTaker: base.cornerTakerUid ?? null,
     }));
     useEffect(() => {
         duel.previewDraft = cfg;
     }, [cfg]);
+    // Mercado entre os jogos (melhor de 3 de draft): o elenco da escalação já é o de depois das compras
+    const shop = shopOf(s, role);
+    const team = applyBuys(base, shop, cfg.buys) ?? base;
+    const all = [...team.lineup, ...team.bench];
     const byUid = new Map(all.map((p) => [p.uid, p]));
+    const locked = sealed || bothSealed(s);
     // melhor de 3, do 2º jogo em diante: dá pra trocar o capitão entre os jogos (só entre os titulares, como na copa)
     const canCaptain = captainSwapOk(s);
     const idxOf = (r: SlotRef) => (r.zone === 'lineup' ? r.index : 5 + r.index);
@@ -513,6 +521,36 @@ export function DuelPreview({ s, role }: { s: Shared; role: Role }) {
                     {left}
                 </div>
             </div>
+            {shop && (
+                <DuelShopPanel
+                    shop={shop}
+                    team={team}
+                    captainUid={cfg.captain ?? team.captainUid ?? null}
+                    buys={cfg.buys ?? []}
+                    locked={locked}
+                    onBuy={(offer, uid) => {
+                        const o = shop.offers[offer];
+                        const swapIn = o.kind === 'pokemon' ? o.inst.uid : null;
+                        setCfg({
+                            ...cfg,
+                            order: swapIn ? cfg.order.map((u) => (u === uid ? swapIn : u)) : cfg.order,
+                            cornerTaker: swapIn && cfg.cornerTaker === uid ? null : cfg.cornerTaker,
+                            buys: [...(cfg.buys ?? []), { offer, uid }],
+                        });
+                    }}
+                    onUndo={() => {
+                        const buys = [...(cfg.buys ?? [])];
+                        const last = buys.pop();
+                        const o = last && shop.offers[last.offer];
+                        const back = o?.kind === 'pokemon' ? o.inst.uid : null;
+                        setCfg({
+                            ...cfg,
+                            order: back ? cfg.order.map((u) => (u === back ? last!.uid : u)) : cfg.order,
+                            buys,
+                        });
+                    }}
+                />
+            )}
             <LineupEditor
                 title={t('team.lineup.title', { team: team.name })}
                 formation={cfg.formation}
@@ -523,7 +561,7 @@ export function DuelPreview({ s, role }: { s: Shared; role: Role }) {
                 tactic={cfg.tactic}
                 cornerPlan={cfg.corner ?? 'mixed'}
                 cornerTakerUid={cfg.cornerTaker ?? null}
-                locked={sealed || bothSealed(s)}
+                locked={locked}
                 onFormation={(formation) => setCfg({ ...cfg, formation })}
                 onSwap={swap}
                 onTactic={(tactic) => setCfg({ ...cfg, tactic })}
@@ -574,5 +612,122 @@ export function DuelPreview({ s, role }: { s: Shared; role: Role }) {
                 }
             />
         </div>
+    );
+}
+
+/**
+ * O Mercado do intervalo do melhor de 3 (`duelShop`): a vitrine igual à do rival, o ₽ deste intervalo e, ao comprar,
+ * quem sai (Pokémon) ou quem segura (item). As compras vão lacradas junto da escalação; "Desfazer" tira a última.
+ */
+function DuelShopPanel({
+    shop,
+    team,
+    captainUid,
+    buys,
+    locked,
+    onBuy,
+    onUndo,
+}: {
+    shop: NonNullable<ReturnType<typeof shopOf>>;
+    team: TeamSetup;
+    captainUid: string | null;
+    buys: { offer: number; uid: string }[];
+    locked: boolean;
+    onBuy: (offer: number, uid: string) => void;
+    onUndo: () => void;
+}) {
+    const { t } = useT();
+    const [chosen, setChosen] = useState<number | null>(null);
+    const spent = buys.reduce((n, b) => n + shop.offers[b.offer].price, 0);
+    const money = shop.money - spent;
+    const all = [...team.lineup, ...team.bench];
+    const offer = chosen === null ? null : shop.offers[chosen];
+    const sold = (i: number) => buys.some((b) => b.offer === i);
+    const owned = (i: number) => {
+        const o = shop.offers[i];
+        return o.kind === 'pokemon' && all.some((p) => p.speciesId === o.inst.speciesId);
+    };
+    return (
+        <section className="panel duel-shop" data-testid="duel-shop">
+            <div className="duel-shop-head">
+                <h2>{t('shop.title')}</h2>
+                <b className="money" data-testid="duel-shop-money">
+                    {t('shop.money', { n: money })}
+                </b>
+                {buys.length > 0 && !locked && (
+                    <button type="button" className="btn small ghost" onClick={onUndo}>
+                        {t('duel.shop.undo')}
+                    </button>
+                )}
+            </div>
+            <p className="muted duel-shop-hint">
+                {t(shop.money > DUEL_SHOP_MONEY ? 'duel.shop.hintLoser' : 'duel.shop.hint', { n: shop.money })}
+            </p>
+            <div className="duel-shop-row">
+                {shop.offers.map((o, i) => {
+                    const ok = !locked && !sold(i) && !owned(i) && money >= o.price;
+                    return (
+                        <div
+                            key={o.kind === 'pokemon' ? o.inst.uid : `${o.kind}-${i}`}
+                            className={`shop-offer k-${o.kind}${sold(i) ? ' sold' : ''}${ok || sold(i) ? '' : ' cant'}`}
+                        >
+                            <OfferCard
+                                offer={o}
+                                lack={Math.max(0, o.price - money)}
+                                selected={chosen === i}
+                                team={all}
+                                packSize={3}
+                                onPick={() => ok && setChosen(i)}
+                            />
+                            <button
+                                type="button"
+                                className="btn small confirm shop-buy"
+                                disabled={!ok}
+                                onClick={() => setChosen(i)}
+                            >
+                                {!ok && !sold(i) && <HudIcon kind="lock" />}
+                                {sold(i)
+                                    ? t('shop.sold')
+                                    : owned(i)
+                                      ? t('shop.owned')
+                                      : money < o.price
+                                        ? t('shop.priceShort', { price: o.price, n: o.price - money })
+                                        : t('shop.buy', { n: o.price })}
+                            </button>
+                        </div>
+                    );
+                })}
+            </div>
+            <Sheet
+                open={!!offer && !locked}
+                onClose={() => setChosen(null)}
+                title={t(offer?.kind === 'pokemon' ? 'reward.whoLeaves' : 'reward.whoHolds')}
+                className="reward-sheet"
+            >
+                <div className="duel-shop-who">
+                    {all.map((p) => {
+                        const v = viewInstance(p);
+                        const no = offer?.kind === 'pokemon' && p.uid === captainUid;
+                        return (
+                            <button
+                                key={p.uid}
+                                type="button"
+                                className="btn duel-shop-mon"
+                                disabled={no}
+                                onClick={() => {
+                                    onBuy(chosen!, p.uid);
+                                    setChosen(null);
+                                }}
+                            >
+                                <img className="pixel" src={cardSprite(p)} alt="" />
+                                <span>{v.displayName}</span>
+                                <b>{v.overall}</b>
+                                {no && <small className="muted">{t('duel.shop.captain')}</small>}
+                            </button>
+                        );
+                    })}
+                </div>
+            </Sheet>
+        </section>
     );
 }
