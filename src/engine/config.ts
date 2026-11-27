@@ -98,8 +98,10 @@ export const STOPPAGE = { min: 1, max: 3 };
  * 33 = escolher os golpes na escalação (`picked`, `chooseMoves`; Miguel aprovou em 23/11/2026, docs/planos/escolher-golpes.md).
  * 34 = sinergias secretas fase 2 (21 com bônus de +3% a +8% em `LINKS`, combo só nas de membros certos); Miguel pediu a
  *     opinião do Claude em 25/11, docs/planos/sinergias-secretas-fase2.md.
+ * 35 = goleiro não fica preso no próprio golpe (playtester, 11/11/2026): Metronome, Mirror Move e Mimic no goleiro não
+ *     tiram nem copiam golpe que trava quem usa (`locksUser`: carga, Fly/Dig, Explosion, Hyper Beam, Jump Kick, Rest).
  */
-export const ENGINE_VERSION = 34;
+export const ENGINE_VERSION = 35;
 
 export const FUTSAL_5: MatchConfig = {
     preset: 'futsal5',

@@ -31,6 +31,7 @@ import {
     DRAIN,
     DRAWBACK,
     hasTrait,
+    locksUser,
     moveProfile,
     OHKO,
     SECONDARY_PICK,
@@ -2209,10 +2210,15 @@ function specialMove(
         case 'mirrormove':
         case 'mimic': {
             if (depth > 0) return { target: null, hit: false, after: null };
-            // Metronome: qualquer golpe; Mirror Move/Mimic: o último que o rival usou
-            const pool = Object.keys(MOVES).filter((m) => m !== 'counter' && moveProfile(m).kind !== 'flavor');
+            // Metronome: qualquer golpe; Mirror Move/Mimic: o último que o rival usou. O goleiro nunca tira nem copia
+            // golpe que trava quem usa (ficava carregando, voando ou dormindo e levava gol)
+            const gk = p.role === 'GK';
+            const pool = Object.keys(MOVES).filter(
+                (m) => m !== 'counter' && moveProfile(m).kind !== 'flavor' && !(gk && locksUser(m)),
+            );
             const copied = moveId === 'metronome' ? s.rng.pick(pool) : s.lastMove[p.team === 0 ? 1 : 0];
-            if (!copied || copied === moveId) return { target: null, hit: false, after: null };
+            if (!copied || copied === moveId || (gk && locksUser(copied)))
+                return { target: null, hit: false, after: null };
             // Mimic (Gen 1): o golpe copiado fica no lugar dele até o fim da partida, com os usos do golpe
             const slot = moveId === 'mimic' ? p.inst.moves.indexOf('mimic') : -1;
             if (slot >= 0) {

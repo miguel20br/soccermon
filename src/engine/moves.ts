@@ -550,6 +550,19 @@ export const DRAWBACK: Record<string, 'faint' | 'recharge' | 'recoil' | 'rampage
     highjumpkick: 'crash',
 };
 
+/**
+ * Golpe que trava quem usa: carrega parado, some voando/cavando, desmaia, recarrega, se machuca ao errar ou dorme (Rest).
+ * O goleiro não usa nenhum na defesa (IA) nem por sorteio ou cópia (Metronome, Mirror Move, Mimic): ficava preso no gol.
+ */
+export const locksUser = (m: string): boolean =>
+    hasTrait(m, 'charge') ||
+    hasTrait(m, 'fly') ||
+    hasTrait(m, 'dig') ||
+    m === 'rest' ||
+    DRAWBACK[m] === 'faint' ||
+    DRAWBACK[m] === 'recharge' ||
+    DRAWBACK[m] === 'crash';
+
 /** Golpes que sugam o fôlego do alvo para quem usa (fração de fôlego). */
 export const DRAIN: Record<string, number> = { absorb: 0.06, megadrain: 0.1, leechlife: 0.07, dreameater: 0.14 };
 

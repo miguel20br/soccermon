@@ -14,7 +14,7 @@ import {
     toWorld,
 } from '../match';
 import { isTaught } from '../modifiers';
-import { DRAWBACK, hasTrait, MOVE_TUNING, moveProfile, type Trait } from '../moves';
+import { hasTrait, locksUser, MOVE_TUNING, moveProfile, type Trait } from '../moves';
 import type { MatchState, PlayerState, Tactic } from '../state';
 import { add, clamp, dist, len, norm, pointSegment, scale, sub, type Vec2, v } from '../vec';
 import { expectedGoals } from '../xg';
@@ -895,11 +895,8 @@ export class AIController implements Controller {
     }
 }
 
-/** Golpe que o goleiro usa pra defender: nada que carregue, voe/cave, exploda ou deixe recarregando. */
-function gkSaveMove(m: string): boolean {
-    return !hasTrait(m, 'charge') && !hasTrait(m, 'fly') && !hasTrait(m, 'dig') && !GK_UNSAFE.has(DRAWBACK[m] ?? '');
-}
-const GK_UNSAFE = new Set(['faint', 'recharge']);
+/** Golpe que o goleiro usa pra defender: nada que trave quem usa (`locksUser`). */
+const gkSaveMove = (m: string) => !locksUser(m);
 
 function closestTo(players: PlayerState[], target: Vec2): PlayerState | null {
     let best: PlayerState | null = null;

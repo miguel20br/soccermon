@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { FUTSAL_5 } from './config';
 import { aiDraftTeam } from './draft';
-import { createMatch, deflectOut } from './match';
+import { createMatch, deflectOut, step } from './match';
 import { Rng } from './rng';
 import type { TeamSetup } from './state';
 import { v } from './vec';
@@ -38,5 +38,36 @@ describe('espalmada pra escanteio', () => {
                 }
             }
         }
+    });
+});
+
+describe('goleiro não fica preso no próprio golpe (playtester, 11/11)', () => {
+    // Metronome sorteia qualquer golpe; Mirror Move e Mimic copiam o do rival. No goleiro, o sorteio ou a cópia
+    // pulava a trava da IA (gkSaveMove) e ele carregava parado, sumia voando/cavando, desmaiava ou dormia no gol
+    const stuck = (p: ReturnType<typeof createMatch>['players'][number]) =>
+        !!p.fx.charging || !!p.fx.air || p.stun > 0 || p.status?.kind === 'slp';
+    const play = (seed: string, moves: string[], rivalLast: string | null) => {
+        const s = createMatch(FUTSAL_5, team('gk-a', 'A'), team('gk-b', 'B'), seed);
+        s.phase = 'play';
+        s.time = 10;
+        const gk = s.players.find((p) => p.team === 0 && p.role === 'GK')!;
+        gk.inst = { ...gk.inst, moves };
+        gk.moveUses = moves.map(() => 5);
+        gk.energy = 1;
+        s.lastMove[1] = rivalLast;
+        step(
+            s,
+            s.players.map((p) => (p === gk ? { type: 'useMove', slot: 0 } : { type: 'idle' })),
+        );
+        return gk;
+    };
+
+    it('Metronome no goleiro nunca sorteia golpe que trava', () => {
+        for (let k = 0; k < 300; k++) expect(stuck(play(`metro-${k}`, ['metronome'], null))).toBe(false);
+    });
+
+    it('Mirror Move e Mimic no goleiro não copiam Fly, Dig, Solar Beam, Explosion, Hyper Beam nem Rest', () => {
+        for (const m of ['fly', 'dig', 'solarbeam', 'skullbash', 'explosion', 'hyperbeam', 'rest'])
+            for (const copy of ['mirrormove', 'mimic']) expect(stuck(play(`copy-${m}`, [copy], m))).toBe(false);
     });
 });
