@@ -164,7 +164,7 @@ function bestEvo(u: UltimateSave): { uid: string; path: number[]; final: number 
     let best: { uid: string; path: number[]; final: number } | null = null;
     for (const c of u.cards) {
         if (u.evoDone.includes(c.uid) || u.evos.some((e) => e.uid === c.uid)) continue;
-        for (const path of evoPaths(c)) {
+        for (const path of evoPaths(c, u.cards)) {
             const final = ovr(evoPreview(c, newEvo(c, path)));
             if (!best || final > best.final) best = { uid: c.uid, path, final };
         }
@@ -205,7 +205,9 @@ function spend(u0: UltimateSave, p: Profile, spent: { n: number }): UltimateSave
                 if (cardPrice(id) > u.fichas) continue;
                 const inst = buyCard(u, id)?.card;
                 if (!inst) continue;
-                const final = Math.max(...evoPaths(inst).map((path) => ovr(evoPreview(inst, newEvo(inst, path)))));
+                const final = Math.max(
+                    ...evoPaths(inst, u.cards).map((path) => ovr(evoPreview(inst, newEvo(inst, path)))),
+                );
                 if (final > worst() && (!pick || final > pick.final)) pick = { id, final };
             }
             if (!pick) break;
@@ -213,7 +215,7 @@ function spend(u0: UltimateSave, p: Profile, spent: { n: number }): UltimateSave
             if (!r) break;
             spent.n += cardPrice(pick.id);
             u = r.u;
-            const paths = evoPaths(r.card);
+            const paths = evoPaths(r.card, u.cards);
             const path = paths.reduce((b, x) =>
                 ovr(evoPreview(r.card, newEvo(r.card, x))) > ovr(evoPreview(r.card, newEvo(r.card, b))) ? x : b,
             );
