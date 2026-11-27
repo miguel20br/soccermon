@@ -48,7 +48,7 @@ import { Shop } from './ui/screens/Shop';
 import { TrophyRoom } from './ui/screens/TrophyRoom';
 import { natalOn, neonOn } from './ui/tema';
 import { tvCut } from './ui/tv';
-import { readUltimate } from './ui/ultimate/flag';
+import { noteUltimate, readUltimate, resumeUltimate, storedUltimate } from './ui/ultimate/flag';
 import { ResetNotice } from './ui/ultimate/ResetNotice';
 
 // Movedex (?lab=golpes) usa o Phaser: vem num pedaço à parte, como a partida
@@ -178,13 +178,20 @@ export default function App() {
                 if (menuDecided.current) return;
                 menuDecided.current = true;
                 const s = useGame.getState();
+                // a aba recarregou dentro do Time Ultimate (iOS sem memória, versão nova): volta pra ele, não pra Home
+                if (s.screen === 'home' && resumeUltimate(ultimateLab, window.location.search, storedUltimate())) {
+                    s.go('ultimate');
+                    return;
+                }
                 if (s.screen === 'home' && modeMenuDue(s, window.location.search)) {
                     setMenu('on');
                     void loadAmbientes(); // o JOGAR não espera a rede
                 }
             }),
-        [],
+        [ultimateLab],
     );
+    // anota na aba se ela está no Time Ultimate (o resumeUltimate acima lê ao recarregar)
+    useEffect(() => useGame.subscribe((s, p) => s.screen !== p.screen && noteUltimate(s.screen)), []);
     const fadeTimer = useRef(0);
     const fadeMenu = (from: 'in' | 'out', to: 'on' | null) => {
         window.clearTimeout(fadeTimer.current); // tocou de novo no meio do fade: vale o último
