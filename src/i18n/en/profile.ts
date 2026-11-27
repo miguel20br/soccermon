@@ -135,6 +135,7 @@ export const profile: typeof pt = {
         cellAria: 'No. {no} {name}',
         notSeenLower: 'not seen',
         playedForYou: ', played for your team',
+        neverPlayed: ', never played for your team',
         emptyUnseenType: "The type of missing Pokémon stays hidden until you've seen them.",
         emptyPlayed: 'Nobody has played for your team yet. Start a cup!',
         empty: 'No Pokémon here yet.',

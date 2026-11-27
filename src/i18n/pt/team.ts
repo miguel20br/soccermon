@@ -286,4 +286,5 @@ export const team = {
     synTitle: 'Sinergia de tipo: {n} {type} em quadra, +{pct}% em todos os atributos deles.',
     novo: 'NOVO',
     novoTitle: 'Ainda não estava na sua Pokédex',
+    neverPlayed: 'Nunca jogou por você',
 };

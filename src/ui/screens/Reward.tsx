@@ -10,14 +10,14 @@ import { useT } from '../../i18n/react';
 import { type RunState, stoneToBag, useGame } from '../../store/game-store';
 import { currentNode, isLong } from '../../store/long-cup';
 import { ROTA_VALUES, rewardRerollable, skipEvoTarget, skipTagOf } from '../../store/long-events';
-import { isNovo } from '../../store/profile';
+import { isNovo, isPlayed } from '../../store/profile';
 import { useCardModal } from '../card-modal';
 import { CardPack, isBigCard, packLookOf } from '../components/CardPack';
 import { DittoMask } from '../components/DittoMask';
 import { FormationBoard } from '../components/FormationBoard';
 import { ExpandIcon, FutCard } from '../components/FutCard';
 import { HudIcon } from '../components/MatchHud';
-import { NovoSeal } from '../components/NovoSeal';
+import { NeverPlayedSeal, NovoSeal } from '../components/NovoSeal';
 import { SponsorCard, SponsorSlots } from '../components/SponsorCard';
 import { StoneMark } from '../components/StoneMark';
 import { TmCard, TmTeachPanel } from '../components/TmTeach';
@@ -156,11 +156,18 @@ export function Reward() {
                                     r.kind === 'pokemon' && isBigCard(r.inst) ? ' big' : ''
                                 }${!fast && r.kind === 'pokemon' && editionOf(r.inst) ? ' walk' : ''}`}
                             >
-                                {r.kind === 'pokemon' && isNovo(dex, r.inst.speciesId) && (
-                                    <div className="option-links">
-                                        <NovoSeal />
-                                    </div>
-                                )}
+                                {r.kind === 'pokemon' &&
+                                    (isNovo(dex, r.inst.speciesId) ? (
+                                        <div className="option-links">
+                                            <NovoSeal />
+                                        </div>
+                                    ) : (
+                                        !isPlayed(dex[r.inst.speciesId]) && (
+                                            <div className="option-links">
+                                                <NeverPlayedSeal />
+                                            </div>
+                                        )
+                                    ))}
                                 {r.kind === 'pokemon' ? (
                                     <DittoMask
                                         inst={r.inst}

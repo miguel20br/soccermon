@@ -10,7 +10,7 @@ import { formationText, moveName } from '../../i18n';
 import { rich, useT } from '../../i18n/react';
 import { type SlotRef, slotRole, useGame } from '../../store/game-store';
 import { isLong } from '../../store/long-cup';
-import { isNovo } from '../../store/profile';
+import { isNovo, isPlayed } from '../../store/profile';
 import { useCardModal } from '../card-modal';
 import { Coach } from '../coach/Coach';
 import { CardPack, isBigCard, packLookOf } from '../components/CardPack';
@@ -21,7 +21,7 @@ import { FormationCarousel } from '../components/FormationCarousel';
 import { FutCard } from '../components/FutCard';
 import { LinkChip, LinkChips, newLinks, newSynergies, SynergyChip } from '../components/LinkChips';
 import { HudIcon } from '../components/MatchHud';
-import { NovoSeal } from '../components/NovoSeal';
+import { NeverPlayedSeal, NovoSeal } from '../components/NovoSeal';
 import { TypeBadge } from '../components/PokeCard';
 import { EvoBadge } from '../components/PokeCard2';
 import { useMedia } from '../components/Prancheta';
@@ -419,10 +419,13 @@ export function Draft() {
                                             const links = !isCaptain && role !== 'ANY' ? newLinks(filled, o) : [];
                                             const syn = !isCaptain && role !== 'ANY' ? newSynergies(filled, o) : [];
                                             const novo = isNovo(dex, o.speciesId);
-                                            if (!links.length && !syn.length && !novo) return null;
+                                            // já visto, mas nunca jogou pelo seu time (o NOVO já diz isso sozinho)
+                                            const never = !novo && !isPlayed(dex[o.speciesId]);
+                                            if (!links.length && !syn.length && !novo && !never) return null;
                                             return (
                                                 <div className="option-links">
                                                     {novo && <NovoSeal />}
+                                                    {never && <NeverPlayedSeal />}
                                                     {links.length + syn.length > 0 && <>{t('team.draft.activates')} </>}
                                                     {syn.map((s) => (
                                                         <SynergyChip key={s.type} s={s} plus fresh />
