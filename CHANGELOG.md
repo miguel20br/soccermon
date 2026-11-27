@@ -30,11 +30,6 @@
 ### Time Ultimate
 - Desafios de Montagem: troque cartas por pacotes e Picks montando times com regra
 - Duelo com o time do Time Ultimate: cada um joga com o próprio time, sem draft
-- Acima do limite de Fichas do dia, a partida não paga mais Fichas (antes: 10 por partida)
-- Carta Bronze ou Prata comprada com Fichas evolui e treina só até nota 74 (antes: sem limite; o Machop de 240 Fichas virava Machamp 95). Carta de pacote e de prêmio evolui como antes
-- Uma de cada no Clube: a loja e o Pick não oferecem Pokémon de uma linha evolutiva que você já tem, e a Evolução não vira um Pokémon que já está no Clube
-- Treino: +1 em tudo por subida (antes: +2)
-- Partida retomada no meio (recarregou a página ou saiu e voltou): dá pra assistir ou pular, sem trocar tática nem time
 
 ### Menus
 - Botão Modos no Estádio, pra trocar de modo sem voltar ao menu
@@ -53,6 +48,21 @@
 - Caminho do treinador nas Metas da Sede, com o prêmio de cada missão
 - Tocar no nome de outro jogador (ranking, Liga, Desafio, histórico do Duelo) abre o perfil dele, mesmo sem ser amigo; a foto do Google continua só pra amigos
 - Entrar com a conta não volta mais o avatar, o nome e o clube pro padrão quando o aparelho ainda não tinha perfil
+
+## 0.9.53.7 · Ajustes na partida do Time Ultimate e na Copa do Dia (2026-11-27)
+
+### Consertos
+- Time Ultimate: a partida retomada depois de recarregar a página continua igual e só dá pra assistir ou Pular, sem trocar tática nem escalação
+- Copa do Dia: o ranking só aceita placar de até 20 gols por lado e o time escalado de verdade
+- Copa do Dia: recarregar a página no meio da copa não trava mais o envio do resultado
+
+## 0.9.53.6 · Ajustes na economia do Time Ultimate (2026-11-27)
+
+### Time Ultimate
+- Fichas por partida depois do teto de 400 do dia: 10 ⇒ 0
+- Carta Bronze ou Prata comprada com Fichas evolui e treina só até nota 74; carta de pacote e de prêmio evolui como antes
+- Uma de cada no Clube: a loja e o Pick não oferecem espécie de uma linha evolutiva que você já tem, e a Evolução não vira espécie que já está no Clube
+- Treino: +2 ⇒ +1 em todos os atributos por passo
 
 ## 0.9.53.5 · Conserto do Time Ultimate no iPhone (2026-11-27)
 

@@ -52,11 +52,6 @@ export const PATCH_NOTES: PatchNotes[] = [
                 lines: [
                     'Desafios de Montagem: troque cartas por pacotes e Picks montando times com regra',
                     'Duelo com o time do Time Ultimate: cada um joga com o próprio time, sem draft',
-                    'Acima do limite de Fichas do dia, a partida não paga mais Fichas (antes: 10 por partida)',
-                    'Carta Bronze ou Prata comprada com Fichas evolui e treina só até nota 74 (antes: sem limite; o Machop de 240 Fichas virava Machamp 95). Carta de pacote e de prêmio evolui como antes',
-                    'Uma de cada no Clube: a loja e o Pick não oferecem Pokémon de uma linha evolutiva que você já tem, e a Evolução não vira um Pokémon que já está no Clube',
-                    'Treino: +1 em tudo por subida (antes: +2)',
-                    'Partida retomada no meio (recarregou a página ou saiu e voltou): dá pra assistir ou pular, sem trocar tática nem time',
                 ],
             },
             {
@@ -81,6 +76,37 @@ export const PATCH_NOTES: PatchNotes[] = [
                     'Caminho do treinador nas Metas da Sede, com o prêmio de cada missão',
                     'Tocar no nome de outro jogador (ranking, Liga, Desafio, histórico do Duelo) abre o perfil dele, mesmo sem ser amigo; a foto do Google continua só pra amigos',
                     'Entrar com a conta não volta mais o avatar, o nome e o clube pro padrão quando o aparelho ainda não tinha perfil',
+                ],
+            },
+        ],
+    },
+    {
+        version: '0.9.53.7',
+        date: '2026-11-27',
+        title: 'Ajustes na partida do Time Ultimate e na Copa do Dia',
+        sections: [
+            {
+                title: 'Consertos',
+                lines: [
+                    'Time Ultimate: a partida retomada depois de recarregar a página continua igual e só dá pra assistir ou Pular, sem trocar tática nem escalação',
+                    'Copa do Dia: o ranking só aceita placar de até 20 gols por lado e o time escalado de verdade',
+                    'Copa do Dia: recarregar a página no meio da copa não trava mais o envio do resultado',
+                ],
+            },
+        ],
+    },
+    {
+        version: '0.9.53.6',
+        date: '2026-11-27',
+        title: 'Ajustes na economia do Time Ultimate',
+        sections: [
+            {
+                title: 'Time Ultimate',
+                lines: [
+                    'Fichas por partida depois do teto de 400 do dia: 10 ⇒ 0',
+                    'Carta Bronze ou Prata comprada com Fichas evolui e treina só até nota 74; carta de pacote e de prêmio evolui como antes',
+                    'Uma de cada no Clube: a loja e o Pick não oferecem espécie de uma linha evolutiva que você já tem, e a Evolução não vira espécie que já está no Clube',
+                    'Treino: +2 ⇒ +1 em todos os atributos por passo',
                 ],
             },
         ],
@@ -3246,11 +3272,6 @@ export const PATCH_NOTES_EN: PatchNotes[] = [
                 lines: [
                     'Build Challenges: trade cards for packs and Picks by building teams that follow a rule',
                     'Duel with your Ultimate Team: each player brings their own team, no draft',
-                    'Past the daily Coin limit, matches no longer pay Coins (before: 10 per match)',
-                    'Bronze or Silver cards bought with Coins evolve and train only up to a 74 rating (before: no limit; a 240-Coin Machop became a 95 Machamp). Cards from packs and rewards evolve as before',
-                    'One of each in the Club: the shop and Picks no longer offer Pokémon from an evolution line you already have, and Evolution never turns into a Pokémon already in the Club',
-                    'Training: +1 to everything per step (before: +2)',
-                    'Match resumed halfway (page reloaded, or you left and came back): you can watch or skip, but not change tactics or the team',
                 ],
             },
             {
@@ -3275,6 +3296,37 @@ export const PATCH_NOTES_EN: PatchNotes[] = [
                     "Trainer path in the Club's Goals, with the reward for each mission",
                     "Tapping another player's name (ranking, League, Challenge, Duel history) opens their profile, even if you aren't friends; the Google photo stays friends-only",
                     'Signing in no longer resets your avatar, name and club to the default when the device had no profile yet',
+                ],
+            },
+        ],
+    },
+    {
+        version: '0.9.53.7',
+        date: '2026-11-27',
+        title: 'Team Ultimate match and Daily Cup fixes',
+        sections: [
+            {
+                title: 'Fixes',
+                lines: [
+                    'Team Ultimate: a match resumed after reloading the page stays the same and can only be watched or skipped, with no tactic or lineup changes',
+                    'Daily Cup: the ranking only accepts scores of up to 20 goals per side and the team you actually fielded',
+                    'Daily Cup: reloading the page mid-cup no longer stops the result from being sent',
+                ],
+            },
+        ],
+    },
+    {
+        version: '0.9.53.6',
+        date: '2026-11-27',
+        title: 'Team Ultimate economy changes',
+        sections: [
+            {
+                title: 'Team Ultimate',
+                lines: [
+                    "Coins per match after the day's 400 cap: 10 ⇒ 0",
+                    'Bronze or Silver cards bought with Coins evolve and train only up to a 74 rating; pack and reward cards evolve as before',
+                    "One of each in the Club: the shop and the Pick no longer offer a species from an evolution line you already own, and Evolution won't turn into a species already in your Club",
+                    'Training: +2 ⇒ +1 to all stats per step',
                 ],
             },
         ],
