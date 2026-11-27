@@ -46,3 +46,36 @@ export function readUltimate(): boolean {
     }
     return on;
 }
+
+/**
+ * A aba estava no Time Ultimate (o hub ou a partida dele). O Safari do iOS recarrega a aba sozinho (falta de memória,
+ * muito tempo em segundo plano) e a versão nova no ar também recarrega (chunk-reload.ts); a tela não fica no save,
+ * então o jogo abria na Home e o jogador "caía" do modo. Guardado na aba (sessionStorage), não no save nem na nuvem.
+ */
+const AT = 'soccermon-ut-aqui';
+export const inUltimate = (screen: string) => screen === 'ultimate' || screen === 'ultimate-match';
+
+/** Anota a cada troca de tela se a aba está no Time Ultimate. */
+export function noteUltimate(screen: string) {
+    try {
+        if (inUltimate(screen)) sessionStorage.setItem(AT, '1');
+        else sessionStorage.removeItem(AT);
+    } catch {
+        // aba anônima sem storage: recarregar volta pra Home, como antes
+    }
+}
+
+/** Ao abrir: volta pro Time Ultimate se a aba recarregou lá dentro (link de duelo e demo abrem a tela deles). */
+export function resumeUltimate(on: boolean, search: string, stored: string | null): boolean {
+    const q = new URLSearchParams(search);
+    return on && stored === '1' && !q.has('duelo') && !q.has('demo');
+}
+
+/** O que ficou anotado na aba (null sem storage). */
+export function storedUltimate(): string | null {
+    try {
+        return sessionStorage.getItem(AT);
+    } catch {
+        return null;
+    }
+}

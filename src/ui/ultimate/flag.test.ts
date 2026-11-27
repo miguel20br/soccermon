@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { ULTIMATE_OPENS_AT, ultimateOn, utClockOf } from './flag';
+import { inUltimate, resumeUltimate, ULTIMATE_OPENS_AT, ultimateOn, utClockOf } from './flag';
 
 const BEFORE = Date.UTC(2026, 10, 27, 2, 59); // 26/11 23:59 de Brasília
 const AFTER = Date.UTC(2026, 10, 27, 3); // 27/11 00:00 de Brasília
@@ -35,5 +35,22 @@ describe('relógio da prévia ?utnow=', () => {
         expect(utClockOf(true, '?utnow=2027-06-01T03:00:00Z')).toBe(Date.UTC(2027, 5, 1, 3));
         expect(utClockOf(true, '?utnow=amanha')).toBeNull();
         expect(utClockOf(true, '')).toBeNull();
+    });
+});
+
+describe('recarregar dentro do Time Ultimate (iOS recarrega a aba sozinho)', () => {
+    it('a aba que estava no UT (hub ou partida) volta pro UT, não pra Home', () => {
+        expect(inUltimate('ultimate')).toBe(true);
+        expect(inUltimate('ultimate-match')).toBe(true);
+        expect(resumeUltimate(true, '', '1')).toBe(true);
+    });
+    it('nos outros casos continua abrindo na Home', () => {
+        expect(inUltimate('home')).toBe(false);
+        expect(inUltimate('lineup')).toBe(false);
+        expect(resumeUltimate(true, '', null)).toBe(false);
+        // modo desligado, link de duelo e demo abrem o que pediram
+        expect(resumeUltimate(false, '', '1')).toBe(false);
+        expect(resumeUltimate(true, '?duelo=K7M2QX', '1')).toBe(false);
+        expect(resumeUltimate(true, '?demo=campeao', '1')).toBe(false);
     });
 });
