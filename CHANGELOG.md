@@ -40,6 +40,14 @@
 - Caminho do treinador nas Metas da Sede, com o prêmio de cada missão
 - Entrar com a conta não volta mais o avatar, o nome e o clube pro padrão quando o aparelho ainda não tinha perfil
 
+## 0.9.53.4 · Economia do Time Ultimate (2026-11-27)
+
+### Time Ultimate
+- Fichas de partida agora têm limite de 400 por dia; depois dele, cada partida paga 10 Fichas
+- Escolher carta ouro: o preço sobe com a nota (1.600 Fichas na 75, mais 200 por ponto acima)
+- Os lendários ficam fora do Time Ultimate por enquanto, e o Ditto só sai em pacote
+- O Time Ultimate de quem já tinha jogado recomeçou, com 2 pacotes de presente. A Copa, o Perfil e a Pokédex não mudaram
+
 ## 0.9.53.3 · Conserto do Time Ultimate na nuvem (2026-11-26)
 
 ### Consertos

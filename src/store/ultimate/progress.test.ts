@@ -22,6 +22,7 @@ import {
     bridgePays,
     buyCard,
     buyPack,
+    cardPrice,
     cupBridge,
     evolveCard,
     fillTeam,
@@ -184,8 +185,8 @@ describe('loja: tudo com Fichas', () => {
     it('Fichas compram a carta Normal escolhida, pelo preço do metal; sem Fichas ou repetida, não', () => {
         const u = ready();
         const id = metalPools().ouro.find((x) => !u.cards.some((c) => c.speciesId === x))!;
-        expect(buyCard({ ...u, fichas: PICK_PRICE.ouro - 1 }, id)).toBeNull();
-        const r = buyCard({ ...u, fichas: PICK_PRICE.ouro + 3 }, id)!;
+        expect(buyCard({ ...u, fichas: cardPrice(id) - 1 }, id)).toBeNull();
+        const r = buyCard({ ...u, fichas: cardPrice(id) + 3 }, id)!;
         expect(r.u.fichas).toBe(3);
         expect(r.card).toMatchObject({ speciesId: id, shiny: false });
         expect(r.card.special).toBeUndefined();

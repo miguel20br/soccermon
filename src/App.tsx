@@ -50,6 +50,7 @@ import { TrophyRoom } from './ui/screens/TrophyRoom';
 import { natalOn, neonOn } from './ui/tema';
 import { tvCut } from './ui/tv';
 import { readUltimate } from './ui/ultimate/flag';
+import { ResetNotice } from './ui/ultimate/ResetNotice';
 
 // Movedex (?lab=golpes) usa o Phaser: vem num pedaço à parte, como a partida
 /** Telas de dentro da copa: a barra da copa (fase, ₽, sorteios) no lugar do logo (revamp-ui, 0.9.23). */
@@ -442,6 +443,7 @@ export default function App() {
             <AccountLink />
             <UnlockNotice />
             <RewardReveal />
+            <ResetNotice />
             {diskFull && !['match', 'liga-match', 'ultimate-match'].includes(screen) && (
                 <Toast tone="bad">{t('common.ui.diskFull')}</Toast>
             )}

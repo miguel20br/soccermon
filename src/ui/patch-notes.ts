@@ -69,6 +69,22 @@ export const PATCH_NOTES: PatchNotes[] = [
         ],
     },
     {
+        version: '0.9.53.4',
+        date: '2026-11-27',
+        title: 'Economia do Time Ultimate',
+        sections: [
+            {
+                title: 'Time Ultimate',
+                lines: [
+                    'Fichas de partida agora têm limite de 400 por dia; depois dele, cada partida paga 10 Fichas',
+                    'Escolher carta ouro: o preço sobe com a nota (1.600 Fichas na 75, mais 200 por ponto acima)',
+                    'Os lendários ficam fora do Time Ultimate por enquanto, e o Ditto só sai em pacote',
+                    'O Time Ultimate de quem já tinha jogado recomeçou, com 2 pacotes de presente. A Copa, o Perfil e a Pokédex não mudaram',
+                ],
+            },
+        ],
+    },
+    {
         version: '0.9.53.3',
         date: '2026-11-26',
         title: 'Conserto do Time Ultimate na nuvem',
@@ -3212,6 +3228,22 @@ export const PATCH_NOTES_EN: PatchNotes[] = [
                     'Title on the VERSUS screen and on the Share image',
                     "Trainer path in the Club's Goals, with the reward for each mission",
                     'Signing in no longer resets your avatar, name and club to the default when the device had no profile yet',
+                ],
+            },
+        ],
+    },
+    {
+        version: '0.9.53.4',
+        date: '2026-11-27',
+        title: 'Team Ultimate economy',
+        sections: [
+            {
+                title: 'Team Ultimate',
+                lines: [
+                    'Match Coins now have a limit of 400 per day; after it, each match pays 10 Coins',
+                    'Choosing a gold card: the price goes up with the rating (1,600 Coins at 75, plus 200 per point above)',
+                    'Legendaries are out of Team Ultimate for now, and Ditto only comes from packs',
+                    'Team Ultimate restarted for everyone who had played, with 2 packs as a gift. The Cup, your Profile and the Pokédex did not change',
                 ],
             },
         ],

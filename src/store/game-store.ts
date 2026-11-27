@@ -513,6 +513,8 @@ export interface GameStore {
     ultimateBuyCard(speciesId: number): PokemonInstance | null;
     /** Pacote Mini extra com Fichas. */
     ultimateBuyPack(): boolean;
+    /** Viu o aviso do recomeço do Time Ultimate (27/11/2026). */
+    ultimateAckReset(): void;
     /** Pokémon Pick: fica com a opção `cardUid` do Pick `uid` (null = não deu). */
     ultimateChoosePick(uid: string, cardUid: string): PokemonInstance | null;
     /** Pick com Fichas (vai pra Meus pacotes). */
@@ -1423,6 +1425,7 @@ export const useGame = create<GameStore>()(
                     if (u) setState({ ultimate: u });
                     return !!u;
                 },
+                ultimateAckReset: () => setState({ ultimate: { ...getState().ultimate, resetNotice: false } }),
                 ultimateChoosePick: (uid, cardUid) => {
                     const now = utNow();
                     const r = choosePick(getState().ultimate, uid, cardUid, now);

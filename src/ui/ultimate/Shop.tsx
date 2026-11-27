@@ -18,7 +18,7 @@ import {
     REPEAT_FICHAS,
     SHINY_ODDS,
 } from '../../store/ultimate/rules';
-import { pickable } from '../../store/ultimate/ultimate';
+import { cardPrice, pickable } from '../../store/ultimate/ultimate';
 import { FutCard } from '../components/FutCard';
 import { HudIcon } from '../components/MatchHud';
 import { MonIcon } from '../components/MonIcon';
@@ -49,7 +49,8 @@ export function Shop() {
     const [pick, setPick] = useState<number | null>(null);
     const [got, setGot] = useState<PokemonInstance | null>(null);
     const list = useMemo(() => pickable(u, metal).sort((a, b) => overallOf(b) - overallOf(a) || a - b), [u, metal]);
-    const price = PICK_PRICE[metal];
+    // a ouro sobe com a nota: a escolhida diz o preço; sem escolha, o do metal (o piso)
+    const price = pick === null ? PICK_PRICE[metal] : cardPrice(pick);
     const short = price - u.fichas;
     const warn = usePickWarn();
     const [odds, setOdds] = useState(false);
@@ -148,7 +149,12 @@ export function Shop() {
                                     setPick(null);
                                 }}
                             >
-                                {metalLabel(m)} <small>{t('ultimate.shop.price', { n: PICK_PRICE[m] })}</small>
+                                {metalLabel(m)}{' '}
+                                <small>
+                                    {t('ultimate.shop.price', {
+                                        n: m === 'ouro' ? `${PICK_PRICE[m]}+` : PICK_PRICE[m],
+                                    })}
+                                </small>
                             </button>
                         ))}
                     </div>
@@ -168,6 +174,7 @@ export function Shop() {
                                     <MonIcon id={id} />
                                     {species(id).name}
                                     <b>{overallOf(id)}</b>
+                                    {metal === 'ouro' && <small>{cardPrice(id)}</small>}
                                 </button>
                             ))}
                         </div>
