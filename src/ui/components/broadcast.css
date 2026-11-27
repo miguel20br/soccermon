@@ -1198,6 +1198,11 @@
     .bc-deskbar.compact .sl-actions {
         grid-template-columns: repeat(2, minmax(0, 1fr));
     }
+    /* Bolsa do técnico (?lab=itens): linha própria embaixo, na largura toda (dividia a célula da beira da quadra) */
+    .bc-deskbar.compact .sl.bag {
+        grid-column: 1 / -1;
+        grid-row: 4;
+    }
     .bc-deskbar.compact .mx-legend,
     .bc-deskbar.compact .tac-note,
     .bc-deskbar.compact .error-text {

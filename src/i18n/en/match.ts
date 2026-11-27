@@ -136,7 +136,11 @@ export const match: typeof pt = {
             line: '{team} used {item}!',
             items: {
                 potion: { name: 'Potion', desc: "1 player's stamina back to 100%.", pop: 'Stamina 100%' },
-                xattack: { name: 'X Attack', desc: 'Shooting and dribbling +30% for the team for 5 minutes.', pop: 'Attack +' },
+                xattack: {
+                    name: 'X Attack',
+                    desc: 'Shooting and dribbling +30% for the team for 5 minutes.',
+                    pop: 'Attack +',
+                },
                 xdefense: {
                     name: 'X Defense',
                     desc: 'Tackling and positioning +25% (keeper +10%) for the team for 5 minutes.',

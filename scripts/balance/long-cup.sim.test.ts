@@ -71,9 +71,10 @@ function takeReward() {
                 at = k;
             }
         });
-        const weakest = [...run.bench].sort(
-            (a, b) => slotRating(byUid.get(a)!, 'ANY') - slotRating(byUid.get(b)!, 'ANY'),
-        )[0];
+        // vaga vazia do banco ('', a do Ovo da Creche) não conta
+        const weakest = run.bench
+            .filter((u) => byUid.has(u))
+            .sort((a, b) => slotRating(byUid.get(a)!, 'ANY') - slotRating(byUid.get(b)!, 'ANY'))[0];
         if (at >= 0 && weakest) {
             g().claimReward(i, weakest);
             const benchAt = g().run!.bench.indexOf(mon.inst.uid);
