@@ -133,6 +133,38 @@ export const match = {
     },
     /** Agência do técnico (beira da quadra). */
     agency: {
+        /** Bolsa do técnico (itens-ativos.md, A1; atrás de ?lab=itens). */
+        bag: {
+            title: 'Bolsa',
+            perHalf: '1 por tempo',
+            used: 'Já usou neste tempo',
+            pending: 'Usando…',
+            empty: 'Bolsa vazia',
+            hint: '1 item por tempo. O item usado sai da Bolsa.',
+            target: 'Em quem?',
+            use: 'Usar',
+            back: 'Voltar',
+            count: 'Bolsa {n}/{max}',
+            full: 'Bolsa cheia',
+            toBag: 'Guardar na Bolsa',
+            rewardHint: 'Vai pra Bolsa do técnico. Na partida, use 1 por tempo.',
+            /** Fala da quadra quando o item entra. */
+            line: '{team} usou {item}!',
+            items: {
+                potion: { name: 'Poção', desc: 'O fôlego de 1 jogador volta a 100%.', pop: 'Fôlego 100%' },
+                xattack: { name: 'X Attack', desc: 'Chute e drible +30% no time por 5 minutos.', pop: 'Ataque +' },
+                xdefense: {
+                    name: 'X Defense',
+                    desc: 'Desarme e posicionamento +25% (goleiro +10%) no time por 5 minutos.',
+                    pop: 'Defesa +',
+                },
+                fullheal: {
+                    name: 'Cura Total',
+                    desc: 'Tira status e enfraquecimentos do time e protege de status por 5 minutos.',
+                    pop: 'Curado',
+                },
+            },
+        },
         title: 'Beira da quadra',
         timeout: 'Pedir tempo',
         timeoutHint: '1 por tempo, na próxima bola parada. Seu time recupera 5% de fôlego e o rival, 3%.',

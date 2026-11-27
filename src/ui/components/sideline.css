@@ -819,3 +819,92 @@
     inset: 0;
     background: #fff;
 }
+
+/* Bolsa do técnico (itens-ativos.md, A1; ?lab=itens) */
+.bag-icon {
+    width: 28px;
+    height: 28px;
+    flex: none;
+}
+.bag-status {
+    margin-left: auto;
+    color: var(--muted);
+    font-size: 11px;
+}
+.bag-items {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 6px;
+}
+.bag-btn small {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    white-space: normal;
+}
+.bag-aim {
+    min-width: 0;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    display: grid;
+    gap: 6px;
+    animation: bag-in 220ms ease-out;
+}
+.bag-ask {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin: 0;
+    font-weight: 700;
+}
+.bag-faces {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 4px;
+}
+.bag-face {
+    position: relative;
+    display: grid;
+    justify-items: center;
+    gap: 2px;
+    min-width: 0;
+    padding: 4px 2px 8px;
+    overflow: hidden;
+    border: 3px solid var(--bc-ink);
+    border-radius: 8px;
+    background: var(--panel-2);
+    color: var(--text);
+    cursor: pointer;
+}
+.bag-face img {
+    width: 40px;
+    height: 40px;
+    object-fit: contain;
+}
+.bag-face span {
+    max-width: 100%;
+    overflow: hidden;
+    font-size: 10px;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.bag-energy {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    height: 4px;
+    background: #7dff8a;
+}
+@keyframes bag-in {
+    from {
+        opacity: 0;
+        transform: translateY(6px);
+    }
+}
+@media (prefers-reduced-motion: reduce) {
+    .bag-aim {
+        animation: none;
+    }
+}

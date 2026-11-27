@@ -1,19 +1,56 @@
 // Robô da Copa longa (docs/planos/copa-longa.md): joga copas inteiras pelo fluxo de verdade do store.
 // Uso: SIM=120 npx vitest run scripts/balance/long-cup.sim.test.ts   (sem SIM, o teste é pulado no CI)
+// BOLSA=1: Bolsa do técnico ligada (itens-ativos.md, A1): o robô pega item da Bolsa no Baú, compra no Mercado (depois
+// do Patrocínio) e usa na partida na hora sensata (bolsa-robo.ts). Mesmas seeds: compare com e sem.
 import { writeFileSync } from 'node:fs';
 import { describe, expect, it, vi } from 'vitest';
 
 vi.mock('idb-keyval', () => ({ get: async () => undefined, set: async () => {}, del: async () => {} }));
 
+import { bagLeft } from '../../src/engine/bag';
 import { FUTSAL_5 } from '../../src/engine/config';
 import { nextNodes } from '../../src/engine/cup-map';
 import { formationOf } from '../../src/engine/formations';
 import { slotRating } from '../../src/engine/instance';
 import { runMatch } from '../../src/engine/runners/batch-runner';
+import { LiveRunner } from '../../src/engine/runners/live-runner';
+import type { MatchOrder, TeamSetup } from '../../src/engine/state';
+import { bolsaSlots, setBolsaLab } from '../../src/store/bolsa';
 import { playerTeam, useGame } from '../../src/store/game-store';
 import { eventChoices } from '../../src/store/long-events';
+import { bagPick } from './bolsa-robo';
 
 const N = Number(process.env.SIM ?? 0);
+const BOLSA = process.env.BOLSA === '1';
+setBolsaLab(BOLSA);
+let bagUses = 0;
+
+/** A partida da Rota: sem Bolsa, a de sempre; com ela, ao vivo com o robô usando os itens (ordem 8 s à frente, como a tela a 4x). */
+function playMatch(home: TeamSetup, away: TeamSetup, seed: string) {
+    if (!home.bag?.length) return runMatch(FUTSAL_5, home, away, seed);
+    const live = new LiveRunner(FUTSAL_5, home, away, seed);
+    const s = live.state;
+    const sent = [false, false];
+    const orders: MatchOrder[] = [];
+    while (!live.finished) {
+        if (
+            s.phase !== 'fulltime' &&
+            s.tick % 20 === 0 &&
+            !sent[s.half - 1] &&
+            !s.teams[0].agency.bagUsed[s.half - 1]
+        ) {
+            const o = bagPick(s, 0, bagLeft(home.bag, s.teams[0].agency.bagUsed));
+            if (o) {
+                orders.push({ tick: s.tick + 160, team: 0, ...o });
+                live.addOrder(orders.at(-1)!);
+                sent[s.half - 1] = true;
+            }
+        }
+        live.step();
+    }
+    bagUses += s.events.filter((e) => e.type === 'bag' && e.team === 0).length;
+    return runMatch(FUTSAL_5, home, away, seed, { orders });
+}
 const g = () => useGame.getState();
 
 /** Recompensa: Pokémon que melhora uma vaga entra no banco e troca com o titular; item vai pra um titular sem item. */
@@ -43,6 +80,11 @@ function takeReward() {
             if (benchAt >= 0) g().swapSlots({ zone: 'lineup', index: at }, { zone: 'bench', index: benchAt });
             return;
         }
+    }
+    const bag = run.rewards.findIndex((r) => r.kind === 'bolsa');
+    if (bag >= 0 && (run.bolsa?.length ?? 0) < bolsaSlots(true)) {
+        g().claimReward(bag, '');
+        return;
     }
     const it = run.rewards.findIndex((r) => r.kind === 'item');
     const holder = run.lineup.find((u) => !byUid.get(u)?.item);
@@ -85,13 +127,19 @@ function play(seed: string) {
                 continue;
             }
             const cur = g().run!;
-            g().recordResult(
-                runMatch(FUTSAL_5, cur.lockedTeam!, cur.opponents[cur.stage], `${cur.seed}-stage-${cur.stage}`),
-            );
+            g().recordResult(playMatch(cur.lockedTeam!, cur.opponents[cur.stage], `${cur.seed}-stage-${cur.stage}`));
         } else if (run.status === 'reward') takeReward();
         else if (run.status === 'shop') {
             const i = run.shop!.offers.findIndex((o) => o.kind === 'sponsor' && o.price <= (run.money ?? 0));
             if (i >= 0 && (run.sponsors?.length ?? 0) < 3) g().buyOffer(i);
+            const b = g().run!.shop!.offers.findIndex((o) => o.kind === 'bolsa');
+            const after = g().run!;
+            if (
+                b >= 0 &&
+                (after.money ?? 0) >= after.shop!.offers[b].price &&
+                (after.bolsa?.length ?? 0) < bolsaSlots(true)
+            )
+                g().buyOffer(b);
             g().leaveShop();
         } else if (run.status === 'treino') g().train('rest');
         else if (run.status === 'group') g().playNext();
@@ -123,6 +171,9 @@ describe.skipIf(!N)('robô da Copa longa', () => {
             usaramAmarelo: `${((100 * res.filter((r) => r.cards > 0).length) / N).toFixed(0)}%`,
             partidasJogadas: byPlayed,
             moneyFimMedia: (res.reduce((a, r) => a + r.money, 0) / N).toFixed(1),
+            bolsa: BOLSA,
+            itensUsadosPorCopa: (bagUses / N).toFixed(2),
+            partidasMedia: (res.reduce((a, r) => a + r.played, 0) / N).toFixed(2),
         };
         console.log(JSON.stringify(out, null, 1));
         if (process.env.SIM_OUT) writeFileSync(process.env.SIM_OUT, JSON.stringify(res));

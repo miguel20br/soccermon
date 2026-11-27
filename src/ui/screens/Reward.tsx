@@ -7,11 +7,13 @@ import type { ShopOffer } from '../../engine/shop';
 import { editionOf } from '../../engine/specials';
 import { clubName, itemDesc, itemName, moveFutsal, moveName, sponsorText, typeName } from '../../i18n';
 import { useT } from '../../i18n/react';
+import { bolsaSlots } from '../../store/bolsa';
 import { type RunState, stoneToBag, useGame } from '../../store/game-store';
 import { currentNode, isLong } from '../../store/long-cup';
 import { ROTA_VALUES, rewardRerollable, skipEvoTarget, skipTagOf } from '../../store/long-events';
 import { isNovo } from '../../store/profile';
 import { useCardModal } from '../card-modal';
+import { BagCard } from '../components/BagPanel';
 import { CardPack, isBigCard, packLookOf } from '../components/CardPack';
 import { FormationBoard } from '../components/FormationBoard';
 import { ExpandIcon, FutCard } from '../components/FutCard';
@@ -35,7 +37,15 @@ const PACKS_KEY = 'soccermon-packs-opened';
 const FAST_AFTER = 6;
 
 const rewardKey = (r: RewardDef) =>
-    r.kind === 'item' ? r.item : r.kind === 'tm' ? `tm-${r.move}` : r.kind === 'sponsor' ? `sp-${r.id}` : r.inst.uid;
+    r.kind === 'item'
+        ? r.item
+        : r.kind === 'tm'
+          ? `tm-${r.move}`
+          : r.kind === 'sponsor'
+            ? `sp-${r.id}`
+            : r.kind === 'bolsa'
+              ? `bolsa-${r.item}`
+              : r.inst.uid;
 
 /** Selo "quantos golpes este item aproveita": ícone do tipo (ou do item) + número; `full` mostra o texto. */
 function FitBadge({ fit, item, text, full }: { fit: ItemFit; item: string; text: string; full?: boolean }) {
@@ -55,7 +65,7 @@ export function Reward() {
     const { run: live, claimReward, skipReward, rerollReward, dex } = useGame();
     const run = useHeld(live?.status === 'reward' ? live : null);
     const [chosen, setChosen] = useState<number | null>(null);
-    const { lang, t } = useT();
+    const { lang, t, d } = useT();
     const firstCup = useFirstCup();
     // a festa encurta: da 7ª tela de recompensa em diante, o pacote abre rápido e as cartas saem quase juntas
     const [fast] = useState(() => (readCount(PACKS_KEY) ?? 0) >= FAST_AFTER);
@@ -103,7 +113,9 @@ export function Reward() {
               ? t('reward.whoLearns')
               : reward.kind === 'sponsor'
                 ? t('shop.contract')
-                : t('reward.whoHolds')
+                : reward.kind === 'bolsa'
+                  ? d.match.agency.bag.title
+                  : t('reward.whoHolds')
         : t(run.rivalPick ? 'reward.chooseRival' : 'reward.choose');
 
     // o que foi escolhido, pelo nome (título da sheet de quem recebe) e a regra inteira (o card só tem um resumo)
@@ -115,7 +127,9 @@ export function Reward() {
             ? moveName(reward.move)
             : reward.kind === 'sponsor'
               ? sponsorText(reward.id, lang).name
-              : itemName(reward.item);
+              : reward.kind === 'bolsa'
+                ? d.match.agency.bag.items[reward.item].name
+                : itemName(reward.item);
     const chosenDesc =
         reward?.kind === 'item'
             ? itemDesc(reward.item, lang)
@@ -198,6 +212,15 @@ export function Reward() {
                                                 selected={chosen === i}
                                                 onClick={() => pick(i)}
                                             />
+                                        ) : r.kind === 'bolsa' ? (
+                                            <button
+                                                type="button"
+                                                className="reward-sp"
+                                                aria-label={d.match.agency.bag.items[r.item].name}
+                                                onClick={() => pick(i)}
+                                            >
+                                                <BagCard item={r.item} selected={chosen === i} />
+                                            </button>
                                         ) : r.kind === 'sponsor' ? (
                                             // Patrocínio (arcade): a carta do contrato, do tamanho das outras
                                             <button
@@ -340,7 +363,32 @@ export function Reward() {
                         </button>
                     </div>
                 )}
-                {reward && reward.kind !== 'sponsor' && (
+                {reward?.kind === 'bolsa' && (
+                    // Bolsa do técnico (?lab=itens): sem alvo
+                    <div className="panel reward-pick reward-sp-sign" data-exit>
+                        <p className="muted">{d.match.agency.bag.rewardHint}</p>
+                        <p className="muted">
+                            {t('match.agency.bag.count', {
+                                n: run.bolsa?.length ?? 0,
+                                max: bolsaSlots(isLong(run)),
+                            })}
+                        </p>
+                        <button
+                            type="button"
+                            className="btn confirm"
+                            disabled={(run.bolsa?.length ?? 0) >= bolsaSlots(isLong(run))}
+                            onClick={() => {
+                                claimReward(chosen!, '');
+                                setChosen(null);
+                            }}
+                        >
+                            {(run.bolsa?.length ?? 0) >= bolsaSlots(isLong(run))
+                                ? d.match.agency.bag.full
+                                : d.match.agency.bag.toBag}
+                        </button>
+                    </div>
+                )}
+                {reward && reward.kind !== 'sponsor' && reward.kind !== 'bolsa' && (
                     <GainTarget
                         key={chosen}
                         gain={reward}

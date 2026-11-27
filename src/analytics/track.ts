@@ -346,7 +346,7 @@ function onChange(s: GameState, prev: GameState) {
                           ? o.inst.speciesId
                           : o.kind === 'pack'
                             ? o.type
-                            : o.kind === 'item'
+                            : o.kind === 'item' || o.kind === 'bolsa'
                               ? o.item
                               : o.move,
                 price: o.price,

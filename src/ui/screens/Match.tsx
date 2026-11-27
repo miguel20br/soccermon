@@ -37,6 +37,7 @@ import { ordersLocked, ultimateRun } from '../../store/ultimate/ultimate';
 import { Coach } from '../coach/Coach';
 import { countStrongFixos, pickHalftimeCoach } from '../coach-tips';
 import { Commentator, type CommentLine } from '../commentary';
+import { BagControls, bagView } from '../components/BagPanel';
 import { BattleText } from '../components/BattleText';
 import { EvolutionOverlay } from '../components/EvolutionOverlay';
 import { FinalCard } from '../components/FinalCard';
@@ -125,7 +126,7 @@ const SAVE_EVERY_MS = 1500;
 
 /** `liga`: partida contra um time fantasma (src/league): a mesma tela, com a partida da Liga no lugar da copa. */
 /** Sheets da partida no ?lab=hud: Tática, Trocar (Posições), Tempo e Lances. */
-type HudSheet = 'tactic' | 'board' | 'time' | 'feed';
+type HudSheet = 'tactic' | 'board' | 'time' | 'feed' | 'bag';
 
 /**
  * VERSUS da Copa, da Liga e do Time Ultimate com o seu treinador (avatar, nome, título com o look e a vitrine), como no
@@ -754,10 +755,24 @@ export function Match({ liga = false, ultimate = false }: { liga?: boolean; ulti
             tired={tired}
         />
     );
+    // Bolsa do técnico (?lab=itens): só com a Bolsa no time travado (Rota e Relâmpago com a bandeira)
+    const bag = lockedSetup.bag ?? [];
+    const bagState = bag.length ? bagView(match.events, orders, clock.tick, bag) : null;
+    const bagControls = bagState && (
+        <BagControls
+            view={bagState}
+            canAct={canAgency && !halftime && timeoutAt === null}
+            targets={onField.map((uid, i) => ({ uid, name: nameOf(uid), sprite: spriteOf(uid), energy: energyNow(i) }))}
+            onUse={(item, target) =>
+                sendOrder((tick) => ({ tick, team: 0, kind: 'bag', item, ...(target && { target }) }))
+            }
+        />
+    );
     const tactics = (
         <>
             {tacticControls}
             {sidelineControls}
+            {bagControls}
         </>
     );
     // ordem dos pênaltis: quem está em quadra no apito final, na ordem do motor (pelo chute); o goleiro no fim
@@ -1046,7 +1061,7 @@ export function Match({ liga = false, ultimate = false }: { liga?: boolean; ulti
                         {jogoCoach}
                         {golpeCoach}
                         {/* ?lab=hud: 4 botões no lugar das abas; cada um abre a sua sheet (o estado fica à vista) */}
-                        <nav className="bc-hudbar" aria-label={t('match.coach.title')}>
+                        <nav className={`bc-hudbar${bagState ? ' five' : ''}`} aria-label={t('match.coach.title')}>
                             {(
                                 [
                                     ['tactic', currentTactic, t('match.coach.tactic'), d.common.tactic[currentTactic]],
@@ -1067,6 +1082,18 @@ export function Match({ liga = false, ultimate = false }: { liga?: boolean; ulti
                                         t('match.coach.feed'),
                                         lines[0] ? `${Math.floor(lines[0].minute)}'` : '',
                                     ],
+                                    ...(bagState
+                                        ? ([
+                                              [
+                                                  'bag',
+                                                  'bag',
+                                                  d.match.agency.bag.title,
+                                                  bagState.usedHalf
+                                                      ? d.match.agency.bag.used
+                                                      : `${bagState.left.length}`,
+                                              ],
+                                          ] as const)
+                                        : []),
                                 ] as const
                             ).map(([k, icon, label, sub]) => (
                                 <button
@@ -1092,13 +1119,16 @@ export function Match({ liga = false, ultimate = false }: { liga?: boolean; ulti
                                       ? t('match.coach.hudTime')
                                       : hudSheet === 'feed'
                                         ? t('match.coach.feed')
-                                        : t('match.coach.tactic')
+                                        : hudSheet === 'bag'
+                                          ? d.match.agency.bag.title
+                                          : t('match.coach.tactic')
                             }
                             className={`hud-sheet hud-${hudSheet ?? 'tactic'}`}
                         >
                             {hudSheet === 'tactic' && tacticControls}
                             {hudSheet === 'board' && pane('board')}
                             {hudSheet === 'time' && sidelineControls}
+                            {hudSheet === 'bag' && bagControls}
                             {hudSheet === 'feed' && (
                                 <>
                                     <CoachTabs tabs={['feed', 'team']} active={hudFeedTab} onPick={setHudFeedTab} />

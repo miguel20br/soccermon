@@ -14,13 +14,17 @@
 // as políticas do golpe máximo.
 // Assinaturas (fase 2, motor 13: ligadas junto com o efeito do tipo; NOTYPE=1 desliga os dois); CAPID=<id da espécie>
 // põe essa espécie de capitão do robô (na vaga natural dela, senão de pivô; com CAP=gk, no gol).
+// Bolsa (itens-ativos.md, A1): mecânicas potion, xattack, xdefense, fullheal (1 do item na Bolsa) e bolsa (os 4, 1 por
+// tempo). good = a hora sensata (`bagPick`); random = minuto sorteado. FORTE=1: a coluna "forte" do plano.
 import { writeFileSync } from 'node:fs';
 import { AGENCY, maxCharge } from '../../src/engine/agency';
+import { BAG, type BagItem, bagLeft, isBagItem } from '../../src/engine/bag';
 import { withConfig } from '../../src/engine/config';
 import { inMaxZoneOf, maxFxType, minuteOf } from '../../src/engine/match';
 import { COACH_LEADERS, RIVAL_COACH } from '../../src/engine/rival-coach';
 import { LiveRunner } from '../../src/engine/runners/live-runner';
 import type { MatchState } from '../../src/engine/state';
+import { bagPick } from './bolsa-robo';
 import { baseTeams, createInstance, FUTSAL_5, insertSpecies, Rng, SPECIES, species, type TeamSetup } from './lib';
 
 const N = Number(process.argv[2]) || 100;
@@ -87,6 +91,7 @@ for (const [k, v] of Object.entries(process.env)) {
 const n3shot = AGENCY.maxLevelShot[3] as { power: number; rivalReach: number };
 if (process.env.N3P) n3shot.power = Number(process.env.N3P);
 if (process.env.N3R) n3shot.rivalReach = Number(process.env.N3R);
+if (process.env.FORTE === '1') Object.assign(BAG, { xTime: 72, safeguardTime: 90, potionTeam: 0.15 });
 type Policy = 'never' | 'random' | 'good' | 'n1' | 'n3';
 
 interface Plan {
@@ -94,6 +99,7 @@ interface Plan {
     fly: [number, number];
     maxDelay: number;
     pens: number[];
+    bag: [number, number];
 }
 
 /** Sorteio da política aleatória (Rng próprio: não mexe no da partida). */
@@ -108,6 +114,7 @@ function randomPlan(i: number): Plan {
             .map((k) => ({ k, w: r.next() }))
             .sort((a, b) => a.w - b.w)
             .map((x) => x.k),
+        bag: [r.range(3, 18), r.range(22, 38)],
     };
 }
 
@@ -132,6 +139,10 @@ interface Out {
     shootout: boolean;
     /** Ordens do técnico IA rival (avisos 'coach'). */
     rivalCalls: number;
+    /** Itens da Bolsa usados (eventos 'bag' do robô) e os ticks deles; gols (tick, time) pra conta da janela. */
+    bagUsed: number;
+    bagTicks: number[];
+    goals: [number, number][];
 }
 
 function play(i: number, mech: string, policy: Policy): Out {
@@ -139,7 +150,9 @@ function play(i: number, mech: string, policy: Policy): Out {
     const A0 = CAPID ? withCapId(A1, i) : CAPTYPE ? withCapType(A1, i) : A1;
     const A = CAP_GK ? { ...A0, captainUid: A0.lineup[0].uid } : A0;
     const away = RIVAL ? { ...B, coach: COACH_LEADERS[i % COACH_LEADERS.length] } : B;
-    const runner = new LiveRunner(CFG, A, away, `coach-${i}`);
+    const bag: BagItem[] =
+        mech === 'bolsa' ? ['potion', 'xattack', 'xdefense', 'fullheal'] : isBagItem(mech) ? [mech] : [];
+    const runner = new LiveRunner(CFG, bag.length && policy !== 'never' ? { ...A, bag } : A, away, `coach-${i}`);
     const gradeRng = new Rng(`coach-${i}`, 'grade');
     const grade = () => {
         const r = gradeRng.next();
@@ -152,6 +165,7 @@ function play(i: number, mech: string, policy: Policy): Out {
     let flyOn = false;
     let pensSent = false;
     let tos = 0;
+    const bagSent = [false, false];
     const order = (o: Record<string, unknown>, lead = LEAD) =>
         runner.addOrder({ tick: s.tick + lead, team: 0, ...o } as Parameters<LiveRunner['addOrder']>[0]);
     while (!runner.finished && s.tick < 200_000) {
@@ -212,6 +226,28 @@ function play(i: number, mech: string, policy: Policy): Out {
                 flyOn = want;
             }
         }
+        const left = bagLeft(bag, s.teams[0].agency.bagUsed);
+        if (
+            bag.length &&
+            policy !== 'never' &&
+            left.length &&
+            !s.teams[0].agency.bagUsed[s.half - 1] &&
+            !bagSent[s.half - 1]
+        ) {
+            let o: ReturnType<typeof bagPick> = null;
+            if (policy === 'good') o = bagPick(s, 0, left);
+            else if (min >= plan.bag[s.half - 1]) {
+                const item = left[0];
+                const tired = s.players
+                    .filter((p) => p.team === 0 && p.role !== 'GK')
+                    .sort((a, b) => a.energy - b.energy)[0];
+                o = { kind: 'bag', item, ...(item === 'potion' && { target: (tired.origin ?? tired.inst).uid }) };
+            }
+            if (o) {
+                order(o);
+                bagSent[s.half - 1] = true;
+            }
+        }
         if (use('pens') && !pensSent && min >= 38 && policy === 'random') {
             pensSent = true;
             const uids = s.players.filter((p) => p.team === 0 && p.role !== 'GK').map((p) => (p.origin ?? p.inst).uid);
@@ -239,6 +275,9 @@ function summarize(s: MatchState): Out {
         timeouts: 0,
         shootout: !!s.shootout,
         rivalCalls: ev.filter((e) => e.type === 'coach' && e.team === 1).length,
+        bagUsed: ev.filter((e) => e.type === 'bag' && e.team === 0).length,
+        bagTicks: ev.flatMap((e) => (e.type === 'bag' && e.team === 0 ? [e.tick] : [])),
+        goals: ev.flatMap((e) => (e.type === 'goal' ? [[e.tick, e.team] as [number, number]] : [])),
     };
     let fly = false;
     let lastMaxHit: { tick: number; by: number; lv: number; gk: boolean } | null = null;
@@ -291,6 +330,28 @@ for (const [m, p] of configs) {
 }
 writeFileSync(OUT, JSON.stringify({ N, SPEED, RIVAL, res }));
 
+/**
+ * Gols na janela do item (do uso até o fim do efeito, `BAG.xTime`), com e sem, na mesma partida pareada (mesma seed sem
+ * item): mede o efeito com bem menos ruído que a vitória. Gols por uso.
+ */
+function bagWindow(rows: Out[]): string {
+    const W = BAG.xTime * FUTSAL_5.tickRate;
+    let n = 0;
+    const g = [0, 0, 0, 0];
+    rows.forEach((r, i) => {
+        for (const t of r.bagTicks) {
+            n++;
+            const inW = (o: Out, team: number) =>
+                o.goals.filter(([gt, tm]) => tm === team && gt >= t && gt < t + W).length;
+            g[0] += inW(base[i], 0);
+            g[1] += inW(r, 0);
+            g[2] += inW(base[i], 1);
+            g[3] += inW(r, 1);
+        }
+    });
+    const f = (x: number) => (x / Math.max(1, n)).toFixed(2);
+    return `na janela: pró ${f(g[0])}⇒${f(g[1])}, contra ${f(g[2])}⇒${f(g[3])}`;
+}
 // tabela: diferença pareada contra "nunca usa", com o erro (1 desvio) da diferença
 const base = res['none:never'];
 const pct = (x: number) => `${x >= 0 ? '+' : ''}${(x * 100).toFixed(1)}`;
@@ -311,6 +372,7 @@ for (const [key, rows] of Object.entries(res)) {
             : '',
         avg((r) => r.timeouts) ? `tempos ${avg((r) => r.timeouts).toFixed(1)}` : '',
         m === 'pens' || m === 'none' ? `pênaltis ${(avg((r) => Number(r.shootout)) * 100).toFixed(0)}%` : '',
+        avg((r) => r.bagUsed) ? `itens ${avg((r) => r.bagUsed).toFixed(2)}/jogo; ${bagWindow(rows)}` : '',
         RIVAL && m === 'none' ? `rival: ${avg((r) => r.rivalCalls).toFixed(1)} ordens/jogo` : '',
     ]
         .filter(Boolean)

@@ -17,8 +17,11 @@ import { MAX_SPONSORS } from '../../engine/sponsors';
 import { walkoutPick } from '../../game/walkout-plan';
 import { itemDesc, itemName, typeName } from '../../i18n';
 import { useT } from '../../i18n/react';
+import { bolsaSlots } from '../../store/bolsa';
 import { shopRerollTicket, useGame } from '../../store/game-store';
+import { isLong } from '../../store/long-cup';
 import { useCardModal } from '../card-modal';
+import { BagCard } from '../components/BagPanel';
 import { CardPack, isBigCard, PackArt, packLookOf } from '../components/CardPack';
 import { FormationBoard } from '../components/FormationBoard';
 import { FutCard } from '../components/FutCard';
@@ -47,7 +50,9 @@ const offerKey = (o: ShopOffer) =>
             ? o.item
             : o.kind === 'tm'
               ? `tm-${o.move}`
-              : `sp-${o.id}`;
+              : o.kind === 'bolsa'
+                ? `bolsa-${o.item}`
+                : `sp-${o.id}`;
 
 /**
  * Mercado da Copa rápida (docs/planos/copa-roguelike-plano.md): depois da recompensa de cada vitória. O ₽ da vitória
@@ -64,7 +69,7 @@ export function Shop() {
     const [chosen, setChosen] = useState<number | null>(null);
     const [packPick, setPackPick] = useState<number | null>(null);
     const [sponsorsOpen, setSponsorsOpen] = useState(false);
-    const { lang, t } = useT();
+    const { lang, t, d } = useT();
     const shop = run?.shop;
     if (run?.status !== 'shop' || !shop) return null;
     const money = run.money ?? 0;
@@ -91,7 +96,7 @@ export function Shop() {
     const choose = (i: number) => {
         const o = shop.offers[i];
         // pacote e Patrocínio com vaga livre: compra direto (não há quem escolher)
-        if (o.kind === 'pack' || (o.kind === 'sponsor' && sponsors.length < MAX_SPONSORS)) {
+        if (o.kind === 'pack' || o.kind === 'bolsa' || (o.kind === 'sponsor' && sponsors.length < MAX_SPONSORS)) {
             buyOffer(i);
             setChosen(null);
             setPackPick(null);
@@ -102,17 +107,21 @@ export function Shop() {
     };
     // Pokémon que já está no time (veio do pacote): não compra outro da mesma espécie
     const owned = (o: ShopOffer) => o.kind === 'pokemon' && run.picks.some((p) => p.speciesId === o.inst.speciesId);
-    const buyable = (o: ShopOffer, i: number) => !shop.sold.includes(i) && !owned(o) && money >= o.price;
+    // Bolsa do técnico (?lab=itens): cheia, não compra
+    const bagFull = (o: ShopOffer) => o.kind === 'bolsa' && (run.bolsa?.length ?? 0) >= bolsaSlots(isLong(run));
+    const buyable = (o: ShopOffer, i: number) => !shop.sold.includes(i) && !owned(o) && !bagFull(o) && money >= o.price;
     const buyLabel = (o: ShopOffer, i: number) =>
         shop.sold.includes(i)
             ? t('shop.sold')
             : owned(o)
               ? t('shop.owned')
-              : money < o.price && o.kind !== 'sponsor' // o Patrocínio já diz "₽10 · falta ₽2" no contrato da carta
-                ? t('shop.priceShort', { price: o.price, n: o.price - money })
-                : o.kind === 'sponsor'
-                  ? t('shop.buyPlain') // o preço já está no contrato da carta
-                  : t('shop.buy', { n: o.price });
+              : bagFull(o)
+                ? d.match.agency.bag.full
+                : money < o.price && o.kind !== 'sponsor' // o Patrocínio já diz "₽10 · falta ₽2" no contrato da carta
+                  ? t('shop.priceShort', { price: o.price, n: o.price - money })
+                  : o.kind === 'sponsor'
+                    ? t('shop.buyPlain') // o preço já está no contrato da carta
+                    : t('shop.buy', { n: o.price });
     // o que não dá pra comprar fica óbvio sem tocar: cadeado, preço riscado e a carta apagada (o motivo vai no rótulo)
     const cant = (o: ShopOffer, i: number) => !shop.sold.includes(i) && !buyable(o, i);
 
@@ -230,7 +239,9 @@ export function Shop() {
                         <section className="shop-shelf">
                             <h2 className="shop-shelf-title">{t('shop.shelf.gear')}</h2>
                             {/* reward-pick3: o item e a MT no tamanho da carta, com o texto curto (as mesmas regras da recompensa) */}
-                            <div className="shop-grid reward-pick3">{shelf(['pack', 'item', 'tm']).map(offerTile)}</div>
+                            <div className="shop-grid reward-pick3">
+                                {shelf(['pack', 'item', 'tm', 'bolsa']).map(offerTile)}
+                            </div>
                         </section>
                     </Rail>
                     {/* os Patrocínios na prateleira de baixo (antes ficavam numa linha que abria a sheet); o nome
@@ -433,6 +444,7 @@ function OfferCard({
     const { lang, t } = useT();
     if (o.kind === 'pokemon') return <FutCard inst={o.inst} selected={selected} />;
     if (o.kind === 'sponsor') return <SponsorCard id={o.id} price={o.price} lack={lack} />;
+    if (o.kind === 'bolsa') return <BagCard item={o.item} selected={selected} />;
     if (o.kind === 'tm')
         return <TmCard move={o.move} leader={o.leader} team={team} selected={selected} onClick={onPick} />;
     if (o.kind === 'pack')

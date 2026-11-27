@@ -1,5 +1,6 @@
 import type { AbilityEffect } from './abilities';
 import type { Attributes, AttrKey, Position } from './attributes';
+import type { BagItem } from './bag';
 import type { MatchConfig } from './config';
 import type { Species, TypeName } from './data';
 import type { Formation, FormationId } from './formations';
@@ -53,6 +54,8 @@ export interface TeamSetup {
      * capitão daqui está com a bicuda armada (o duelo da bicuda). Nunca vem da rede: Duelo e Liga montam o time pela receita.
      */
     demoBicudaAt?: number;
+    /** Bolsa do técnico (src/engine/bag.ts): os itens que o time leva pra esta partida. Sem = nenhum. */
+    bag?: BagItem[];
 }
 
 /** Mudança de tática agendada (tática ao vivo: a partida é resimulada com a agenda). */
@@ -113,10 +116,12 @@ export type AgencyOrder =
     | { tick: number; team: 0 | 1; seq?: number; kind: 'flyGk'; on: boolean }
     /** `q`: nota do toque na batida (0 fora, 1 bom, 2 perfeito; sem = bom). */
     | { tick: number; team: 0 | 1; seq?: number; kind: 'max'; q?: MaxGrade }
-    | { tick: number; team: 0 | 1; seq?: number; kind: 'penalties'; order: string[] };
+    | { tick: number; team: 0 | 1; seq?: number; kind: 'penalties'; order: string[] }
+    /** Item da Bolsa (src/engine/bag.ts): na hora, 1 por tempo, só se estiver na `TeamSetup.bag`. `target`: uid (Poção). */
+    | { tick: number; team: 0 | 1; seq?: number; kind: 'bag'; item: BagItem; target?: string };
 export type AgencyKind = AgencyOrder['kind'];
 export type MaxGrade = 0 | 1 | 2;
-export const AGENCY_KINDS: readonly AgencyKind[] = ['timeout', 'flyGk', 'max', 'penalties'];
+export const AGENCY_KINDS: readonly AgencyKind[] = ['timeout', 'flyGk', 'max', 'penalties', 'bag'];
 
 /** Ordens do técnico durante a partida (a partida é resimulada com a agenda inteira). */
 export type MatchOrder = TacticChange | SubOrder | CornerOrder | LineupOrder | AgencyOrder;
@@ -371,8 +376,8 @@ export interface TeamRuntime {
     possessionTicks: number;
     /** Sinergias de história que já soltaram o combo neste tempo (1 combo por sinergia por tempo). */
     combosUsed: string[];
-    /** Paredes do time (segundos restantes): Light Screen (golpes especiais), Reflect (físicos), Mist (enfraquecer). */
-    screens: { light: number; reflect: number; mist: number };
+    /** Paredes do time (segundos restantes): Light Screen (golpes especiais), Reflect (físicos), Mist (enfraquecer), Safeguard (status de rival: a Cura Total da Bolsa). */
+    screens: { light: number; reflect: number; mist: number; safeguard: number };
     /** Instrução de escanteio agora (muda com a ordem do técnico). */
     corner: CornerPlan;
     /** Agência do técnico (experimento): só muda com as ordens novas. */
@@ -402,6 +407,8 @@ export interface AgencyRuntime {
     max: MaxArm | null;
     /** Ordem dos cobradores de pênalti (uids; null = pelo chute, como sempre). */
     penaltyOrder: string[] | null;
+    /** Item da Bolsa usado em cada tempo (1 por tempo). */
+    bagUsed: [BagItem | null, BagItem | null];
 }
 
 export interface MatchEventBase {
@@ -536,6 +543,8 @@ export type MatchEvent = MatchEventBase &
         | { type: 'end'; winner: 0 | 1 | null; score: [number, number]; shootout: [number, number] | null }
         // agência do técnico (experimento)
         | { type: 'timeout'; team: 0 | 1 }
+        /** Item da Bolsa usado: `target` é o índice do alvo (Poção) ou null (o time todo). */
+        | { type: 'bag'; team: 0 | 1; item: BagItem; target: number | null }
         /** Goleiro-linha ligou/desligou (`by` = o goleiro). */
         | { type: 'flyGk'; team: 0 | 1; on: boolean; by: number }
         /** Golpe máximo armado (`on`) ou cancelado sem gastar (intervalo, fim, capitão saiu, a bicuda que passou). */

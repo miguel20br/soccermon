@@ -2,6 +2,7 @@ import { del, get, set } from 'idb-keyval';
 import { create } from 'zustand';
 import { createJSONStorage, persist, type StateStorage } from 'zustand/middleware';
 import type { Position } from '../engine/attributes';
+import type { BagItem } from '../engine/bag';
 import { chooseMoves as chooseMovesOf } from '../engine/choose-moves';
 import { buildCupOpponents } from '../engine/cup';
 import {
@@ -47,6 +48,7 @@ import { MAX_SPONSORS } from '../engine/sponsors';
 import { teachMove } from '../engine/tm';
 import { detectLang, type Lang } from '../i18n/lang';
 import { type BinderCard, binderAdd, binderOf } from './binder';
+import { bolsaAfter, bolsaOffer, bolsaOn, bolsaSlots, bolsaStart, withBolsa } from './bolsa';
 import { withAmbBaseline, withCoachBaseline } from './coach';
 import {
     type DailyEntry,
@@ -346,6 +348,11 @@ export interface RunState extends LongRunFields {
     shop?: (ShopState & { pack?: PokemonInstance[] }) | null;
     /** Pacotes de tipo abertos na copa (entra na seed do próximo). */
     packs?: number;
+    /**
+     * Bolsa do técnico (src/store/bolsa.ts, atrás de `?lab=itens`): itens usados da beira da quadra. Não é a `bag` (a
+     * Mochila das pedras da Rota). Sem = sem Bolsa (save antigo e produção).
+     */
+    bolsa?: BagItem[];
 }
 
 export interface LiveMatch {
@@ -785,15 +792,20 @@ function rollRewards(run: RunState, reroll: number, avoid?: readonly Reward[]): 
         r.kind === 'pokemon' && !r.from ? { ...r, inst: rollSpecial(r.inst, run.eventType ?? null) } : r,
     );
     // arcade (Relâmpago e Copa do Dia): sem Mercado, o Patrocínio vem às vezes aqui
-    return isLong(run)
+    const done = isLong(run)
         ? out
         : withSponsor(out, run.seed, run.stage, reroll, run.sponsors ?? [], cupLength(run) - run.stage - 1);
+    // Bolsa do técnico (?lab=itens): às vezes um item dela na Relâmpago e no Baú da Rota, se ainda cabe
+    const bolsaHere = isLong(run) ? node?.kind === 'bau' : !run.daily;
+    return bolsaOn() && run.bolsa && bolsaHere && run.bolsa.length < bolsaSlots(isLong(run))
+        ? withBolsa(done, run.seed, run.at ?? `m${run.stage}`, reroll)
+        : done;
 }
 
 /** A recompensa ou a compra entra no time (o mesmo caminho pra recompensa grátis e o Mercado). null = alvo inválido. */
 function grant(
     run: RunState,
-    reward: Exclude<Reward | ShopOffer, { kind: 'pack' | 'sponsor' }>,
+    reward: Exclude<Reward | ShopOffer, { kind: 'pack' | 'sponsor' | 'bolsa' }>,
     targetUid: string,
     forgetSlot?: number,
     passTo?: string,
@@ -896,7 +908,7 @@ export const shopRerollTicket = (run: RunState): 'free' | 'reroll' | null =>
 
 /** Vitrine do Mercado desta fase (a `reroll`-ésima troca). */
 function rollShop(run: RunState, reroll: number): ShopOffer[] {
-    return shopOffers({
+    const offers = shopOffers({
         seed: run.seed,
         stage: run.stage,
         reroll,
@@ -909,6 +921,8 @@ function rollShop(run: RunState, reroll: number): ShopOffer[] {
         }),
         matchesLeft: cupLength(run) - run.stage - 1,
     });
+    // Bolsa do técnico (?lab=itens): 1 item dela no fim da vitrine (sorteio próprio, a vitrine de sempre não muda)
+    return bolsaOn() && run.bolsa ? [...offers, bolsaOffer(run.seed, run.at ?? `m${run.stage}`, reroll)] : offers;
 }
 
 export function playerTeam(run: RunState, color = clubColorHex(useGame.getState().profile.clubColor)): TeamSetup {
@@ -926,6 +940,7 @@ export function playerTeam(run: RunState, color = clubColorHex(useGame.getState(
         manualSubs: true,
         corner: run.cornerPlan ?? 'mixed',
         cornerTakerUid: run.cornerTakerUid ?? null,
+        ...(bolsaOn() && run.bolsa?.length && { bag: [...run.bolsa] }),
     };
 }
 
@@ -1603,6 +1618,8 @@ export const useGame = create<GameStore>()(
                         startedAt: Date.now(),
                         ...(daily && { daily }),
                         ...(mode && !daily && newLongFields(runSeed)),
+                        // Bolsa do técnico (?lab=itens): Rota e Relâmpago começam com 1 Poção; a Copa do Dia não tem
+                        ...(bolsaOn() && !daily && { bolsa: bolsaStart() }),
                         startCounts: {
                             seen: seenCount(getState().dex),
                             moves: movesFound(getState().moves, getState().dex),
@@ -1981,6 +1998,7 @@ export const useGame = create<GameStore>()(
                         lockedTeam: null,
                         live: null,
                         ...(yellow && { cards: (run.cards ?? 0) + 1 }),
+                        ...(run.bolsa && { bolsa: bolsaAfter(run.bolsa, m.events) }),
                         ...(isLong(run) && { out: tickOut(run.out), bet: null, rivalPick }),
                         // na longa o ₽ da vitória entra na hora (os juros só quando você entra num Mercado)
                         ...(isLong(run) && {
@@ -2174,6 +2192,13 @@ export const useGame = create<GameStore>()(
                         setState(afterReward({ ...run, sponsors: [...sponsors, reward.id] }));
                         return;
                     }
+                    if (reward.kind === 'bolsa') {
+                        // Bolsa do técnico (?lab=itens): sem alvo; com a Bolsa cheia ele não entra
+                        const bolsa = run.bolsa ?? [];
+                        if (bolsa.length >= bolsaSlots(isLong(run))) return;
+                        setState(afterReward({ ...run, bolsa: [...bolsa, reward.item] }));
+                        return;
+                    }
                     const got = grant(run, reward, targetUid, forgetSlot, passTo);
                     if (!got) return;
                     // em dois passos: a vitrine do Mercado marca os vistos em cima da Pokédex já com a carta nova
@@ -2204,6 +2229,12 @@ export const useGame = create<GameStore>()(
                             sponsors = sponsors.filter((id) => id !== targetUid);
                         }
                         setState({ run: { ...paid, sponsors: [...sponsors, offer.id], shop: { ...shop, sold } } });
+                        return;
+                    }
+                    if (offer.kind === 'bolsa') {
+                        const bolsa = run.bolsa ?? [];
+                        if (bolsa.length >= bolsaSlots(isLong(run))) return;
+                        setState({ run: { ...paid, bolsa: [...bolsa, offer.item], shop: { ...shop, sold } } });
                         return;
                     }
                     if (offer.kind === 'pack') {

@@ -1,3 +1,4 @@
+import type { BagItem } from './bag';
 import type { Prize } from './cup-map';
 import { species } from './data';
 import { draftOptions } from './draft';
@@ -20,7 +21,9 @@ export type Reward =
     | { kind: 'item'; item: string }
     | { kind: 'tm'; move: string; leader: string | null }
     /** Modos arcade (Relâmpago e Copa do Dia): o Patrocínio vem às vezes na recompensa, já que lá não tem Mercado. */
-    | { kind: 'sponsor'; id: SponsorId };
+    | { kind: 'sponsor'; id: SponsorId }
+    /** Item da Bolsa do técnico (src/store/bolsa.ts, atrás de `?lab=itens`): vai pra Bolsa, sem alvo. */
+    | { kind: 'bolsa'; item: BagItem };
 
 /** Raridade do reforço sorteado sobe a cada fase. */
 const REINFORCEMENT_ROUND = [3, 5, 6];

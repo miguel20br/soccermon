@@ -8,6 +8,7 @@ import {
     positionRating,
     sizePercentile,
 } from './attributes';
+import { BAG, type BagItem, bagLeft, bagNeedsTarget } from './bag';
 import type { Command } from './commands';
 import { type MatchConfig, segmentTicks } from './config';
 import { MOVES, species, type TypeName } from './data';
@@ -306,7 +307,7 @@ export function createMatch(
                 bench: [...home.bench],
                 possessionTicks: 0,
                 combosUsed: [],
-                screens: { light: 0, reflect: 0, mist: 0 },
+                screens: { light: 0, reflect: 0, mist: 0, safeguard: 0 },
                 agency: freshAgency(),
             },
             {
@@ -318,7 +319,7 @@ export function createMatch(
                 bench: [...away.bench],
                 possessionTicks: 0,
                 combosUsed: [],
-                screens: { light: 0, reflect: 0, mist: 0 },
+                screens: { light: 0, reflect: 0, mist: 0, safeguard: 0 },
                 agency: freshAgency(),
             },
         ],
@@ -554,6 +555,7 @@ export function step(s: MatchState, commands: (Command | Command[])[]) {
         t.screens.light = Math.max(0, t.screens.light - dt);
         t.screens.reflect = Math.max(0, t.screens.reflect - dt);
         t.screens.mist = Math.max(0, t.screens.mist - dt);
+        t.screens.safeguard = Math.max(0, t.screens.safeguard - dt);
     }
 
     if (s.phase === 'play') for (const t of [0, 1] as const) if (s.teams[t].setup.demoBicudaAt) demoBicuda(s, t);
@@ -1453,6 +1455,8 @@ export function applyStatus(
     source: string,
 ): boolean {
     if (target.status) return false;
+    // Cura Total da Bolsa: o time fica imune a status de rival por um tempo (o próprio, como o Rest, passa)
+    if (by !== target.idx && s.teams[target.team].screens.safeguard > 0) return false;
     if (isStatusImmune(target.ability, status)) {
         // a habilidade segura o status: aparece na tela (só golpe ou contato de rival; o anel de fogo pega toda hora)
         if (by !== null && by !== target.idx && source !== 'firespin')
@@ -3435,6 +3439,7 @@ export function freshAgency(): AgencyRuntime {
         flyGk: false,
         max: null,
         penaltyOrder: null,
+        bagUsed: [null, null],
     };
 }
 
@@ -3470,7 +3475,64 @@ export function applyAgencyOrder(s: MatchState, o: AgencyOrder) {
         case 'penalties':
             ag.penaltyOrder = [...o.order];
             return;
+        case 'bag':
+            applyBag(s, o.team, o.item, o.target);
+            return;
     }
+}
+
+/**
+ * Item da Bolsa (docs/planos/itens-ativos.md, A1): na hora, 1 por tempo, só se o time leva o item (`TeamSetup.bag`) e
+ * ainda não usou esse. Não vale no intervalo nem no duelo da bicuda (nem depois do apito final: `applyAgencyOrder`).
+ * Não sorteia nada: o resto da partida segue o mesmo `rng`.
+ */
+function applyBag(s: MatchState, team: 0 | 1, item: BagItem, target?: string) {
+    const ag = s.teams[team].agency;
+    const half = s.half - 1;
+    if (s.phase === 'halftime' || s.phase === 'showdown' || ag.bagUsed[half]) return;
+    if (!bagLeft(s.teams[team].setup.bag, ag.bagUsed).includes(item)) return;
+    const mine = s.players.filter((p) => p.team === team);
+    let at: PlayerState | null = null;
+    if (bagNeedsTarget(item)) {
+        // sem `target` não tem alvo (o `origin` vazio de quem não é Ditto também é undefined)
+        at =
+            target === undefined ? null : (mine.find((p) => p.inst.uid === target || p.origin?.uid === target) ?? null);
+        if (!at) return;
+    }
+    switch (item) {
+        case 'potion':
+            for (const p of mine) p.energy = Math.min(1, p === at ? BAG.potionEnergy : p.energy + BAG.potionTeam);
+            break;
+        case 'xattack':
+            for (const p of mine)
+                p.buffs.push(
+                    { attr: 'shooting', factor: BAG.xAttack, timer: BAG.xTime, src: 'bag' },
+                    { attr: 'dribble', factor: BAG.xAttack, timer: BAG.xTime, src: 'bag' },
+                );
+            break;
+        case 'xdefense':
+            for (const p of mine)
+                if (p.role === 'GK')
+                    p.buffs.push({ attr: 'goalkeeping', factor: BAG.xDefenseGk, timer: BAG.xTime, src: 'bag' });
+                else
+                    p.buffs.push(
+                        { attr: 'tackling', factor: BAG.xDefense, timer: BAG.xTime, src: 'bag' },
+                        { attr: 'positioning', factor: BAG.xDefense, timer: BAG.xTime, src: 'bag' },
+                    );
+            break;
+        case 'fullheal':
+            // como a névoa (Haze), mas só no seu time e só o que atrapalha; depois, imune a status por um tempo
+            for (const p of mine) {
+                if (p.status && p.action === Action.Hurt) p.action = Action.Idle;
+                p.status = null;
+                p.seeded = null;
+                p.buffs = p.buffs.filter((b) => b.factor >= 1);
+            }
+            s.teams[team].screens.safeguard = BAG.safeguardTime;
+            break;
+    }
+    ag.bagUsed[half] = item;
+    emit(s, { type: 'bag', team, item, target: at?.idx ?? null });
 }
 
 /** Bola parada: entra o pedido de tempo (fôlego e parada). */

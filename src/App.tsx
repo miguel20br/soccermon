@@ -10,6 +10,7 @@ import { NatalCapa } from './ui/ambientes/Neve';
 import { onGoTab } from './ui/ambientes/nav';
 import { TopBar } from './ui/ambientes/TopBar';
 import { backTarget, installBackNav, MENU_SCREENS } from './ui/back-nav';
+import { readBolsa } from './ui/bolsa-lab';
 import { AccountLink } from './ui/components/AccountLink';
 import { CardModal } from './ui/components/CardModal';
 import { CupBar } from './ui/components/CupBar';
@@ -223,6 +224,8 @@ export default function App() {
     }, [screen]);
     // ?lab=hud (partida nova, revamp-ui §3.5): guarda na aba já na entrada, a partida lê depois
     useState(readHud);
+    // ?lab=itens (Bolsa do técnico, só dev e prévias): liga a Bolsa na Rota e na Relâmpago
+    useState(readBolsa);
     // ?lab=duelo-ut (Duelo com o time do UT, só dev e prévias): guarda na aba antes de a sala trocar a URL
     useState(readDuelUt);
     const [cards, setCards] = useState(

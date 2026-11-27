@@ -1579,3 +1579,7 @@ body:has(.bc-hud) {
 .sl-actions.one {
     grid-template-columns: minmax(0, 1fr);
 }
+/* Bolsa do técnico (?lab=itens): o 5º botão */
+.bc-hudbar.five {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+}

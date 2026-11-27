@@ -1,3 +1,4 @@
+import { isBagItem } from '../bag';
 import type { Command, Controller } from '../commands';
 import type { MatchConfig } from '../config';
 import { AIController } from '../controllers/ai-controller';
@@ -68,6 +69,8 @@ function validAgency(o: AgencyOrder): boolean {
             );
         case 'timeout':
             return true;
+        case 'bag':
+            return isBagItem(o.item) && (o.target === undefined || typeof o.target === 'string');
         case 'max':
             // nota do toque na batida: só 0, 1 ou 2 (a Liga aceita a do cliente; golpe-maximo-niveis.md, decisão 8)
             return o.q === undefined || o.q === 0 || o.q === 1 || o.q === 2;

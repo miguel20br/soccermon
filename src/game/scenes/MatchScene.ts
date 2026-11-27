@@ -4576,6 +4576,20 @@ export class MatchScene extends Phaser.Scene {
                 this.battleBox.push(tr('battle.decoy', { x: this.players[e.by]?.name ?? '?' }));
                 break;
             }
+            case 'bag': {
+                // Bolsa do técnico (?lab=itens): o efeito sobe em cima de quem recebeu (o brilho do reforço é o FLAG_BUFF)
+                const item = dict().match.agency.bag.items[e.item];
+                const color = { potion: '#d7a6ff', xattack: '#ff8a7a', xdefense: '#8ab8ff', fullheal: '#ffe27a' }[
+                    e.item
+                ];
+                const who =
+                    e.target !== null ? [e.target] : this.players.flatMap((v, i) => (v.team === e.team ? [i] : []));
+                for (const i of who) this.popText(i, item.pop, color, 0, 1600);
+                const tv = e.target !== null ? this.players[e.target] : null;
+                if (tv) this.impact(tv.sprite.x, tv.sprite.y - 16, 'Grass');
+                this.battleBox.push(tr('match.agency.bag.line', { team: this.md.teamName ?? '', item: item.name }));
+                break;
+            }
             case 'haze': {
                 for (const i of e.cleared) this.popText(i, tr('battle.cleared'), '#d8e8ff');
                 this.battleBox.push(tr('battle.haze'));

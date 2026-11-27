@@ -1,3 +1,4 @@
+import type { BagItem } from './bag';
 import type { TypeName } from './data';
 import { SPECIES, species } from './data';
 import { draftOptions } from './draft';
@@ -83,7 +84,9 @@ export type ShopOffer =
     | { kind: 'item'; item: string; price: number }
     /** Saiu da vitrine na 0.9.49 (0,4% das compras); fica no tipo pro Mercado aberto num save antigo. */
     | { kind: 'tm'; move: string; leader: string | null; price: number }
-    | { kind: 'sponsor'; id: SponsorId; price: number };
+    | { kind: 'sponsor'; id: SponsorId; price: number }
+    /** Item da Bolsa do técnico (src/store/bolsa.ts, atrás de `?lab=itens`). */
+    | { kind: 'bolsa'; item: BagItem; price: number };
 
 /** O Mercado aberto: vitrine, quantas trocas e o que já foi comprado (índices da vitrine). */
 export interface ShopState {
