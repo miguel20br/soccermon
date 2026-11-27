@@ -1,5 +1,15 @@
 # Novidades
 
+## 0.10.1 · Ditto disfarçado e metas na partida (2026-12-07)
+
+### Cartas e pacotes
+- O Ditto sai do pacote disfarçado de outro Pokémon do mesmo metal e se transforma depois de aparecer
+- Carta Shiny, Destaque, Ícone ou Evento na recompensa da Copa ganha a mesma entrada do pacote do Mercado
+- Selo de bola vazia nos Pokémon que nunca jogaram pelo seu time: na Pokédex, no draft e na recompensa
+
+### Time Ultimate
+- Aviso no canto da partida quando um gol seu avança o objetivo de gols ou a Evolução de quem marcou
+
 ## 0.10.0 · Copa de Natal, sinergias secretas e menus novos (2026-11-30)
 
 ### Natal (de 30/11 a 06/01)

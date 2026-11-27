@@ -9,6 +9,27 @@ export interface PatchNotes {
 
 export const PATCH_NOTES: PatchNotes[] = [
     {
+        version: '0.10.1',
+        date: '2026-12-07',
+        title: 'Ditto disfarçado e metas na partida',
+        sections: [
+            {
+                title: 'Cartas e pacotes',
+                lines: [
+                    'O Ditto sai do pacote disfarçado de outro Pokémon do mesmo metal e se transforma depois de aparecer',
+                    'Carta Shiny, Destaque, Ícone ou Evento na recompensa da Copa ganha a mesma entrada do pacote do Mercado',
+                    'Selo de bola vazia nos Pokémon que nunca jogaram pelo seu time: na Pokédex, no draft e na recompensa',
+                ],
+            },
+            {
+                title: 'Time Ultimate',
+                lines: [
+                    'Aviso no canto da partida quando um gol seu avança o objetivo de gols ou a Evolução de quem marcou',
+                ],
+            },
+        ],
+    },
+    {
         version: '0.10.0',
         date: '2026-11-30',
         title: 'Copa de Natal, sinergias secretas e menus novos',
@@ -3230,6 +3251,27 @@ export const PATCH_NOTES: PatchNotes[] = [
 
 /** Notes in English (same versions; a version missing here falls back to Portuguese). */
 export const PATCH_NOTES_EN: PatchNotes[] = [
+    {
+        version: '0.10.1',
+        date: '2026-12-07',
+        title: 'Disguised Ditto and goals during the match',
+        sections: [
+            {
+                title: 'Cards and packs',
+                lines: [
+                    'Ditto comes out of the pack disguised as another Pokémon of the same metal and transforms after it shows up',
+                    'A Shiny, Star Player, Icon or Event card in the Cup reward gets the same entrance as the Market pack',
+                    'Empty ball seal on Pokémon that never played for your team: in the Pokédex, the draft and the reward',
+                ],
+            },
+            {
+                title: 'Team Ultimate',
+                lines: [
+                    'A note in the corner of the match when your goal moves the goals objective or the Evolution of the scorer',
+                ],
+            },
+        ],
+    },
     {
         version: '0.10.0',
         date: '2026-11-30',
