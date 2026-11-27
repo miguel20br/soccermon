@@ -50,6 +50,11 @@
 - Tocar no nome de outro jogador (ranking, Liga, Desafio, histórico do Duelo) abre o perfil dele, mesmo sem ser amigo; a foto do Google continua só pra amigos
 - Entrar com a conta não volta mais o avatar, o nome e o clube pro padrão quando o aparelho ainda não tinha perfil
 
+## 0.9.53.5 · Conserto do Time Ultimate no iPhone (2026-11-27)
+
+### Consertos
+- Time Ultimate: quando o navegador recarrega a página sozinho (comum no iPhone), o jogo volta pro Time Ultimate em vez de cair no menu
+
 ## 0.9.53.4 · Economia do Time Ultimate (2026-11-27)
 
 ### Time Ultimate
