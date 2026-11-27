@@ -103,8 +103,13 @@ export const EVO_ACTIVE_MAX = 2;
  * vezes que foi o craque do seu time na partida.
  */
 export const EVO_STEP = { played: 3, goals: 2, saves: 6, mvp: 1 } as const;
-/** Treino (quem não evolui mais): até 3 subidas; cada uma vale o mesmo que uma evolução (+2 em tudo). */
+/** Treino (quem não evolui mais): até 3 subidas de +1 em tudo (`trained`; era +2, Miguel 27/11/2026). */
 export const TRAIN_STEPS = 3;
+/**
+ * Bronze/Prata comprada com Fichas (`paid`: Escolher carta e Pick pago) evolui e treina só até esta nota; carta de pacote
+ * e prêmio evolui livre (Miguel, 27/11/2026: o Machop de 240 Fichas virava Machamp 95).
+ */
+export const PAID_EVO_MAX = 74;
 
 /** O que um objetivo conta numa partida do Time Ultimate. */
 export type ObjectiveKind = 'play' | 'win' | 'goals' | 'winHard' | 'winNoGold';

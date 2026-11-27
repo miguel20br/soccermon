@@ -28,6 +28,8 @@ export interface DuelMonRecipe {
     evolved?: number;
     /** Espécies de antes da evolução (`PokemonInstance.evolvedFrom`): a carta não perde atributo nem a habilidade. */
     evolvedFrom?: number[];
+    /** Subidas de Treino do Time Ultimate (+1 em tudo cada). */
+    trained?: number;
     nickname?: string | null;
 }
 
@@ -77,6 +79,7 @@ export const monRecipe = (p: PokemonInstance): DuelMonRecipe => ({
     inherited: p.inherited ? [...p.inherited] : undefined,
     evolved: p.evolved || undefined,
     evolvedFrom: p.evolvedFrom?.length ? [...p.evolvedFrom] : undefined,
+    trained: p.trained || undefined,
     nickname: p.nickname ?? null,
 });
 
@@ -173,6 +176,8 @@ export function monProblems(m: DuelMonRecipe, where: string, extraEvolved = 0): 
     const depth = ancestors.length + extraEvolved;
     if (m.evolved !== undefined && !(Number.isInteger(m.evolved) && m.evolved >= 0 && m.evolved <= depth))
         bad('evoluções');
+    if (m.trained !== undefined && !(Number.isInteger(m.trained) && m.trained >= 0 && m.trained <= extraEvolved))
+        bad('treino');
     if (m.nickname != null && !isStr(m.nickname, 20)) bad('apelido');
     return out;
 }
@@ -235,6 +240,7 @@ export function monFromRecipe(m: DuelMonRecipe, uid: string): PokemonInstance {
     if (m.inherited?.length) p.inherited = [...m.inherited];
     if (m.evolved) p.evolved = m.evolved;
     if (m.evolvedFrom?.length) p.evolvedFrom = [...m.evolvedFrom];
+    if (m.trained) p.trained = m.trained;
     return p;
 }
 
