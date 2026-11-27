@@ -136,6 +136,41 @@ Tempo de jogo: cada tempo tem 180 s de motor = 20' no relógio, então **1' = 9 
 
 ---
 
+## A1 feita (27/11, branch `feat-itens`, atrás de `?lab=itens`)
+
+Código: `src/engine/bag.ts` (itens e números), `applyBag` em `src/engine/match.ts`, `src/store/bolsa.ts` (Bolsa na Rota
+e na Relâmpago), `src/ui/components/BagPanel.tsx` (botão e folha), `src/ui/bolsa-lab.ts` (bandeira). `?lab=itens`
+liga no dev e nas prévias (copa começa com 1 Poção); `?lab=itens-todos` começa com os 4, pra testar cada um. Em
+produção nada aparece. **Motor sem item é bit a bit o de hoje** (golden master igual, `ENGINE_VERSION` fica 35).
+
+**Números medidos** (robô `scripts/balance/coach.ts 400 out 4 potion,xattack,xdefense,fullheal,bolsa`, rival sem
+técnico, 400 partidas pareadas, ±1σ; 1 item do tipo na Bolsa, "bolsa" = os 4 com 1 por tempo). "Na janela" = gols
+nos 5' depois do uso, na mesma partida sem e com o item (bem menos ruído que a vitória):
+
+Base (nunca usa): vitória 50,0%, gols 3,50 pró / 3,53 contra por jogo.
+
+| Item | Hora | Usos/jogo | Δ vitória (pp) | Gols pró/contra | Na janela de 5': pró | contra | Δ "forte" (n=200, referência) |
+|---|---|---:|---:|---|---|---|---:|
+| Poção | sensata (2º tempo, 28'+, o mais cansado abaixo de 60%) | 1,00 | +2,0 ±2,4 | 3,74 / 3,48 | 0,29 ⇒ 0,41 | 0,38 ⇒ 0,32 | +5,0 ±3,2 |
+| Poção | minuto sorteado | 1,00 | +4,5 ±3,0 | 3,86 / 3,49 | 0,36 ⇒ 0,45 | 0,34 ⇒ 0,32 | +10,5 ±4,5 |
+| X Attack | sensata (2º tempo, 25'+, sem estar ganhando) | 0,74 | +1,5 ±2,5 | 3,64 / 3,50 | 0,41 ⇒ 0,53 | 0,38 ⇒ 0,34 | +2,5 ±3,6 |
+| X Attack | minuto sorteado | 1,00 | +0,0 ±3,1 | 3,70 / 3,65 | 0,36 ⇒ 0,55 | 0,34 ⇒ 0,39 | −3,5 ±4,5 |
+| X Defense | sensata (2º tempo, 30'+, ganhando) | 0,51 | +1,5 ±1,4 | 3,52 / 3,46 | 0,32 ⇒ 0,35 | 0,36 ⇒ 0,24 | −0,5 ±1,9 |
+| X Defense | minuto sorteado | 1,00 | +4,0 ±2,9 | 3,64 / 3,52 | 0,36 ⇒ 0,46 | 0,34 ⇒ 0,30 | −1,0 ±4,3 |
+| Cura Total | sensata (2+ do time com status) | 0,07 | ~0 (−1,3 ±0,7) | 3,49 / 3,58 | — | — | −1,5 ±1,3 |
+| Cura Total | minuto sorteado | 1,00 | −1,3 ±1,8 | 3,56 / 3,54 | 0,36 ⇒ 0,39 | 0,34 ⇒ 0,36 | −2,0 ±3,3 |
+| Bolsa (os 4) | sensata | 1,03 | +2,3 ±2,6 | 3,73 / 3,53 | 0,38 ⇒ 0,49 | 0,39 ⇒ 0,33 | +2,5 ±3,8 |
+| Bolsa (os 4) | minuto sorteado | 2,00 | +5,0 ±3,1 | 3,98 / 3,49 | 0,36 ⇒ 0,48 | 0,33 ⇒ 0,31 | +8,5 ±4,5 |
+
+**Rota inteira** (`BOLSA=1 SIM=200 npx vitest run scripts/balance/long-cup.sim.test.ts`, 200 Rotas pareadas; o robô
+começa com 1 Poção, pega item da Bolsa no Baú, compra no Mercado depois do Patrocínio e usa na hora sensata): título
+**24,0% ⇒ 26,5% (+2,5 ±3,9 pp)**, partidas jogadas 6,30 ⇒ 6,54, ₽ no fim 35,2 ⇒ 33,6.
+
+Leitura: a vitória por item fica dentro do ruído (±2,5 pp com 400), como a régua previa (+1 a +2 pp). A janela
+mostra que o efeito existe: X Attack +0,12 a +0,19 gol pró nos 5', X Defense −0,04 a −0,12 contra, Poção +0,1 pró.
+A Cura Total quase não tem uso sem as Orbs (A2): a IA rival quase nunca põe status em 2 do time. O "forte" só
+pesa na Poção (os +15% de fôlego nos outros 4).
+
 # Parte B: Copa longa com eventos
 
 ## O que o playtester pediu x o que já existe
