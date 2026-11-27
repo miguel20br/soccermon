@@ -7130,6 +7130,10 @@ p.muted.center a {
         transform: scale(1) rotate(60deg);
     }
 }
+/* a carta do walkout fica escondida no leque até o momento dela (Mercado, recompensa e UT) */
+.walk-held {
+    visibility: hidden;
+}
 /* Ditto disfarçado (DittoMask.tsx): o disfarce fica por cima e, 0,95 s depois de a carta sair, derrete em roxo; o
    Ditto sobe da gosma. Fora da abertura (pulou, reduzir movimento) o disfarce some e fica o Ditto. --ditto = o roxo do
    Épico (rarity.ts) */

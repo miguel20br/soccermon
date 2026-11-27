@@ -367,6 +367,9 @@ export function runDevDemo() {
                 players: [...opp.lineup, ...opp.bench],
             });
             if (!rewards.some((r) => r.kind === 'tm' && r.leader)) continue;
+            // &shiny=1: a 1ª opção vira um Charizard Shiny (o walkout do pacote ganho, como o do Mercado)
+            if (new URLSearchParams(window.location.search).get('shiny') === '1')
+                rewards[0] = { kind: 'pokemon', inst: { ...createInstance(6, rng), shiny: true }, from: null };
             useGame.setState({
                 run: {
                     ...run,

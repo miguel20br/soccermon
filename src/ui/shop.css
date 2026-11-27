@@ -488,9 +488,6 @@ button.sp-slot:hover {
 .shop-pick {
     --k-pick-reserve: 300px;
 }
-.walk-held {
-    visibility: hidden;
-}
 .shop-pack-moment .reward-team-row {
     width: min(420px, 100%);
 }

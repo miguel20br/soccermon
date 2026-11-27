@@ -1,10 +1,11 @@
-import { useState } from 'react';
+import { lazy, Suspense, useState } from 'react';
 import { formationOf } from '../../engine/formations';
 import { type PokemonInstance, viewInstance } from '../../engine/instance';
 import { itemSprite } from '../../engine/items';
 import type { Reward as RewardDef } from '../../engine/rewards';
 import type { ShopOffer } from '../../engine/shop';
 import { editionOf } from '../../engine/specials';
+import { walkoutPick } from '../../game/walkout-plan';
 import { clubName, itemDesc, itemName, moveFutsal, moveName, sponsorText, typeName } from '../../i18n';
 import { useT } from '../../i18n/react';
 import { type RunState, stoneToBag, useGame } from '../../store/game-store';
@@ -30,6 +31,10 @@ import { Stage } from '../kit/Stage';
 import { readCount, writeCount } from '../local-count';
 import { rewardGains } from '../reward-gain';
 import { useHeld } from '../use-held';
+
+// o walkout (e a cena do Phaser dele) só baixa quando a recompensa tem carta de edição, como no Mercado
+const loadWalkout = () => import('../kit/WalkoutStage');
+const Walkout = lazy(() => loadWalkout().then((m) => ({ default: m.Walkout })));
 
 /** Quantas telas de recompensa a pessoa já abriu (neste navegador): da 7ª em diante, a abertura é rápida. */
 const PACKS_KEY = 'soccermon-packs-opened';
@@ -60,9 +65,17 @@ export function Reward() {
     const firstCup = useFirstCup();
     // a festa encurta: da 7ª tela de recompensa em diante, o pacote abre rápido e as cartas saem quase juntas
     const [fast] = useState(() => (readCount(PACKS_KEY) ?? 0) >= FAST_AFTER);
+    // walkout da carta de edição: o uid tocando agora e os que já tocaram (sortear de novo traz cartas novas)
+    const [walkOn, setWalkOn] = useState<string | null>(null);
+    const [walked, setWalked] = useState<string[]>([]);
     if (run?.status !== 'reward') return null;
     const countOpen = () => writeCount(PACKS_KEY, (readCount(PACKS_KEY) ?? 0) + 1);
     const mons = run.rewards.flatMap((r) => (r.kind === 'pokemon' ? [r.inst] : []));
+    // pacote ganho com carta de edição (Shiny, Destaque, Ícone, Evento): o mesmo walkout do pacote do Mercado, depois
+    // do leque (ideia de playtester, 07/12/2026). Ouro sem edição fica no leque: sai quase toda vitória no fim da copa
+    const editions = mons.filter((m) => editionOf(m));
+    const walker = editions[walkoutPick(editions)] as PokemonInstance | undefined;
+    const held = !!walker && !walked.includes(walker.uid);
     // treino de técnica da Rota (ninguém evolui): pacote do treino, só itens
     const training = isLong(run) && !run.group && currentNode(run)?.kind === 'treino';
     // Rota: o prêmio da casa (MT, item, carta rara; numa Rota antiga, depois do 1 de 3 do rival)
@@ -145,16 +158,30 @@ export function Reward() {
                     look={packLookOf(mons)}
                     label={t(training ? 'reward.pack.training' : 'reward.pack.label')}
                     revealKey={run.rewards.map(rewardKey).join()}
-                    onOpen={countOpen}
+                    onOpen={() => {
+                        countOpen();
+                        if (walker)
+                            void loadWalkout()
+                                .then((m) => m.preloadWalkout())
+                                .catch(() => undefined);
+                    }}
+                    onRevealed={() => held && setWalkOn(walker.uid)}
                 >
                     <div className="k-pick3 reward-pick3">
                         {run.rewards.map((r, i) => (
                             <div
                                 key={rewardKey(r)}
-                                data-cry={r.kind === 'pokemon' ? r.inst.speciesId : undefined}
+                                // a carta do walkout não grita no leque: o momento dela vem depois
+                                data-cry={r.kind === 'pokemon' && r.inst !== walker ? r.inst.speciesId : undefined}
                                 className={`option cpack-card${r.kind === 'tm' ? ' option-tm' : ''}${
-                                    r.kind === 'pokemon' && isBigCard(r.inst) ? ' big' : ''
-                                }${!fast && r.kind === 'pokemon' && editionOf(r.inst) ? ' walk' : ''}`}
+                                    r.kind === 'pokemon' && r.inst === walker
+                                        ? held
+                                            ? ' walk-held'
+                                            : ' k-pop'
+                                        : r.kind === 'pokemon' && isBigCard(r.inst)
+                                          ? ' big'
+                                          : ''
+                                }`}
                             >
                                 {r.kind === 'pokemon' &&
                                     (isNovo(dex, r.inst.speciesId) ? (
@@ -305,6 +332,17 @@ export function Reward() {
                     </div>
                 </SheetRow>
             </Stage>
+            {walker && walkOn === walker.uid && (
+                <Suspense fallback={null}>
+                    <Walkout
+                        inst={walker}
+                        onDone={() => {
+                            setWalked((w) => [...w, walker.uid]);
+                            setWalkOn(null);
+                        }}
+                    />
+                </Suspense>
+            )}
 
             {/* escolheu: quem sai do banco, quem segura o item ou quem aprende a MT, numa sheet (fechar = desfazer) */}
             <Sheet
