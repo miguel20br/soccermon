@@ -11,7 +11,7 @@ export const PATCH_NOTES: PatchNotes[] = [
     {
         version: '0.10.0',
         date: '2026-11-30',
-        title: 'Draft do Time Ultimate, Copa de Natal e sinergias secretas',
+        title: 'Copa de Natal, sinergias secretas e menus novos',
         sections: [
             {
                 title: 'Natal (de 30/11 a 06/01)',
@@ -50,9 +50,13 @@ export const PATCH_NOTES: PatchNotes[] = [
             {
                 title: 'Time Ultimate',
                 lines: [
-                    'Draft: monte um time na hora, escolhendo 1 de 5 por vaga, e jogue 4 partidas por pacotes',
                     'Desafios de Montagem: troque cartas por pacotes e Picks montando times com regra',
                     'Duelo com o time do Time Ultimate: cada um joga com o próprio time, sem draft',
+                    'Acima do limite de Fichas do dia, a partida não paga mais Fichas (antes: 10 por partida)',
+                    'Carta Bronze ou Prata comprada com Fichas evolui e treina só até nota 74 (antes: sem limite; o Machop de 240 Fichas virava Machamp 95). Carta de pacote e de prêmio evolui como antes',
+                    'Uma de cada no Clube: a loja e o Pick não oferecem Pokémon de uma linha evolutiva que você já tem, e a Evolução não vira um Pokémon que já está no Clube',
+                    'Treino: +1 em tudo por subida (antes: +2)',
+                    'Partida retomada no meio (recarregou a página ou saiu e voltou): dá pra assistir ou pular, sem trocar tática nem time',
                 ],
             },
             {
@@ -3201,7 +3205,7 @@ export const PATCH_NOTES_EN: PatchNotes[] = [
     {
         version: '0.10.0',
         date: '2026-11-30',
-        title: 'Ultimate Team Draft, Christmas Cup and secret synergies',
+        title: 'Christmas Cup, secret synergies and new menus',
         sections: [
             {
                 title: 'Christmas (Nov 30 to Jan 6)',
@@ -3240,9 +3244,13 @@ export const PATCH_NOTES_EN: PatchNotes[] = [
             {
                 title: 'Ultimate Team',
                 lines: [
-                    'Draft: build a team on the spot, picking 1 of 5 per slot, and play 4 matches for packs',
                     'Build Challenges: trade cards for packs and Picks by building teams that follow a rule',
                     'Duel with your Ultimate Team: each player brings their own team, no draft',
+                    'Past the daily Coin limit, matches no longer pay Coins (before: 10 per match)',
+                    'Bronze or Silver cards bought with Coins evolve and train only up to a 74 rating (before: no limit; a 240-Coin Machop became a 95 Machamp). Cards from packs and rewards evolve as before',
+                    'One of each in the Club: the shop and Picks no longer offer Pokémon from an evolution line you already have, and Evolution never turns into a Pokémon already in the Club',
+                    'Training: +1 to everything per step (before: +2)',
+                    'Match resumed halfway (page reloaded, or you left and came back): you can watch or skip, but not change tactics or the team',
                 ],
             },
             {

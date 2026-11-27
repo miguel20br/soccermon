@@ -1,6 +1,6 @@
 # Novidades
 
-## 0.10.0 · Draft do Time Ultimate, Copa de Natal e sinergias secretas (2026-11-30)
+## 0.10.0 · Copa de Natal, sinergias secretas e menus novos (2026-11-30)
 
 ### Natal (de 30/11 a 06/01)
 - Neve e luzes de Natal nos menus e na quadra da partida
@@ -28,9 +28,13 @@
 - Pokédex: cada Pokémon mostra as sinergias de que participa (as secretas ficam em ???)
 
 ### Time Ultimate
-- Draft: monte um time na hora, escolhendo 1 de 5 por vaga, e jogue 4 partidas por pacotes
 - Desafios de Montagem: troque cartas por pacotes e Picks montando times com regra
 - Duelo com o time do Time Ultimate: cada um joga com o próprio time, sem draft
+- Acima do limite de Fichas do dia, a partida não paga mais Fichas (antes: 10 por partida)
+- Carta Bronze ou Prata comprada com Fichas evolui e treina só até nota 74 (antes: sem limite; o Machop de 240 Fichas virava Machamp 95). Carta de pacote e de prêmio evolui como antes
+- Uma de cada no Clube: a loja e o Pick não oferecem Pokémon de uma linha evolutiva que você já tem, e a Evolução não vira um Pokémon que já está no Clube
+- Treino: +1 em tudo por subida (antes: +2)
+- Partida retomada no meio (recarregou a página ou saiu e voltou): dá pra assistir ou pular, sem trocar tática nem time
 
 ### Menus
 - Botão Modos no Estádio, pra trocar de modo sem voltar ao menu
