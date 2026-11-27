@@ -42,7 +42,7 @@ export const profile: typeof pt = {
         h2h: 'You two in Duels',
         h2hLine: 'You: {w} W · {d} D · {l} L',
         h2hNone: "You haven't played each other yet.",
-        notFriend: 'The full profile shows up once you are friends.',
+        noProfile: "Couldn't open the full profile right now.",
     },
     club: {
         saved: 'Saved',

@@ -4,13 +4,14 @@ import { useT } from '../../i18n/react';
 import type { Peer } from '../../net/duel-state';
 import { useGame } from '../../store/game-store';
 import { clubColorHex } from '../../store/profile';
-import { friendInfo, type PlayerInfo, peerInfo, usePlayerCard } from './PlayerCard';
+import { friendInfo, type PlayerInfo, peerInfo, strangerVitrineInfo, usePlayerCard } from './PlayerCard';
 import './friends.css';
 
 /**
  * Nome de treinador que abre o perfil dele (ranking, histórico do Duelo, lista e convites de amigo). Abre o cartão do
- * treinador (PlayerCardModal, a sheet que sobe de baixo): amigo = a vitrine com Desafiar; outro = nome e clube com
- * "Adicionar amigo" (a vitrine só amigo lê). O seu nome abre o seu Perfil. Sem código de amigo, fica só o texto.
+ * treinador (PlayerCardModal, a sheet que sobe de baixo): amigo = a vitrine com Desafiar; outro = o perfil público
+ * (a vitrine sem a foto do Google) com "Adicionar amigo", ou só nome e clube quando ele não vem. O seu nome abre o seu
+ * Perfil. Sem código de amigo, fica só o texto.
  */
 export interface TrainerRef {
     trainer: string;
@@ -38,8 +39,13 @@ export function trainerCode(who: TrainerRef, rows: FriendRow[] | null): string |
     return rows?.find((r) => r.trainer === who.trainer && r.club === who.club)?.code ?? null;
 }
 
-/** Quem não é amigo: só o nome e o clube (o que o ranking já mostra), com o botão de pedir amizade. */
-export function strangerInfo(who: TrainerRef, code: string): PlayerInfo {
+/**
+ * Quem não é amigo: o perfil público (perfil_publico, dado de fora validado campo a campo) com o botão de pedir
+ * amizade. Sem ele (sem sessão, prévia sem a migração, erro, versão antiga sem vitrine): só o nome e o clube.
+ */
+export function strangerInfo(who: TrainerRef, code: string, raw?: unknown): PlayerInfo {
+    if (raw && typeof raw === 'object' && !Array.isArray(raw))
+        return strangerVitrineInfo(who.trainer, code, raw as Record<string, unknown>);
     const base = peerInfo({
         id: '',
         name: who.trainer,
@@ -60,7 +66,12 @@ export async function openTrainer(who: TrainerRef) {
     if (!code) return;
     const row = rows?.find((r) => r.code === code);
     if (row?.status === 'amigo') usePlayerCard.getState().open(friendInfo(row, await friends().profile(code)));
-    else usePlayerCard.getState().open(strangerInfo(row ?? who, code));
+    else {
+        const raw = await friends()
+            .publicProfile(code)
+            .catch(() => null);
+        usePlayerCard.getState().open(strangerInfo(row ?? who, code, raw));
+    }
 }
 
 export function TrainerName({ who }: { who: TrainerRef }) {
