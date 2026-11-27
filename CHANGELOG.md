@@ -47,6 +47,7 @@
 - Legado do Time Ultimate no Perfil: a melhor carta e cada temporada
 - Título no VERSUS e na imagem de Compartilhar
 - Caminho do treinador nas Metas da Sede, com o prêmio de cada missão
+- Tocar no nome de outro jogador (ranking, Liga, Desafio, histórico do Duelo) abre o perfil dele, mesmo sem ser amigo; a foto do Google continua só pra amigos
 - Entrar com a conta não volta mais o avatar, o nome e o clube pro padrão quando o aparelho ainda não tinha perfil
 
 ## 0.9.53.4 · Economia do Time Ultimate (2026-11-27)
