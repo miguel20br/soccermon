@@ -5,7 +5,6 @@
 ### Cartas e pacotes
 - O Ditto sai do pacote disfarçado de outro Pokémon do mesmo metal e se transforma depois de aparecer
 - Carta Shiny, Destaque, Ícone ou Evento na recompensa da Copa ganha a mesma entrada do pacote do Mercado
-- Selo de bola vazia nos Pokémon que nunca jogaram pelo seu time: na Pokédex, no draft e na recompensa
 
 ### Time Ultimate
 - Aviso no canto da partida quando um gol seu avança o objetivo de gols ou a Evolução de quem marcou

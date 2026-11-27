@@ -18,7 +18,6 @@ export const PATCH_NOTES: PatchNotes[] = [
                 lines: [
                     'O Ditto sai do pacote disfarçado de outro Pokémon do mesmo metal e se transforma depois de aparecer',
                     'Carta Shiny, Destaque, Ícone ou Evento na recompensa da Copa ganha a mesma entrada do pacote do Mercado',
-                    'Selo de bola vazia nos Pokémon que nunca jogaram pelo seu time: na Pokédex, no draft e na recompensa',
                 ],
             },
             {
@@ -3261,7 +3260,6 @@ export const PATCH_NOTES_EN: PatchNotes[] = [
                 lines: [
                     'Ditto comes out of the pack disguised as another Pokémon of the same metal and transforms after it shows up',
                     'A Shiny, Star Player, Icon or Event card in the Cup reward gets the same entrance as the Market pack',
-                    'Empty ball seal on Pokémon that never played for your team: in the Pokédex, the draft and the reward',
                 ],
             },
             {
