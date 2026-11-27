@@ -4283,7 +4283,7 @@ export class MatchScene extends Phaser.Scene {
                         // o gol da bicuda do duelo: o GOOOOL! fica o bastante pra ler (o BICUDA! vem depois)
                         hold: sdGoal ? SD.wordMs : undefined,
                     });
-                } else this.goalBanner(color);
+                } else this.goalBanner(color, e.ownGoal ? tr('battle.ownGoal') : undefined);
                 break;
             }
             case 'move': {
