@@ -3244,7 +3244,7 @@ export const PATCH_NOTES_EN: PatchNotes[] = [
                     'New "Christmas 2026" title with an ice effect, earned in the Christmas event',
                     'Christmas Cup on Dec 24 and 25: Ice-type rivals and Snorlax as captain in the final',
                     'Christmas event in Ultimate Team from Dec 7 to Jan 5: Ice Event cards in packs and 3 objectives',
-                    "Christmas Challenge from Dec 7 to Jan 5: everyone's goals add up to one target with 8 reward steps",
+                    "Christmas Challenge from Dec 7 to Jan 5: everyone's goals add up to one target with 8 reward steps, and anyone who has played the Cup, the Route or Ultimate Team counts",
                     'On Dec 25, a guaranteed Event card as a gift in Ultimate Team',
                     'Pixel art Santa hats on 39 Pokémon in the Stadium, the Arena and the podium',
                 ],
@@ -3274,6 +3274,8 @@ export const PATCH_NOTES_EN: PatchNotes[] = [
                 lines: [
                     'Build Challenges: trade cards for packs and Picks by building teams that follow a rule',
                     'Duel with your Ultimate Team: each player brings their own team, no draft',
+                    'Pass card: +2 ⇒ +1 to all stats per level-up',
+                    'Evolution: if the next Pokémon is already in your Club, a notice explains what to do instead of a stuck Evolve button',
                 ],
             },
             {
