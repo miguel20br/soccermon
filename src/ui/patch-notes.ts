@@ -82,6 +82,19 @@ export const PATCH_NOTES: PatchNotes[] = [
         ],
     },
     {
+        version: '0.9.53.5',
+        date: '2026-11-27',
+        title: 'Conserto do Time Ultimate no iPhone',
+        sections: [
+            {
+                title: 'Consertos',
+                lines: [
+                    'Time Ultimate: quando o navegador recarrega a página sozinho (comum no iPhone), o jogo volta pro Time Ultimate em vez de cair no menu',
+                ],
+            },
+        ],
+    },
+    {
         version: '0.9.53.4',
         date: '2026-11-27',
         title: 'Economia do Time Ultimate',
@@ -3254,6 +3267,19 @@ export const PATCH_NOTES_EN: PatchNotes[] = [
                     "Trainer path in the Club's Goals, with the reward for each mission",
                     "Tapping another player's name (ranking, League, Challenge, Duel history) opens their profile, even if you aren't friends; the Google photo stays friends-only",
                     'Signing in no longer resets your avatar, name and club to the default when the device had no profile yet',
+                ],
+            },
+        ],
+    },
+    {
+        version: '0.9.53.5',
+        date: '2026-11-27',
+        title: 'Team Ultimate iPhone fix',
+        sections: [
+            {
+                title: 'Fixes',
+                lines: [
+                    'Team Ultimate: when the browser reloads the page on its own (common on iPhone), the game goes back to Team Ultimate instead of dropping you on the menu',
                 ],
             },
         ],
