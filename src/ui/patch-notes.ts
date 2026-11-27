@@ -9,6 +9,21 @@ export interface PatchNotes {
 
 export const PATCH_NOTES: PatchNotes[] = [
     {
+        version: '0.9.53.7',
+        date: '2026-11-27',
+        title: 'Ajustes na partida do Time Ultimate e na Copa do Dia',
+        sections: [
+            {
+                title: 'Consertos',
+                lines: [
+                    'Time Ultimate: a partida retomada depois de recarregar a página continua igual e só dá pra assistir ou Pular, sem trocar tática nem escalação',
+                    'Copa do Dia: o ranking só aceita placar de até 20 gols por lado e o time escalado de verdade',
+                    'Copa do Dia: recarregar a página no meio da copa não trava mais o envio do resultado',
+                ],
+            },
+        ],
+    },
+    {
         version: '0.9.53.6',
         date: '2026-11-27',
         title: 'Ajustes na economia do Time Ultimate',
@@ -3141,6 +3156,21 @@ export const PATCH_NOTES: PatchNotes[] = [
 
 /** Notes in English (same versions; a version missing here falls back to Portuguese). */
 export const PATCH_NOTES_EN: PatchNotes[] = [
+    {
+        version: '0.9.53.7',
+        date: '2026-11-27',
+        title: 'Team Ultimate match and Daily Cup fixes',
+        sections: [
+            {
+                title: 'Fixes',
+                lines: [
+                    'Team Ultimate: a match resumed after reloading the page stays the same and can only be watched or skipped, with no tactic or lineup changes',
+                    'Daily Cup: the ranking only accepts scores of up to 20 goals per side and the team you actually fielded',
+                    'Daily Cup: reloading the page mid-cup no longer stops the result from being sent',
+                ],
+            },
+        ],
+    },
     {
         version: '0.9.53.6',
         date: '2026-11-27',

@@ -1,5 +1,12 @@
 # Novidades
 
+## 0.9.53.7 · Ajustes na partida do Time Ultimate e na Copa do Dia (2026-11-27)
+
+### Consertos
+- Time Ultimate: a partida retomada depois de recarregar a página continua igual e só dá pra assistir ou Pular, sem trocar tática nem escalação
+- Copa do Dia: o ranking só aceita placar de até 20 gols por lado e o time escalado de verdade
+- Copa do Dia: recarregar a página no meio da copa não trava mais o envio do resultado
+
 ## 0.9.53.6 · Ajustes na economia do Time Ultimate (2026-11-27)
 
 ### Time Ultimate
