@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { species } from '../../engine/data';
+import { monFromRecipe, monProblems, monRecipe } from '../../engine/duel-validate';
 import { createInstance, evolutionBonus, type PokemonInstance, viewInstance } from '../../engine/instance';
 import { Rng } from '../../engine/rng';
 import { evoPaths, evoPreview, newEvo } from './evolutions';
@@ -62,5 +63,9 @@ describe('Evolução da carta comprada, uma de cada no Clube e Treino', () => {
         expect(done.trained).toBe(TRAIN_STEPS);
         expect(done.evolved).toBeUndefined();
         expect(evolutionBonus(done)).toBe(TRAIN_STEPS);
+        // o Duelo do UT leva o Treino junto (sem isso a carta jogava com 3 a menos); fora do UT, não vale
+        expect(monFromRecipe(monRecipe(done), 'x').trained).toBe(TRAIN_STEPS);
+        expect(monProblems(monRecipe(done), '', TRAIN_STEPS)).toEqual([]);
+        expect(monProblems(monRecipe(done), '')).toEqual([': treino']);
     });
 });
