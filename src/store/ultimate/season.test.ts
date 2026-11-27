@@ -202,19 +202,20 @@ describe('passe grátis da temporada', () => {
         expect(PASS_POINTS.loss).toBeGreaterThan(0);
     });
 
-    it('marco 1 dá a carta de abertura; ela cresce +2 em tudo a cada marco de crescer; cada marco paga 1 vez', () => {
+    it('marco 1 dá a carta de abertura; ela cresce +1 em tudo a cada marco de crescer; cada marco paga 1 vez', () => {
         const u = { ...ready(), season: 1 };
         const one = payPass({ ...u, pass: { ...u.pass, pts: PASS_STEP } });
         const card = one.cards.find((c) => c.uid === passCardUid(1));
         expect(card?.speciesId).toBe(PASS_CARD);
-        expect(card?.evolved ?? 0).toBe(0);
+        expect(card?.trained ?? 0).toBe(0);
         expect(one.pass.marks).toBe(1);
         // pagar de novo sem pontos novos não muda nada
         expect(payPass(one)).toEqual(one);
         const all = payPass({ ...one, pass: { ...one.pass, pts: PASS_MARKS * PASS_STEP * 2 } });
         expect(all.pass.marks).toBe(PASS_MARKS);
         const grown = all.cards.find((c) => c.uid === passCardUid(1))!;
-        expect(grown.evolved).toBe(PASS_MARKS / 5);
+        expect(grown.trained).toBe(PASS_MARKS / 5);
+        expect(grown.evolved ?? 0).toBe(0);
         expect(viewInstance(grown).overall).toBeGreaterThan(viewInstance(card!).overall);
         // Fichas e pacotes dos marcos esperam o Resgatar; a carta entra na hora
         expect(all.fichas).toBe(one.fichas);

@@ -182,7 +182,7 @@ export interface PassReward {
     fichas: number;
     packs: number;
     big: number;
-    /** 'card' = ganha a carta de abertura; 'grow' = ela sobe (+2 em tudo, a mesma conta do Treino). */
+    /** 'card' = ganha a carta de abertura; 'grow' = ela sobe (+1 em tudo, a mesma conta do Treino). */
     card?: 'card' | 'grow';
     /** Pokémon Pick (marcos 20 e 40). */
     pick?: PickSpec;

@@ -510,6 +510,7 @@ export const ultimate = {
         ready: 'Pronto',
         full: 'Até {n} ao mesmo tempo',
         drop: 'Desistir',
+        clash: 'Você já tem {name} no Clube, então esta carta não pode evoluir. Venda ou troque {name} ou desista da Evolução.',
         cancel: 'Cancelar',
         trained: '{name} subiu no Treino: +1 em tudo',
         none: 'Nenhuma Evolução em andamento',

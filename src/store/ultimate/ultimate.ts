@@ -1500,7 +1500,7 @@ export const passCardUid = (season: number) => `utp${season}-${PASS_CARD}`;
 
 /**
  * Paga os marcos do passe que os pontos alcançaram e ainda não pagaram: Fichas e pacotes vão pros Pendentes (esperam o
- * Resgatar); a carta de abertura entra no Clube no marco 1 e sobe +2 em tudo nos marcos de crescer (a mesma conta do
+ * Resgatar); a carta de abertura entra no Clube no marco 1 e sobe +1 em tudo (`trained`) nos marcos de crescer (a mesma conta do
  * Treino), na hora.
  */
 export function payPass(u: UltimateSave): UltimateSave {
@@ -1518,7 +1518,7 @@ export function payPass(u: UltimateSave): UltimateSave {
         if (r.card === 'grow')
             out = {
                 ...out,
-                cards: out.cards.map((c) => (c.uid === uid ? { ...c, evolved: (c.evolved ?? 0) + 1 } : c)),
+                cards: out.cards.map((c) => (c.uid === uid ? { ...c, trained: (c.trained ?? 0) + 1 } : c)),
             };
     }
     return { ...out, pass: { ...out.pass, marks: Math.max(u.pass.marks, reach) } };
@@ -1588,6 +1588,12 @@ export const dropEvo = (u: UltimateSave, uid: string): UltimateSave => ({
     evos: u.evos.filter((e) => e.uid !== uid),
 });
 
+/** A espécie do próximo passo, se já está no Clube (chegou por pacote no meio da Evolução): a carta não evolui. */
+export const evoClash = (u: UltimateSave, e: UtEvo): number | null => {
+    const into = e.path[e.step];
+    return into && u.cards.some((c) => c.uid !== e.uid && c.speciesId === into) ? into : null;
+};
+
 /**
  * Dá o passo pronto da Evolução: a carta evolui (ou sobe no Treino) no mesmo lugar da coleção e do time, com a mesma
  * edição. O último passo fecha a Evolução. null = nada pronto.
@@ -1600,7 +1606,7 @@ export function evolveCard(
     const from = u.cards.find((c) => c.uid === uid);
     if (!e || !from || u.live || !evoReady(e)) return null;
     // uma de cada no Clube: a espécie do passo chegou por outro caminho (pacote) no meio da Evolução
-    if (u.cards.some((c) => c.uid !== uid && c.speciesId === e.path[e.step])) return null;
+    if (evoClash(u, e)) return null;
     const card = evoStep(from, e);
     const next: UtEvo = { ...e, step: e.step + 1, prog: { played: 0, goals: 0, mvp: 0 } };
     const end = next.step >= evoSteps(next);

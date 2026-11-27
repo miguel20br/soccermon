@@ -10,6 +10,8 @@ import {
     buyCard,
     buyPick,
     cappedFichas,
+    evoClash,
+    evolveCard,
     homeTeam,
     newUltimate,
     ordersLocked,
@@ -68,6 +70,16 @@ describe('Evolução da carta comprada, uma de cada no Clube e Treino', () => {
         // o Pick também pula as linhas do Clube quando tem outra opção
         const p: UtPick = { n: 3, min: 'bronze', exact: true, uid: 'gift-x', from: 'event', ref: '' };
         for (const c of pickOptions(u, p)) expect([4, 5, 6, 66, 67, 68]).not.toContain(c.speciesId);
+    });
+
+    it('Evolução travada pela espécie do Clube: evoClash avisa e evolveCard não anda', () => {
+        const char = mon(4, 'char');
+        let u = { ...newUltimate('dec', T), cards: [char] };
+        u = startEvo(u, 'char', [5, 6])!;
+        const ready = { ...u.evos[0], prog: { played: 99, goals: 99, mvp: 99 } };
+        u = { ...u, evos: [ready], cards: [char, mon(5, 'chameleon')] };
+        expect(evoClash(u, ready)).toBe(5);
+        expect(evolveCard(u, 'char')).toBeNull();
     });
 
     it('Treino: +1 em tudo por passo (era +2)', () => {

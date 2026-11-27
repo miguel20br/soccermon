@@ -5,8 +5,9 @@
 -- 7 chamadas davam os 100 do dia sem jogar. Agora:
 --   * no máximo 1 chamada a cada 60 s por conta (natal_marcou.ultimo_em). Antes disso: erro 'rapido_demais', e o jogo
 --     guarda os gols e tenta de novo depois de 1 min (src/cloud/desafio.ts);
---   * só soma conta que já jogou uma partida que o servidor conhece: Copa do Dia (daily_runs com partida) ou Liga
---     (league_matches). Sem isso: erro 'sem_partida', e o jogo não tenta de novo.
+--   * só soma conta que já jogou: o save na nuvem (public.saves) com partida em copa ou Rota (career.matches) ou no Time
+--     Ultimate (ultimate.played), ou Copa do Dia (daily_runs com partida) ou Liga (league_matches). A Liga fica fechada
+--     até 12/01, então só ela deixava quem joga Copa, Rota ou UT de fora. Sem isso: erro 'sem_partida', e o jogo não tenta de novo.
 
 alter table public.natal_marcou add column ultimo_em timestamptz;
 
@@ -30,7 +31,13 @@ begin
     if d < date '2026-12-07' or d > date '2027-01-05' then
         raise exception 'fora_do_prazo';
     end if;
-    if not exists (select 1 from public.daily_runs r where r.user_id = uid and jsonb_array_length(r.matches) > 0)
+    if not exists (
+            select 1 from public.saves s
+            where s.user_id = uid
+              and (coalesce((s.data #>> '{career,matches}')::numeric, 0) > 0
+                   or coalesce((s.data #>> '{ultimate,played}')::numeric, 0) > 0)
+        )
+        and not exists (select 1 from public.daily_runs r where r.user_id = uid and jsonb_array_length(r.matches) > 0)
         and not exists (select 1 from public.league_matches l where l.user_id = uid) then
         raise exception 'sem_partida';
     end if;

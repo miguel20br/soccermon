@@ -507,6 +507,7 @@ export const ultimate: typeof pt = {
         ready: 'Ready',
         full: 'Up to {n} at a time',
         drop: 'Give up',
+        clash: 'You already have {name} in your Club, so this card cannot evolve. Sell or swap {name}, or give up the Evolution.',
         cancel: 'Cancel',
         trained: '{name} leveled up in Training: +1 to everything',
         none: 'No Evolution in progress',

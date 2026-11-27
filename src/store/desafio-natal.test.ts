@@ -1,3 +1,4 @@
+import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { goalsOf, refreshDesafio, reportGoals, useDesafio } from '../cloud/desafio';
 import {
@@ -189,5 +190,15 @@ describe('Contagem dos gols de cada partida', () => {
         reportGoals(5);
         await refreshDesafio(true);
         expect(useDesafio.getState()).toMatchObject({ total: null, meus: null });
+    });
+});
+
+describe('migração do gol só de quem jogou', () => {
+    it('aceita quem jogou Copa, Rota ou Time Ultimate (save na nuvem), não só a Liga fechada', () => {
+        const sql = readFileSync('supabase/migrations/20261130130000_natal_gols_so_quem_jogou.sql', 'utf8');
+        expect(sql).toContain('public.saves');
+        expect(sql).toContain("'{career,matches}'");
+        expect(sql).toContain("'{ultimate,played}'");
+        expect(sql).toContain("interval '60 seconds'");
     });
 });

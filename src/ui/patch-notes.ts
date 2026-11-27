@@ -22,7 +22,7 @@ export const PATCH_NOTES: PatchNotes[] = [
                     'Título novo "Natal 2026", com efeito de gelo, ganho no evento de Natal',
                     'Copa de Natal em 24 e 25/12: rivais de Gelo e o Snorlax de capitão na final',
                     'Evento de Natal no Time Ultimate de 07/12 a 05/01: cartas Evento de Gelo nos pacotes e 3 objetivos',
-                    'Desafio de Natal de 07/12 a 05/01: os gols de todo mundo somam numa meta com 8 degraus de prêmios',
+                    'Desafio de Natal de 07/12 a 05/01: os gols de todo mundo somam numa meta com 8 degraus de prêmios, e conta quem já jogou Copa, Rota ou Time Ultimate',
                     'No dia 25/12, uma carta Evento garantida de presente no Time Ultimate',
                     'Gorro de Natal em pixel art em 39 Pokémon, no Estádio, na Arena e no pódio',
                 ],
@@ -52,6 +52,8 @@ export const PATCH_NOTES: PatchNotes[] = [
                 lines: [
                     'Desafios de Montagem: troque cartas por pacotes e Picks montando times com regra',
                     'Duelo com o time do Time Ultimate: cada um joga com o próprio time, sem draft',
+                    'Carta do passe: +2 ⇒ +1 em todos os atributos por subida',
+                    'Evolução: se o próximo Pokémon já estiver no Clube, um aviso explica o que fazer em vez do botão Evoluir parado',
                 ],
             },
             {

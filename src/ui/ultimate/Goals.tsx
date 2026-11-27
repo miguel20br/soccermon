@@ -23,7 +23,7 @@ import {
     type Objective,
     TRAIN_STEPS,
 } from '../../store/ultimate/rules';
-import { pendingUid } from '../../store/ultimate/ultimate';
+import { evoClash, pendingUid } from '../../store/ultimate/ultimate';
 import { FutCard } from '../components/FutCard';
 import { HudIcon } from '../components/MatchHud';
 import { MonIcon } from '../components/MonIcon';
@@ -254,6 +254,7 @@ function EvoRow({ e, card }: { e: UtEvo; card: PokemonInstance }) {
     const evolve = useGame((s) => s.ultimateEvolve);
     const drop = useGame((s) => s.ultimateDropEvo);
     const [note, setNote] = useState<string | null>(null);
+    const clash = useGame((s) => evoClash(s.ultimate, e));
     const ready = evoReady(e);
     const into = e.path[e.step];
     const go = () => {
@@ -300,10 +301,17 @@ function EvoRow({ e, card }: { e: UtEvo; card: PokemonInstance }) {
                 />
                 <Bar n={e.prog.mvp} of={EVO_STEP.mvp} label={t('ultimate.evo.mvp')} />
                 {note && <small className="ut-note">{note}</small>}
+                {ready && clash && (
+                    <small className="ut-note ut-evo-clash" role="alert">
+                        {t('ultimate.evo.clash', { name: species(clash).name })}
+                    </small>
+                )}
                 <span className="row ut-evo-actions">
-                    <button type="button" className="btn confirm" disabled={!ready || live} onClick={go}>
-                        {into ? t('ultimate.evo.evolve') : t('ultimate.evo.train')}
-                    </button>
+                    {!(ready && clash) && (
+                        <button type="button" className="btn confirm" disabled={!ready || live} onClick={go}>
+                            {into ? t('ultimate.evo.evolve') : t('ultimate.evo.train')}
+                        </button>
+                    )}
                     <button type="button" className="btn ghost small" disabled={live} onClick={() => drop(e.uid)}>
                         {t('ultimate.evo.drop')}
                     </button>
