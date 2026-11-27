@@ -33,11 +33,13 @@ import {
     EVENTS,
     EVO_ACTIVE_MAX,
     FICHAS,
+    FICHAS_OVER_CAP,
     FICHAS_PACK_PRICE,
     FIRST_PICK,
     FIRST_STEPS,
     type FirstStepId,
     FLOOR_METAL,
+    GOLD_PRICE_STEP,
     GYM_FICHAS_MULT,
     GYM_LEVEL,
     GYMS,
@@ -46,7 +48,9 @@ import {
     LEVEL_GAP,
     LEVELS,
     type Level,
+    MATCH_FICHAS_DAY_MAX,
     METAL_ODDS,
+    NOT_BUYABLE,
     type Objective,
     OPEN_FICHAS,
     type Outcome,
@@ -64,10 +68,13 @@ import {
     POINTS_TO_FICHAS,
     passReward,
     REPEAT_FICHAS,
+    RESET_PACKS,
     RIVAL_TOLERANCE,
     SHINY_ODDS,
     STARTERS,
     TEAM_SIZE,
+    UT_EPOCH,
+    UT_NO_SPECIES,
     type UtEvent,
 } from './rules';
 import { gymOk, newPass, type PassState, passGain, passMarksOf, passPrizeUid, seasonN } from './season';
@@ -237,6 +244,12 @@ export interface UltimateSave {
     picks: UtPick[];
     /** Picks escolhidos (conta no progresso da nuvem x aparelho). */
     picked: number;
+    /** Fichas de partida já pagas no dia `day` (Brasília), pro teto MATCH_FICHAS_DAY_MAX. */
+    matchFichas: { day: string; n: number };
+    /** Recomeço da economia (UT_EPOCH): o save que é de antes dele recomeça uma vez ao carregar. */
+    epoch: number;
+    /** O aviso do recomeço ainda não foi visto. */
+    resetNotice: boolean;
 }
 
 export const newUltimate = (salt = Math.floor(Math.random() * 1e9).toString(36), now = Date.now()): UltimateSave => ({
@@ -279,6 +292,9 @@ export const newUltimate = (salt = Math.floor(Math.random() * 1e9).toString(36),
     // o dia 1 termina num Pick 1 de 5, como no FC ("Seu primeiro craque")
     picks: [{ ...FIRST_PICK, uid: 'start', from: 'start', ref: '' }],
     picked: 0,
+    matchFichas: { day: '', n: 0 },
+    epoch: UT_EPOCH,
+    resetNotice: false,
 });
 
 const num = (v: unknown, max = Number.MAX_SAFE_INTEGER) =>
@@ -300,6 +316,19 @@ const teamSetupOk = (t: unknown): t is TeamSetup =>
 export function ultimateOf(raw: unknown): UltimateSave {
     if (!isObj(raw)) return newUltimate();
     const base = newUltimate(typeof raw.salt === 'string' && raw.salt ? raw.salt : undefined);
+    // recomeço da economia (27/11/2026): quem jogou antes dele volta pro começo uma vez, com os pacotes do pedido de
+    // desculpas e o aviso; a temporada e o legado (Perfil) ficam
+    if (
+        num(raw.epoch) < UT_EPOCH &&
+        (Array.isArray(raw.cards) ? raw.cards.filter(cardOk).length : 0) + num(raw.played) > 0
+    )
+        return {
+            ...newUltimate(),
+            season: num(raw.season),
+            legacy: legacyOf(raw.legacy),
+            extraPacks: RESET_PACKS,
+            resetNotice: true,
+        };
     const cards = Array.isArray(raw.cards) ? raw.cards.filter(cardOk) : [];
     const uids = new Set(cards.map((c) => c.uid));
     const t = isObj(raw.team) ? raw.team : {};
@@ -394,6 +423,12 @@ export function ultimateOf(raw: unknown): UltimateSave {
         // campo novo (09/11): sem ele (fatia da 0.9.43) nasce com o "Seu primeiro craque", como o save novo
         picks: Array.isArray(raw.picks) ? picksOf(raw.picks) : base.picks,
         picked: num(raw.picked),
+        matchFichas:
+            isObj(raw.matchFichas) && typeof raw.matchFichas.day === 'string'
+                ? { day: raw.matchFichas.day, n: num(raw.matchFichas.n) }
+                : base.matchFichas,
+        epoch: UT_EPOCH,
+        resetNotice: raw.resetNotice === true,
     };
 }
 
@@ -541,27 +576,27 @@ export function nextPackIn(u: Pick<UltimateSave, 'packs' | 'packAt'>, now: numbe
 const METALS: Metal[] = ['bronze', 'prata', 'ouro'];
 const rank = (m: Metal) => METALS.indexOf(m);
 
-/** Metal da espécie como ela sai no pacote (nível 50, sem edição). */
-const speciesMetal = (id: number): Metal =>
-    metalOf(
-        viewInstance({
-            uid: '',
-            speciesId: id,
-            level: DEFAULT_LEVEL,
-            xp: 0,
-            moves: [],
-            ability: '',
-            shiny: false,
-            nickname: null,
-            condition: 1,
-        }).overall,
-    );
+/** Nota da espécie como ela sai no pacote (nível 50, sem edição). */
+const speciesOverall = (id: number): number =>
+    viewInstance({
+        uid: '',
+        speciesId: id,
+        level: DEFAULT_LEVEL,
+        xp: 0,
+        moves: [],
+        ability: '',
+        shiny: false,
+        nickname: null,
+        condition: 1,
+    }).overall;
+/** Metal da espécie como ela sai no pacote. */
+const speciesMetal = (id: number): Metal => metalOf(speciesOverall(id));
 let pools: Record<Metal, number[]> | null = null;
 /** As espécies de cada metal (calculado uma vez). */
 export function metalPools(): Record<Metal, number[]> {
     if (!pools) {
         const p: Record<Metal, number[]> = { bronze: [], prata: [], ouro: [] };
-        for (const sp of SPECIES) p[speciesMetal(sp.id)].push(sp.id);
+        for (const sp of SPECIES) if (!UT_NO_SPECIES.includes(sp.id)) p[speciesMetal(sp.id)].push(sp.id);
         pools = p;
     }
     return pools;
@@ -875,7 +910,16 @@ export function fillTeam(team: UltimateTeam, fresh: readonly PokemonInstance[]):
 
 /** As espécies que dá pra escolher com Fichas naquele metal (a Normal que você ainda não tem). */
 export const pickable = (u: Pick<UltimateSave, 'cards'>, metal: Metal) =>
-    metalPools()[metal].filter((id) => !u.cards.some((c) => c.speciesId === id && editionOf(c) === null));
+    metalPools()[metal].filter(
+        (id) => !NOT_BUYABLE.includes(id) && !u.cards.some((c) => c.speciesId === id && editionOf(c) === null),
+    );
+
+/** Preço pra escolher a espécie: o do metal; a ouro sobe GOLD_PRICE_STEP por ponto acima de 75. */
+export function cardPrice(speciesId: number): number {
+    const overall = speciesOverall(speciesId);
+    const metal = metalOf(overall);
+    return PICK_PRICE[metal] + (metal === 'ouro' ? GOLD_PRICE_STEP * Math.max(0, overall - 75) : 0);
+}
 
 /**
  * Compra com Fichas a carta da espécie escolhida: Normal (sem Shiny, sem Ícone e sem Evento), no metal
@@ -883,11 +927,12 @@ export const pickable = (u: Pick<UltimateSave, 'cards'>, metal: Metal) =>
  */
 export function buyCard(u: UltimateSave, speciesId: number): { u: UltimateSave; card: PokemonInstance } | null {
     const metal = METALS.find((m) => metalPools()[m].includes(speciesId));
-    if (!metal || u.fichas < PICK_PRICE[metal] || !pickable(u, metal).includes(speciesId)) return null;
+    const price = cardPrice(speciesId);
+    if (!metal || u.fichas < price || !pickable(u, metal).includes(speciesId)) return null;
     const inst = createInstance(speciesId, new Rng(u.salt, `ut-buy-${u.bought}`));
     const card: PokemonInstance = { ...inst, uid: `utb${u.bought}-${speciesId}`, shiny: false };
     return {
-        u: { ...addCards(u, [card]), fichas: u.fichas - PICK_PRICE[metal], bought: u.bought + 1 },
+        u: { ...addCards(u, [card]), fichas: u.fichas - price, bought: u.bought + 1 },
         card,
     };
 }
@@ -1055,6 +1100,12 @@ export const outcomeOf = (score: readonly [number, number]): Outcome =>
 export const fichasFor = (level: Level, outcome: Outcome, gym = false) =>
     gym ? FICHAS[GYM_LEVEL][outcome] * GYM_FICHAS_MULT : FICHAS[level][outcome];
 
+/** As Fichas da partida com o teto do dia: até completar MATCH_FICHAS_DAY_MAX, depois FICHAS_OVER_CAP (ou menos). */
+export const cappedFichas = (paidToday: number, fichas: number) =>
+    paidToday + fichas <= MATCH_FICHAS_DAY_MAX
+        ? fichas
+        : Math.max(MATCH_FICHAS_DAY_MAX - paidToday, Math.min(fichas, FICHAS_OVER_CAP));
+
 /** O desafio do líder `id` pode começar com o seu time titular de agora (a regra dele). */
 export function gymReady(u: UltimateSave, id: string): boolean {
     const gym = GYMS.find((g) => g.id === id);
@@ -1079,7 +1130,10 @@ export function finishMatch(u: UltimateSave, m: UltimateMatch, now: number): Ult
     if (!u.live) return u;
     const outcome = outcomeOf(m.score);
     const gym = u.live.gym;
-    const fichas = fichasFor(u.live.level, outcome, !!gym);
+    // teto do dia (Brasília): passou dele, a partida paga FICHAS_OVER_CAP (com o Pular, era Ficha sem fim)
+    const day = dailyDay(new Date(now));
+    const paidToday = u.matchFichas.day === day ? u.matchFichas.n : 0;
+    const fichas = cappedFichas(paidToday, fichasFor(u.live.level, outcome, !!gym));
     const noGold = u.live.home.lineup.every((p) => metalOf(viewInstance(p).overall) !== 'ouro');
     const obj = countObjectives(u.objectives, { outcome, level: u.live.level, goals: m.score[0], noGold }, now);
     const players = [...(m.finalRoster ?? []), ...(m.subbedOut ?? [])];
@@ -1111,6 +1165,7 @@ export function finishMatch(u: UltimateSave, m: UltimateMatch, now: number): Ult
     const paid: UltimateSave = {
         ...u,
         fichas: u.fichas + fichas,
+        matchFichas: { day, n: paidToday + fichas },
         pending: [...u.pending, ...prizes],
         objectives: obj.g,
         evos: countEvos(u.evos, players, mvp?.uid ?? null),

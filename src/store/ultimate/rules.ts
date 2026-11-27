@@ -73,6 +73,23 @@ export const OPEN_FICHAS = 25;
  * (15 · 40 · 100), como o Pick: álbum como meta da temporada (Miguel, 10/11).
  */
 export const PICK_PRICE: Record<Metal, number> = { bronze: 240, prata: 640, ouro: 1600 };
+/** Carta ouro: o preço sobe com a nota (PICK_PRICE.ouro na 75, mais isto por ponto acima; Miguel, 27/11/2026). */
+export const GOLD_PRICE_STEP = 200;
+
+/**
+ * Economia do 1º dia (27/11/2026): com o Pular, a partida pagava Fichas sem teto e o Mewtwo saía por 1.600 em 20
+ * minutos. O Miguel decidiu ir com calma e liberar aos poucos:
+ * - sem lendários no Time Ultimate por enquanto (não saem em pacote, Pick, prêmio nem compra);
+ * - Ditto só em pacote (não dá pra escolher com Fichas);
+ * - Fichas de partida com teto por dia (Brasília); passou dele, cada partida paga FICHAS_OVER_CAP;
+ * - o Time Ultimate de quem já tinha jogado recomeçou uma vez (UT_EPOCH), com RESET_PACKS pacotes e um aviso.
+ */
+export const UT_NO_SPECIES: readonly number[] = [144, 145, 146, 150, 151];
+export const NOT_BUYABLE: readonly number[] = [132];
+export const MATCH_FICHAS_DAY_MAX = 400;
+export const FICHAS_OVER_CAP = 10;
+export const UT_EPOCH = 1;
+export const RESET_PACKS = 2;
 /** Pacote Mini extra comprado com Fichas. */
 export const FICHAS_PACK_PRICE = 150;
 /** Ponte da Copa: cada título da Copa vale 1 Pacote Mini no Time Ultimate, até isto por dia (Brasília). */
