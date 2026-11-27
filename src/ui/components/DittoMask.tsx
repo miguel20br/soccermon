@@ -34,37 +34,24 @@ export function dittoDisguise(inst: PokemonInstance): PokemonInstance {
 
 /**
  * Os olhos de cada disfarce possível no sprite da carta (`assets/cards/<id>.gif`), em caixas de pixel [x0, y0, x1, y1]
- * medidas à mão (07/12/2026). O Ditto só se disfarça destes: é aqui que os olhos dele substituem os do Pokémon. Um olho
- * só = de perfil.
+ * medidas à mão (07/12/2026). O Ditto só se disfarça destes. Ficaram só os que trocam o olho limpo (conferido no zoom):
+ * olho grande ou que cruza o contorno (Charmander, Pikachu, Clefairy, Jigglypuff, Meowth, Poliwag, Cubone, Slowpoke...) saiu. Um olho só =
+ * de perfil.
  */
 // biome-ignore format: uma espécie por linha, como medido
 export const DITTO_FACES: Record<number, [number, number, number, number][]> = {
     1: [[1, 18, 3, 22], [14, 16, 20, 23]],
-    4: [[7, 7, 8, 12], [16, 7, 19, 12]],
     6: [[9, 47, 12, 49]],
     7: [[5, 11, 6, 14], [14, 10, 17, 15]],
-    10: [[13, 9, 18, 13]],
+    10: [[13, 8, 18, 13]],
     16: [[11, 15, 14, 18]],
     19: [[11, 23, 14, 26]],
-    25: [[8, 15, 9, 17], [17, 13, 20, 16]],
-    35: [[12, 18, 16, 20], [25, 18, 30, 20]],
-    39: [[13, 24, 17, 31], [25, 22, 33, 29]],
     43: [[12, 37, 13, 38], [17, 38, 18, 39]],
     50: [[11, 9, 12, 12], [15, 9, 16, 12]],
-    52: [[10, 31, 13, 36], [20, 31, 25, 36]],
     54: [[9, 12, 14, 16], [21, 13, 26, 16]],
-    58: [[4, 23, 5, 26], [14, 22, 17, 27]],
     59: [[10, 16, 14, 19]],
-    60: [[3, 5, 7, 9], [14, 5, 19, 9]],
-    66: [[17, 10, 19, 14], [25, 10, 28, 14]],
     68: [[23, 20, 26, 23], [29, 20, 32, 23]],
-    74: [[22, 26, 25, 29], [29, 26, 32, 29]],
-    79: [[9, 35, 11, 39], [21, 36, 25, 40]],
-    81: [[11, 14, 18, 18]],
-    104: [[29, 13, 33, 18]],
     109: [[33, 12, 37, 16], [43, 12, 48, 16]],
-    113: [[21, 10, 22, 12], [26, 10, 27, 12]],
-    129: [[11, 29, 15, 34]],
     131: [[16, 15, 19, 18]],
     133: [[6, 20, 8, 23], [15, 22, 18, 26]],
     143: [[25, 21, 31, 25], [36, 21, 42, 25]],
@@ -72,55 +59,106 @@ export const DITTO_FACES: Record<number, [number, number, number, number][]> = {
 };
 
 /**
- * Os olhinhos de ponto do Ditto no sprite (em pixels do sprite; `rgba` como o `ImageData`): cada olho do Pokémon some
- * debaixo de um remendo da cor da pele em volta (a mais comum, nem contorno escuro nem brilho) e ganha um ponto no meio.
+ * Os olhinhos de ponto do Ditto no sprite (em pixels do sprite; `rgba` como o `ImageData`). Em cada caixa, os pixels do
+ * olho (os que fogem da cor da pele em volta, só por dentro do contorno) são repintados um a um com a cor do vizinho
+ * de pele mais perto, tirada do próprio sprite: sem retângulo, sem borda. No centro do olho fica o ponto preto do
+ * Ditto (1 px de sprite; 2 px nos sprites grandes).
  */
 export function dittoEyes(rgba: ArrayLike<number>, w: number, h: number, boxes: readonly number[][]) {
-    const s = Math.max(1, Math.round(w / 32));
+    const at = (x: number, y: number) => (y * w + x) * 4;
+    const inside = (x: number, y: number) => x >= 0 && y >= 0 && x < w && y < h;
+    const solid = (x: number, y: number) => inside(x, y) && rgba[at(x, y) + 3] >= 128;
+    const lum = (x: number, y: number) => {
+        const i = at(x, y);
+        return 0.3 * rgba[i] + 0.59 * rgba[i + 1] + 0.11 * rgba[i + 2];
+    };
+    const dist = (x: number, y: number, c: number[]) => {
+        const i = at(x, y);
+        return Math.abs(rgba[i] - c[0]) + Math.abs(rgba[i + 1] - c[1]) + Math.abs(rgba[i + 2] - c[2]);
+    };
+    const s = w >= 64 ? 3 : 2;
     return boxes.map(([x0, y0, x1, y1]) => {
-        const count = new Map<string, number>();
-        for (let y = y0 - 3; y <= y1 + 3; y++)
-            for (let x = x0 - 3; x <= x1 + 3; x++) {
-                if (x < 0 || y < 0 || x >= w || y >= h || (x >= x0 && x <= x1 && y >= y0 && y <= y1)) continue;
-                const i = (y * w + x) * 4;
-                const lum = 0.3 * rgba[i] + 0.59 * rgba[i + 1] + 0.11 * rgba[i + 2];
-                if (rgba[i + 3] < 128 || lum < 60 || lum > 235) continue;
-                const c = `rgb(${rgba[i]},${rgba[i + 1]},${rgba[i + 2]})`;
-                count.set(c, (count.get(c) ?? 0) + 1);
+        // a pele: a cor mais comum logo em volta da caixa (nem contorno escuro nem brilho)
+        const count = new Map<string, { n: number; c: number[] }>();
+        for (let y = y0 - 2; y <= y1 + 2; y++)
+            for (let x = x0 - 2; x <= x1 + 2; x++) {
+                if (!solid(x, y) || (x >= x0 && x <= x1 && y >= y0 && y <= y1) || lum(x, y) < 60) continue;
+                const i = at(x, y);
+                const c = [rgba[i], rgba[i + 1], rgba[i + 2]];
+                const k = c.join();
+                count.set(k, { n: (count.get(k)?.n ?? 0) + 1, c });
             }
-        const fill = [...count].sort((a, b) => b[1] - a[1])[0]?.[0] ?? null;
-        const dot = { x: Math.round((x0 + x1 + 1 - s) / 2), y: Math.round((y0 + y1 + 1 - s) / 2), s };
-        return { patch: { x: x0, y: y0, w: x1 - x0 + 1, h: y1 - y0 + 1, fill }, dot };
+        const skin = [...count.values()].sort((a, b) => b.n - a.n)[0]?.c;
+        // o olho: pixel da caixa longe da pele e cercado de pixel (o contorno de fora fica)
+        const eye = new Set<number>();
+        if (skin)
+            for (let y = y0; y <= y1; y++)
+                for (let x = x0; x <= x1; x++) {
+                    if (!solid(x, y) || dist(x, y, skin) < 60) continue;
+                    // na beira do sprite só sai o que não é contorno (o contorno escuro fica)
+                    let shut = true;
+                    for (let dy = -1; dy <= 1 && shut; dy++)
+                        for (let dx = -1; dx <= 1; dx++) if (!solid(x + dx, y + dy)) shut = false;
+                    if (shut || lum(x, y) >= 60) eye.add(y * w + x);
+                }
+        const pixels: { x: number; y: number; fill: string }[] = [];
+        let cx = 0;
+        let cy = 0;
+        for (const k of eye) {
+            const x = k % w;
+            const y = Math.floor(k / w);
+            cx += x;
+            cy += y;
+            // o vizinho de pele mais perto (fora do olho, perto da cor da pele)
+            let best: number[] | null = null;
+            for (let r = 1; r <= 4 && !best; r++)
+                for (let dy = -r; dy <= r && !best; dy++)
+                    for (let dx = -r; dx <= r && !best; dx++) {
+                        const nx = x + dx;
+                        const ny = y + dy;
+                        if (!solid(nx, ny) || eye.has(ny * w + nx) || dist(nx, ny, skin!) >= 60) continue;
+                        const i = at(nx, ny);
+                        best = [rgba[i], rgba[i + 1], rgba[i + 2]];
+                    }
+            const c = best ?? skin!;
+            pixels.push({ x, y, fill: `rgb(${c[0]},${c[1]},${c[2]})` });
+        }
+        const n = eye.size || 1;
+        const mx = eye.size ? cx / n : (x0 + x1) / 2;
+        const my = eye.size ? cy / n : (y0 + y1) / 2;
+        return { pixels, dot: { x: Math.round(mx - (s - 1) / 2), y: Math.round(my - (s - 1) / 2), s } };
     });
 }
 
-/** Põe os olhinhos por cima do sprite (`img.m-art`): um SVG irmão com a mesma caixa e o mesmo `object-fit`. */
-function eyesOver(img: HTMLImageElement, speciesId: number) {
+/**
+ * O sprite do disfarce com os olhinhos: o 1º quadro do GIF (as caixas de `DITTO_FACES` foram medidas nele) repintado
+ * pixel a pixel num canvas, como imagem parada. Por cima do GIF animado não dava: o sprite balança e o olho original
+ * aparecia do lado do remendo. A carta parada também é uma pista de que tem algo errado.
+ */
+async function dittoSprite(src: string, speciesId: number): Promise<string | null> {
     const boxes = DITTO_FACES[speciesId];
+    if (!boxes) return null;
+    const img = new Image();
+    img.src = src;
+    await img.decode();
     const w = img.naturalWidth;
     const h = img.naturalHeight;
     const ctx = document.createElement('canvas').getContext('2d', { willReadFrequently: true });
-    if (!boxes || !w || !h || !ctx) return null;
+    if (!w || !h || !ctx) return null;
     ctx.canvas.width = w;
     ctx.canvas.height = h;
     ctx.drawImage(img, 0, 0);
-    const ns = 'http://www.w3.org/2000/svg';
-    const svg = document.createElementNS(ns, 'svg');
-    svg.setAttribute('class', 'm-art ditto-eyes');
-    svg.setAttribute('viewBox', `0 0 ${w} ${h}`);
-    svg.setAttribute('shape-rendering', 'crispEdges');
-    svg.setAttribute('aria-hidden', 'true');
-    const rect = (x: number, y: number, rw: number, rh: number, fill?: string | null) => {
-        const r = document.createElementNS(ns, 'rect');
-        for (const [k, v] of Object.entries({ x, y, width: rw, height: rh })) r.setAttribute(k, String(v));
-        if (fill) r.setAttribute('fill', fill);
-        svg.append(r);
-    };
-    const eyes = dittoEyes(ctx.getImageData(0, 0, w, h).data, w, h, boxes);
-    for (const { patch } of eyes) if (patch.fill) rect(patch.x, patch.y, patch.w, patch.h, patch.fill);
-    for (const { dot } of eyes) rect(dot.x, dot.y, dot.s, dot.s);
-    img.after(svg);
-    return svg;
+    const data = ctx.getImageData(0, 0, w, h);
+    for (const { pixels, dot } of dittoEyes(data.data, w, h, boxes)) {
+        for (const p of pixels) {
+            const [r, g, b] = p.fill.match(/\d+/g)!.map(Number);
+            data.data.set([r, g, b, 255], (p.y * w + p.x) * 4);
+        }
+        for (let y = dot.y; y < dot.y + dot.s; y++)
+            for (let x = dot.x; x < dot.x + dot.s; x++) data.data.set([16, 16, 24, 255], (y * w + x) * 4);
+    }
+    ctx.putImageData(data, 0, 0);
+    return ctx.canvas.toDataURL();
 }
 
 /** O disfarce está à vista (o pacote abriu inteiro e ninguém tocou nele ainda). */
@@ -149,15 +187,16 @@ export function DittoMask({ inst, render }: { inst: PokemonInstance; render: (in
     useEffect(() => {
         const img = ref.current?.querySelector<HTMLImageElement>('.ditto-mask img.m-art');
         if (!mask || !img) return;
-        let svg: SVGSVGElement | null = null;
-        const draw = () => {
-            svg = eyesOver(img, mask.speciesId);
-        };
-        if (img.complete) draw();
-        else img.addEventListener('load', draw, { once: true });
+        const src = img.getAttribute('src') ?? '';
+        let live = true;
+        dittoSprite(src, mask.speciesId)
+            .then((url) => {
+                if (live && url) img.src = url;
+            })
+            .catch(() => undefined);
         return () => {
-            img.removeEventListener('load', draw);
-            svg?.remove();
+            live = false;
+            img.setAttribute('src', src);
         };
     }, [mask]);
     if (!mask) return render(inst);

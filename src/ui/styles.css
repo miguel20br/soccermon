@@ -7165,10 +7165,6 @@ p.muted.center a {
     transform-origin: 50% 100%;
     animation: ditto-in 0.45s 0.2s var(--ease-pop) both;
 }
-.ditto-eyes {
-    pointer-events: none;
-    fill: #101018;
-}
 @keyframes ditto-melt {
     0% {
         opacity: 1;

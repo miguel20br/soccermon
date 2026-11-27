@@ -15,7 +15,7 @@ import { isProtectedMove, teachMove } from '../../engine/tm';
 import { useT } from '../../i18n/react';
 import { type CareerSeal, type DexEntry, EMPTY_ENTRY } from '../../store/profile';
 import { CardPack, PackArt } from '../components/CardPack';
-import { DittoMask } from '../components/DittoMask';
+import { DittoMask, dittoDisguise } from '../components/DittoMask';
 import { FormationBoard } from '../components/FormationBoard';
 import { FoulCard } from '../components/FoulCard';
 import { FutCard } from '../components/FutCard';
@@ -643,8 +643,20 @@ function FoulReplay() {
     );
 }
 
-/** O pacote do Ditto disfarçado: seis Dittos, cada um com um disfarce (a semente do disfarce é o uid). */
-const DITTO_PACK = [0, 1, 2, 3, 4, 5].map((k) => ({ ...sample(132), uid: `galeria-ditto-${k}` }));
+/** O pacote do Ditto disfarçado: seis Dittos com seis disfarces diferentes (a semente do disfarce é o uid). */
+const DITTO_PACK = (() => {
+    const out: PokemonInstance[] = [];
+    const seen = new Set<number>();
+    for (let k = 0; out.length < 6 && k < 200; k++) {
+        const d = { ...sample(132), uid: `galeria-ditto-${k}` };
+        const id = dittoDisguise(d).speciesId;
+        if (!seen.has(id)) {
+            seen.add(id);
+            out.push(d);
+        }
+    }
+    return out;
+})();
 function DittoReplay() {
     const [n, setN] = useState(0);
     return (
