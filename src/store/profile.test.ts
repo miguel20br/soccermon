@@ -7,6 +7,7 @@ import {
     albumSlots,
     avatarOptions,
     CLUB_COLORS,
+    careerWithUltimate,
     colorDistance,
     DEFAULT_PROFILE,
     EDITION_BIT,
@@ -42,6 +43,44 @@ const line = (p: Partial<PlayerLine> & { speciesId: number }): PlayerLine =>
         ...p,
         stats: { goals: 0, assists: 0, ...p.stats },
     }) as PlayerLine;
+
+describe('números do Perfil com o Time Ultimate', () => {
+    const career = { matches: 20, wins: 14, losses: 6, shootoutWins: 1, goalsFor: 61, goalsAgainst: 20 };
+    const legacy = {
+        seasons: [{ season: 1, played: 12, wins: 7, marks: 5, champion: false, legend: null }],
+        ornaments: [],
+    };
+
+    it('quem só joga o UT não vê 0 partidas: soma a temporada de agora e o legado', () => {
+        const ut = { season: 2, played: 30, wins: 18, losses: 8, legacy };
+        const total = careerWithUltimate({ ...career, matches: 0, wins: 0, losses: 0 }, ut);
+        expect([total.matches, total.wins]).toEqual([42, 25]);
+    });
+
+    it('soma com as copas e deixa gols e pênaltis só das copas', () => {
+        const none = { seasons: [], ornaments: [] };
+        const total = careerWithUltimate(career, { season: 1, played: 30, wins: 18, losses: 8, legacy: none });
+        expect(total).toEqual({ ...career, matches: 50, wins: 32, losses: 14, lossesKnown: true });
+    });
+
+    it('com temporada no legado (que não guarda derrota) as derrotas ficam só das copas e marcadas como incompletas', () => {
+        const total = careerWithUltimate(career, { season: 2, played: 30, wins: 18, losses: 8, legacy });
+        expect([total.matches, total.wins, total.losses, total.lossesKnown]).toEqual([62, 39, 6, false]);
+    });
+
+    it('a prévia (temporada 0) não conta: na virada ela não vai pro legado e os números não caem', () => {
+        const none = { seasons: [], ornaments: [] };
+        const previa = careerWithUltimate(career, { season: 0, played: 9, wins: 5, losses: 4, legacy: none });
+        const virada = careerWithUltimate(career, { season: 1, played: 0, wins: 0, losses: 0, legacy: none });
+        expect(previa).toEqual(virada);
+        expect(previa.matches).toBe(career.matches);
+    });
+
+    it('temporada de agora repetida no legado não conta duas vezes', () => {
+        const total = careerWithUltimate(career, { season: 1, played: 12, wins: 7, losses: 5, legacy });
+        expect(total.matches).toBe(32);
+    });
+});
 
 describe('Pokédex', () => {
     it('visto não vira jogou; jogou exige 1 minuto pelo seu time', () => {

@@ -233,12 +233,12 @@ h3.bc-lbl {
     color: var(--muted);
 }
 .bc-tile.on {
-    border-color: var(--blue-hi);
+    border-color: var(--pick-line);
     background: #3a3f5f;
     box-shadow: var(--pick-ring);
 }
 .bc-tile.on .hud-icon {
-    color: var(--blue-hi);
+    color: var(--pick-line);
 }
 .bc-tile:active:not(:disabled) {
     transform: translateY(2px);

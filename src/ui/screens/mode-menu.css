@@ -196,9 +196,9 @@ button.mm-card,
     gap: 2px;
 }
 .mm-play b {
-    font-size: 28px;
+    --gs: 27px;
+    font-size: var(--gfs, 27px);
     line-height: 1;
-    -webkit-text-stroke: calc(1em / 14) #fff;
 }
 .mm-play small {
     font-size: 12px;
@@ -1499,7 +1499,8 @@ button.mm-card,
         min-height: 50px;
     }
     .mm-play b {
-        font-size: 22px;
+        --gs: 21px;
+        font-size: var(--gfs, 21px);
     }
     /* o texto chega mais perto do corte diagonal (a faixa do EM BREVE embaixo ainda cabe antes dele) */
     .mm-slice-txt,

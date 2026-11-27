@@ -20,7 +20,6 @@ import { RewardReveal } from './ui/components/RewardReveal';
 import { TopActions } from './ui/components/TopActions';
 import { UnlockNotice } from './ui/components/UnlockNotice';
 import { runDevDemo } from './ui/dev-demo';
-import { openPage } from './ui/doors';
 import { Duel, duelCodeFromUrl } from './ui/duel/Duel';
 import { readDuelUt } from './ui/duel/link';
 import { readHud } from './ui/hud-lab';
@@ -364,7 +363,7 @@ export default function App() {
                             {screen !== 'duel' && (
                                 <>
                                     <TopBar />
-                                    <TopActions help={() => openPage('help')} profile={false} />
+                                    <TopActions profile={false} />
                                 </>
                             )}
                         </div>

@@ -32,7 +32,7 @@ export const trophies = {
         platina: 'Platina',
         numeros: 'Números',
         colecao: 'Coleção',
-        clube: 'Clube',
+        clube: 'Uniforme',
     },
     legendAria: 'O que tem na sala',
     tut: {
@@ -82,7 +82,7 @@ export const trophies = {
         medals: 'Ver medalhas',
         numbers: 'Ver números',
         album: 'Abrir o Álbum',
-        club: 'Mudar no Perfil',
+        club: 'Mudar o uniforme',
     },
     level: { quarto: 'Quarto em Pallet', clube: 'Sala do clube', estadio: 'Sala do estádio' },
     levelLine: 'Nível {n} · {name}',

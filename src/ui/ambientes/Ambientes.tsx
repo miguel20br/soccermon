@@ -22,7 +22,6 @@ import { TopBar } from './TopBar';
 import { installTabBack } from './tab-back';
 import { clubWild, rollAll, streetWild, type Wild, wildQuota } from './wild';
 import './ambientes.css';
-import { openPage } from '../doors';
 import { playMoment, randomArt, WIPE_IN_MS } from '../kit/MomentWipe';
 import { tvCut } from '../tv';
 import { uiZoom } from '../ui-zoom';
@@ -244,7 +243,7 @@ export function Ambientes({ onModes }: { onModes?: () => void }) {
         >
             <div className="amb-top k-topbar">
                 <TopBar />
-                <TopActions help={() => openPage('help')} profile={false} />
+                <TopActions profile={false} />
             </div>
             <div
                 ref={stage}
@@ -305,9 +304,9 @@ export function Ambientes({ onModes }: { onModes?: () => void }) {
                 </div>
             </nav>
             {/* balões (fora do palco: o painel tem transform e cortaria o balão): o da Home depois da 1ª copa (o JOGAR
-                e a Ajuda) e "Agora tem a Rota Índigo" apontando a aba; só no Estádio */}
+                e a engrenagem, onde mora a Ajuda) e "Agora tem a Rota Índigo" apontando a aba; só no Estádio */}
             {tab === START && hydrated && !firstVisit && (
-                <Coach id="intro" targets={['[data-coach="quick"]', '[data-coach="help"]']} />
+                <Coach id="intro" targets={['[data-coach="quick"]', '[data-coach="settings"]']} />
             )}
             {tab === START && LONG_CUP_LIVE && (
                 <Coach id="rotaNova" targets={['#amb-tab-rota']} when={rotaNovaDue(records, coachSeen)} />

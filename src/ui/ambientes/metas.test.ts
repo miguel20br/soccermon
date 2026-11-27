@@ -1,6 +1,18 @@
 import { describe, expect, it } from 'vitest';
 import type { Mission, SaveView } from '../../store/missions';
-import { avatarMon, closestMissions, countAt, myMon, nextBelt, routeTeam, trainerLevel, trainerPath } from './metas';
+import {
+    avatarMon,
+    closestMissions,
+    countAt,
+    myMon,
+    nextBelt,
+    oakLine,
+    type PathStep,
+    pathWindow,
+    routeTeam,
+    trainerLevel,
+    trainerPath,
+} from './metas';
 
 const view = (done: string[] = []) => ({ done: new Set(done) }) as unknown as SaveView;
 const counter = (id: string, goal: number, n: number): Mission => ({ id, group: 'feitos', goal, count: () => n });
@@ -161,5 +173,52 @@ describe('myMon (o seu Pokémon nos ambientes)', () => {
     it('sem time montado, o avatar', () => {
         expect(myMon(null, pika)).toEqual({ id: 25, shiny: false });
         expect(myMon({ picks: [], captainUid: null }, { kind: 'google' })).toEqual({ id: 25 });
+    });
+});
+
+describe('pathWindow (o Caminho no tapete da Sede)', () => {
+    const steps = (n: number) => Array.from({ length: n }, (_, i) => ({ id: `s${i}` }) as PathStep);
+    const ids = (xs: PathStep[]) => xs.map((x) => x.id);
+    it('o último ganho, o próximo e o seguinte', () => {
+        expect(ids(pathWindow(steps(8), 3))).toEqual(['s2', 's3', 's4']);
+    });
+    it('sem nada ganho, o próximo primeiro; o próximo no fim da estrada não corta o passo', () => {
+        expect(ids(pathWindow(steps(8), 0))).toEqual(['s0', 's1', 's2']);
+        expect(ids(pathWindow(steps(4), 3))).toEqual(['s1', 's2', 's3']);
+    });
+    it('com tudo ganho, os 3 últimos; estrada curta, o que tiver', () => {
+        expect(ids(pathWindow(steps(5), -1))).toEqual(['s2', 's3', 's4']);
+        expect(ids(pathWindow(steps(2), 1))).toEqual(['s0', 's1']);
+    });
+});
+
+describe('oakLine (a fala do Carvalho no Lab)', () => {
+    // 30 Pokémon: 1–20 Normal, 21–25 Gelo, 26–30 Fogo/Gelo
+    const list = Array.from({ length: 30 }, (_, i) => ({
+        id: i + 1,
+        types: i < 20 ? ['normal'] : i < 25 ? ['ice'] : ['fire', 'ice'],
+    }));
+    const upTo =
+        (n: number, also: number[] = []) =>
+        (id: number) =>
+            id <= n || also.includes(id);
+    it('no começo, quanto falta (draft e rival já contam)', () => {
+        expect(oakLine(upTo(5), 0, 0, list)).toEqual({ k: 'start', n: 25 });
+    });
+    it('depois, o tipo com menos faltando; empate fica com o 1º que falta', () => {
+        // faltam 21–24 (Gelo) e 30 (Fogo/Gelo): Fogo 1, Gelo 5
+        expect(oakLine(upTo(20, [25, 26, 27, 28, 29]), 0, 0, list)).toEqual({ k: 'type', n: 1, type: 'fire' });
+        // faltam 21 e 26: Gelo 2, Fogo 1
+        expect(oakLine((id) => id !== 21 && id !== 26, 0, 0, list)).toEqual({ k: 'type', n: 1, type: 'fire' });
+        // faltam 2 Normal (19, 20) e 1 Gelo (25): o Gelo, com menos faltando
+        expect(oakLine((id) => ![19, 20, 25].includes(id), 0, 0, list)).toEqual({ k: 'type', n: 1, type: 'ice' });
+        // empate 1 a 1: o 1º que falta na ordem da Pokédex (Normal, nº 20)
+        expect(oakLine((id) => ![20, 25].includes(id), 0, 0, list)).toEqual({ k: 'type', n: 1, type: 'normal' });
+    });
+    it('Pokédex cheia: o Álbum, depois a Golpedex, depois tudo feito', () => {
+        const all = () => true;
+        expect(oakLine(all, 12, 3, list)).toEqual({ k: 'album', n: 12 });
+        expect(oakLine(all, 0, 3, list)).toEqual({ k: 'moves', n: 3 });
+        expect(oakLine(all, 0, 0, list)).toEqual({ k: 'done' });
     });
 });

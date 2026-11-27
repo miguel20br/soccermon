@@ -41,16 +41,32 @@ const setAba = (tab?: string) => {
  * Clube, Amigos e Metas são folhas por cima da tela em que a pessoa está (a Sede, a barra de cima, a Sala): o X fecha
  * a folha e ela continua onde estava. Antes o Clube e os Amigos abriam o Perfil por baixo, e o X caía nele (11/11).
  */
-export type DoorSheet = 'clube' | 'amigos' | 'metas';
+export type DoorSheet = 'amigos' | 'metas';
 export const useDoorSheet = create<{ open: DoorSheet | null }>(() => ({ open: null }));
 export const openSheet = (open: DoorSheet | null) => useDoorSheet.setState({ open });
-const PROFILE_SHEETS: readonly string[] = ['clube', 'amigos'];
+
+/**
+ * Editar cartão (revisão dos menus, item 8): a folha única do cartão (`CardEditor`, montada no App por cima de qualquer
+ * tela). Todo lugar que mexia no cartão (o escudo da Sede, a vitrine do Álbum, os destaques das Metas) abre ela na
+ * aba certa. `incoming`: a carta que o "Pôr na vitrine" do Álbum traz com a vitrine cheia (um toque na que sai troca).
+ */
+export const CARD_TABS = ['nome', 'personagem', 'titulo', 'uniforme', 'vitrine'] as const;
+export type CardTab = (typeof CARD_TABS)[number];
+export type CardIncoming = { id: string; name: string };
+export const useCardEditor = create<{ tab: CardTab | null; incoming: CardIncoming | null }>(() => ({
+    tab: null,
+    incoming: null,
+}));
+export const openCardEditor = (tab: CardTab = 'nome', incoming: CardIncoming | null = null) =>
+    useCardEditor.setState({ tab, incoming });
 
 /** Abre uma porta (numa aba, se vier); o voltar dela leva pra tela de onde ela abriu (`backTarget`). */
 export function openDoor(door: Door, tab?: string) {
     const g = useGame.getState();
     trackNav('door', tab ? `${door}.${tab}` : door, g.screen);
-    if (door === 'profile' && tab && PROFILE_SHEETS.includes(tab)) return openSheet(tab as DoorSheet);
+    // o Uniforme (escudo, cores, sigla) é uma aba do Editar cartão; os Amigos, uma folha
+    if (door === 'profile' && tab === 'clube') return openCardEditor('uniforme');
+    if (door === 'profile' && tab === 'amigos') return openSheet('amigos');
     setAba(tab);
     g.go(door);
 }

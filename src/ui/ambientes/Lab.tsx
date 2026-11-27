@@ -1,27 +1,68 @@
 import { type CSSProperties, useMemo } from 'react';
+import { SPECIES } from '../../engine/data';
+import { LINKS } from '../../engine/links';
+import { typeName } from '../../i18n';
 import { useT } from '../../i18n/react';
 import { useGame } from '../../store/game-store';
-import { albumCount, gameMoveIds, movesFound, seenCount } from '../../store/profile';
+import { albumCount, type Dex, gameMoveIds, isPlayed, movesFound, seenCount } from '../../store/profile';
+import { combosFoundOf, SECRET_TOTAL } from '../../store/secret-links';
 import { HudIcon } from '../components/MatchHud';
 import { openDoor } from '../doors';
 import { trainerSrc } from '../tema';
+import { TYPE_COLOR } from '../type-colors';
 import { ClockCtx, useSceneClock } from './clock';
-import { floorZone, Mi, ROOM, useTalkOnce } from './Room';
+import { oakLine } from './metas';
+import { floorZone, Mi, ROOM } from './Room';
 import { SceneHotspot } from './SceneHotspot';
 import { useSceneScale } from './sprite-scale';
 import { useWild, WildZone } from './WildZone';
 import type { Wild } from './wild';
 
 const DEX_TOTAL = 151;
+/** Sinergias do Registro: as de história (sempre abertas) mais as secretas descobertas. */
+const STORY_LINKS = LINKS.filter((l) => !l.secret).length;
+
+/** O quadro dos 151 (revisão dos menus, L1): 19 x 8 casas de 4 px de arte, com 1 de vão e a moldura de 2. */
+const COLS = 19;
+const CELL = 5;
+const BOARD_W = COLS * CELL + 3;
+const BOARD_H = Math.ceil(DEX_TOTAL / COLS) * CELL + 3;
+
+/**
+ * A grade da Pokédex no chão (uma mesa de luz): falta = casa escura, visto = casa clara, jogou pelo seu time = acesa na
+ * cor do tipo. Pixel art em SVG, sem texto.
+ */
+function DexBoard({ dex }: { dex: Dex }) {
+    return (
+        <svg className="lb-board rm-prop" viewBox={`0 0 ${BOARD_W} ${BOARD_H}`} shapeRendering="crispEdges" aria-hidden>
+            <rect width={BOARD_W} height={BOARD_H} fill="#2e3b3a" />
+            <rect x="1" y="1" width={BOARD_W - 2} height={BOARD_H - 2} fill="#14201f" />
+            {SPECIES.slice(0, DEX_TOTAL).map((sp, i) => {
+                const e = dex[sp.id];
+                return (
+                    <rect
+                        key={sp.id}
+                        x={2 + (i % COLS) * CELL}
+                        y={2 + Math.floor(i / COLS) * CELL}
+                        width="4"
+                        height="4"
+                        fill={isPlayed(e) ? (TYPE_COLOR[sp.types[0]] ?? '#ffcb05') : e ? '#9cbdb2' : '#26403d'}
+                    />
+                );
+            })}
+        </svg>
+    );
+}
 
 /**
  * Laboratório do Carvalho (Coleção): a parede de estantes com o mapa, a bancada com o fichário aberto e a lousa, no
  * traço do kit da Sala de troféus. A meta é a Pokédex (x/151 no alto e na fala do Carvalho); o botão principal abre a
- * Pokédex, e os objetos da cena abrem cada parte: a estante é a Pokédex, o fichário é o Álbum e a lousa é a Golpedex.
+ * Pokédex, e os objetos da cena abrem cada parte: a estante é a Pokédex, o fichário é o Álbum, a lousa é a Golpedex, o
+ * globo no chão são as Sinergias e o quadro dos 151 no chão também abre a Pokédex. O Carvalho fica em pé na sala.
  * `near`: a arte só baixa com a aba perto da tela.
  */
 export function Lab({ active, wild, near }: { active: boolean; wild: Wild[]; near: boolean }) {
-    const { t, d } = useT();
+    const { t, tn, d } = useT();
     const clock = useSceneClock(active);
     const w = useWild(clock, wild, floorZone(useSceneScale()), undefined, ROOM);
     const dex = useGame((s) => s.dex);
@@ -29,8 +70,25 @@ export function Lab({ active, wild, near }: { active: boolean; wild: Wild[]; nea
     const seen = seenCount(dex);
     const album = useMemo(() => albumCount(dex), [dex]);
     const found = useMemo(() => movesFound(moves, dex), [moves, dex]);
+    const played = useMemo(() => SPECIES.slice(0, DEX_TOTAL).filter((sp) => isPlayed(dex[sp.id])).length, [dex]);
+    const combos = useGame((s) => s.profile.combosFound);
+    const links = STORY_LINKS + combosFoundOf({ combosFound: combos }).length;
     const left = DEX_TOTAL - seen;
-    const talk = useTalkOnce('falaLab', active);
+    const moveTotal = gameMoveIds().size;
+    const line = useMemo(
+        () => oakLine((id) => !!dex[id], album.total - album.got, moveTotal - found, SPECIES.slice(0, DEX_TOTAL)),
+        [dex, album, found, moveTotal],
+    );
+    const talk =
+        line.k === 'start'
+            ? t('home.amb.labTalk', { n: line.n })
+            : line.k === 'type'
+              ? tn('home.amb.labTalkType', line.n, { type: typeName(line.type) })
+              : line.k === 'album'
+                ? tn('home.amb.labTalkAlbum', line.n)
+                : line.k === 'moves'
+                  ? tn('home.amb.labTalkMoves', line.n)
+                  : t('home.amb.labTalkDone');
 
     return (
         <ClockCtx.Provider value={clock}>
@@ -65,13 +123,48 @@ export function Lab({ active, wild, near }: { active: boolean; wild: Wild[]; nea
                                 x={129}
                                 bottom={74}
                                 label={d.profile.tabs.golpedex}
-                                sub={`${found}/${gameMoveIds().size}`}
+                                sub={`${found}/${moveTotal}`}
                                 onClick={() => openDoor('collection', 'golpedex')}
                             />
                             <Mi k="fridge" x={198} bottom={72} />
                             <Mi k="cart" x={230} bottom={74} />
                             <Mi k="palm" x={272} bottom={80} />
                             <i className="lb-balls" />
+                            {/* o chão: o globo (Sinergias), o quadro dos 151 e o Carvalho em pé do lado da bancada */}
+                            <div className="lb-floor">
+                                {/* cada peça num ponto do chão (.lb-at-*): no PC elas saem pros lados da fala e do botão */}
+                                <div className="lb-at lb-at-globe">
+                                    <SceneHotspot
+                                        k="globe"
+                                        x={0}
+                                        bottom={44}
+                                        label={d.profile.tabs.sinergias}
+                                        sub={`${links}/${STORY_LINKS + SECRET_TOTAL}`}
+                                        onClick={() => openDoor('collection', 'sinergias')}
+                                    />
+                                </div>
+                                <div className="lb-at lb-at-board">
+                                    <SceneHotspot
+                                        x={0}
+                                        bottom={BOARD_H + 2}
+                                        w={BOARD_W}
+                                        h={BOARD_H}
+                                        label={t('home.amb.labBoard')}
+                                        sub={tn('home.amb.labBoardSub', played)}
+                                        onClick={() => openDoor('collection', 'dex')}
+                                    >
+                                        <DexBoard dex={dex} />
+                                    </SceneHotspot>
+                                </div>
+                                <img
+                                    className="lb-oak rm-prop pixel"
+                                    src={trainerSrc('oak')}
+                                    alt=""
+                                    width="80"
+                                    height="80"
+                                    draggable={false}
+                                />
+                            </div>
                         </div>
                     )}
                     <div className="rm-walk" aria-hidden>
@@ -90,17 +183,15 @@ export function Lab({ active, wild, near }: { active: boolean; wild: Wild[]; nea
                         {seen}/{DEX_TOTAL}
                     </span>
                 </header>
-                {talk && (
-                    <div className="rt-talk rm-talk">
-                        <span className="rt-talk-face">
-                            <img className="pixel" src={trainerSrc('oak')} alt="" width="80" height="80" />
-                        </span>
-                        <p>
-                            <b>{d.longCup.story.rota1.who}</b>{' '}
-                            {left > 0 ? t('home.amb.labTalk', { n: left }) : t('home.amb.labTalkDone')}
-                        </p>
-                    </div>
-                )}
+                {/* a fala fica sempre e muda com o progresso (antes sumia depois da 1ª visita) */}
+                <div className="rt-talk rm-talk">
+                    <span className="rt-talk-face">
+                        <img className="pixel" src={trainerSrc('oak')} alt="" width="80" height="80" />
+                    </span>
+                    <p>
+                        <b>{d.longCup.story.rota1.who}</b> {talk}
+                    </p>
+                </div>
                 <div className="rm-actions">
                     <button
                         type="button"

@@ -358,7 +358,10 @@ export const help = {
         done: 'Entendi',
         count: '{n} de {total}',
         label: 'Dica do tutorial',
-        intro: ['Primeira vez? Comece pela Copa Relâmpago: 4 jogos, uns 10 minutos.', 'As regras ficam aqui.'],
+        intro: [
+            'Primeira vez? Comece pela Copa Relâmpago: 4 jogos, uns 10 minutos.',
+            'A Ajuda e as regras ficam nas Configurações.',
+        ],
         rota: [
             'Toque numa casa acesa e depois em Ir.',
             'A 1ª partida não dá cartão. Depois, uma derrota vale amarelo e a segunda, vermelho.',

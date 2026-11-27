@@ -321,7 +321,7 @@ describe('a tarefa cumprida aparece em tudo que se ganha', () => {
             head: 'Título novo: Original e Clone',
             task: 'Seja campeão com Mew e Mewtwo titulares na final',
         });
-        expect(noticeLines('platina1')?.head).toBe('Treinador novo desbloqueado: Prof. Carvalho Holográfico');
+        expect(noticeLines('platina1')?.head).toBe('Personagem novo desbloqueado: Prof. Carvalho Holográfico');
         expect(noticeLines('nada')).toBeNull();
     });
 

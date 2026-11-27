@@ -20,6 +20,7 @@ import {
 import { MISSIONS } from '../../store/missions';
 import { newsKey } from '../../store/news';
 import type { Profile } from '../../store/profile';
+import { HudIcon } from '../components/MatchHud';
 import { Tip } from '../components/Tip';
 import { symbolArt } from './Crest';
 import { speciesGif, titleName } from './club';
@@ -138,7 +139,11 @@ export function ShowcaseRow({ items, className = '' }: { items: ShowItem[]; clas
 }
 
 /** Aba Medalhas: a vitrine (escolher 3) e as 20 medalhas com o degrau, a barra até o próximo e os 4 números. */
-export function MedalsTab({ save }: { save: (patch: Partial<Profile>) => void }) {
+/**
+ * As medalhas e os destaques do cartão. Com `onEdit` (as Metas), só mostra: os destaques se escolhem no Editar cartão
+ * (a folha única do cartão), e a linha de cima leva pra lá.
+ */
+export function MedalsTab({ save, onEdit }: { save: (patch: Partial<Profile>) => void; onEdit?: () => void }) {
     const view = useMedalView();
     const choice = useGame((s) => s.profile.showcase);
     const { t, d } = useT();
@@ -172,62 +177,81 @@ export function MedalsTab({ save }: { save: (patch: Partial<Profile>) => void })
         );
     };
 
+    // título de seção da folha: o mesmo rótulo de "Cartas da vitrine" e das Missões, com a conta à direita
+    const medalsLbl = (
+        <h3 className="bc-lbl">
+            {t('profile.tabs.medalhas')}
+            <span className="pf-count">{t('profile.medals.summary', { n: earned, total: progress.length })}</span>
+        </h3>
+    );
     return (
         <div className="pf-medals">
-            <section className="panel pf-card md-showcase">
-                <h2>
-                    {d.profile.medals.showcase}{' '}
-                    <span className="pf-count">
-                        {shown.length}/{SHOWCASE_MAX}
-                    </span>
-                </h2>
-                <div className="md-slots">
-                    {Array.from({ length: SHOWCASE_MAX }, (_, i) => {
-                        const it = shown[i];
-                        return (
-                            // biome-ignore lint/suspicious/noArrayIndexKey: 3 vagas fixas
-                            <div key={i} className={`md-slot${it ? '' : ' empty'}`}>
-                                {it ? (
-                                    <>
-                                        <ShowBadge it={it} />
-                                        <small>{showLabel(it, d)}</small>
-                                    </>
-                                ) : (
-                                    <small>{t('profile.medals.slotEmpty')}</small>
-                                )}
-                            </div>
-                        );
-                    })}
-                </div>
-                <small className="muted">{t('profile.medals.showcaseHelp')}</small>
-                {collections.length > 0 && (
-                    <div className="md-extra">
-                        {collections.length > 0 && (
-                            <div>
-                                <b>{t('profile.medals.collections')}</b>
-                                <div className="md-picks">
-                                    {collections.map((m) =>
-                                        pickBtn(
-                                            `c:${m.id}`,
-                                            titleName(m.id),
-                                            <ShowBadge it={{ kind: 'c', id: m.id }} />,
-                                            newsKey.collection(m.id),
-                                        ),
+            {onEdit ? (
+                <>
+                    {medalsLbl}
+                    <button type="button" className="k-sheetrow md-edit" onClick={onEdit}>
+                        <HudIcon kind="medal" />
+                        <b>
+                            {d.profile.medals.showcase}{' '}
+                            <span className="pf-count">
+                                {shown.length}/{SHOWCASE_MAX}
+                            </span>
+                        </b>
+                        <span className="muted">{t('profile.edit.open')}</span>
+                        <HudIcon kind="next" />
+                    </button>
+                </>
+            ) : (
+                <section className="panel pf-card md-showcase">
+                    <h3 className="bc-lbl">
+                        {d.profile.medals.showcase}
+                        <span className="pf-count">
+                            {shown.length}/{SHOWCASE_MAX}
+                        </span>
+                    </h3>
+                    <div className="md-slots">
+                        {Array.from({ length: SHOWCASE_MAX }, (_, i) => {
+                            const it = shown[i];
+                            return (
+                                // biome-ignore lint/suspicious/noArrayIndexKey: 3 vagas fixas
+                                <div key={i} className={`md-slot${it ? '' : ' empty'}`}>
+                                    {it ? (
+                                        <>
+                                            <ShowBadge it={it} />
+                                            <small>{showLabel(it, d)}</small>
+                                        </>
+                                    ) : (
+                                        <small>{t('profile.medals.slotEmpty')}</small>
                                     )}
                                 </div>
-                            </div>
-                        )}
+                            );
+                        })}
                     </div>
-                )}
-            </section>
+                    <small className="muted">{t('profile.medals.showcaseHelp')}</small>
+                    {collections.length > 0 && (
+                        <div className="md-extra">
+                            {collections.length > 0 && (
+                                <div>
+                                    <b>{t('profile.medals.collections')}</b>
+                                    <div className="md-picks">
+                                        {collections.map((m) =>
+                                            pickBtn(
+                                                `c:${m.id}`,
+                                                titleName(m.id),
+                                                <ShowBadge it={{ kind: 'c', id: m.id }} />,
+                                                newsKey.collection(m.id),
+                                            ),
+                                        )}
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                    )}
+                </section>
+            )}
 
             <section className="panel pf-card">
-                <h2>
-                    {t('profile.tabs.medalhas')}{' '}
-                    <span className="pf-count">
-                        {t('profile.medals.summary', { n: earned, total: progress.length })}
-                    </span>
-                </h2>
+                {!onEdit && medalsLbl}
                 <ul className="md-grid">
                     {progress.map(({ medal, value, tier, next }) => {
                         const key = `m:${medal.id}`;
@@ -278,7 +302,7 @@ export function MedalsTab({ save }: { save: (patch: Partial<Profile>) => void })
                                         ))}
                                     </span>
                                 </div>
-                                {tier > 0 && (
+                                {tier > 0 && !onEdit && (
                                     <button
                                         type="button"
                                         className={`md-show${on ? ' active' : ''}`}
