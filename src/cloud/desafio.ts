@@ -119,8 +119,13 @@ async function flush() {
             }
             const uid = cloudUserId();
             const { data, error } = await sb.rpc('natal_gols_somar', { p_gols: queue[0] });
+            // o servidor aceita 1 envio por minuto por conta: espera e manda (não conta como tentativa)
+            if (error && /rapido_demais/.test(error.message)) {
+                window.setTimeout(() => void flush(), 60_000);
+                return;
+            }
             // sem rede: tenta de novo daqui a pouco. ponytail: a fila é da aba (fechou sem rede, a partida não soma)
-            if (error && !/sem_conta|fora_do_prazo/.test(error.message) && ++tries < TRIES) {
+            if (error && !/sem_conta|fora_do_prazo|sem_partida/.test(error.message) && ++tries < TRIES) {
                 window.setTimeout(() => void flush(), RETRY_MS);
                 return;
             }

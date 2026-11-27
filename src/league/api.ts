@@ -167,8 +167,14 @@ const real: LeagueServer = {
             p_team: a.team,
             p_orders: a.orders,
         });
-        // fora de ordem / já acabou: o servidor já sabe dessa partida, não adianta mandar de novo
-        return !error || ['fora_de_ordem', 'ja_acabou', 'expirou', 'sem_tentativa'].includes(codeOf(error.message));
+        // fora de ordem / já acabou: o servidor já sabe dessa partida, não adianta mandar de novo; time ou placar
+        // recusado também não (mandar igual dá o mesmo erro)
+        return (
+            !error ||
+            ['fora_de_ordem', 'ja_acabou', 'expirou', 'sem_tentativa', 'time', 'placar', 'penaltis'].includes(
+                codeOf(error.message),
+            )
+        );
     },
     async dailyRanking(day, friends) {
         const sb = friends ? await sbOrNull() : await loadCloud().catch(() => null);
