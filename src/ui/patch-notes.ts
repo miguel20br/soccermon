@@ -9,6 +9,19 @@ export interface PatchNotes {
 
 export const PATCH_NOTES: PatchNotes[] = [
     {
+        version: '0.9.53.5',
+        date: '2026-11-27',
+        title: 'Conserto do Time Ultimate no iPhone',
+        sections: [
+            {
+                title: 'Consertos',
+                lines: [
+                    'Time Ultimate: quando o navegador recarrega a página sozinho (comum no iPhone), o jogo volta pro Time Ultimate em vez de cair no menu',
+                ],
+            },
+        ],
+    },
+    {
         version: '0.9.53.4',
         date: '2026-11-27',
         title: 'Economia do Time Ultimate',
@@ -3112,6 +3125,19 @@ export const PATCH_NOTES: PatchNotes[] = [
 
 /** Notes in English (same versions; a version missing here falls back to Portuguese). */
 export const PATCH_NOTES_EN: PatchNotes[] = [
+    {
+        version: '0.9.53.5',
+        date: '2026-11-27',
+        title: 'Team Ultimate iPhone fix',
+        sections: [
+            {
+                title: 'Fixes',
+                lines: [
+                    'Team Ultimate: when the browser reloads the page on its own (common on iPhone), the game goes back to Team Ultimate instead of dropping you on the menu',
+                ],
+            },
+        ],
+    },
     {
         version: '0.9.53.4',
         date: '2026-11-27',

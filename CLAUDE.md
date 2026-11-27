@@ -143,7 +143,7 @@ Aprovadas pelo Miguel ("1a a 9a"); **cada tarefa é avaliada por si**, não é a
   rascunhos no scratchpad, nunca no repo. Código ou segredo de título nunca no repo (é público).
 - Bug achado no teste: conserte a causa no lugar por onde todos passam e deixe um teste que falharia sem o conserto.
 
-## Estado atual (27/11/2026, v0.9.53.4)
+## Estado atual (27/11/2026, v0.9.53.5)
 
 No ar: 0.9.53.4 (27/11). Motor 32 (`liga` também). Liga fechada até `LIGA_OPENS_AT`. Tela grande: `calc(N * var(--vw))` e `uiZoom()`. Histórico: [historico.md](docs/planos/historico.md); índice: `node scripts/indice.mjs`.
 ## Armadilhas (o porquê de cada uma)
