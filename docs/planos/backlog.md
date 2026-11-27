@@ -79,3 +79,9 @@ O que mexe no motor ou em visual de carta ainda passa pelos números ou pela gal
 - **19, modo jogável:** prévia feita (branch `feat-modo-jogavel`, `?lab=jogavel`), fora da 0.9.54. O Miguel viu "MUITO potencial"; pra seguir: mais dribles e chutes, partida mais curta, mais complexidade.
 - **12 e 13 do backlog (troca e ranking):** plano e código atrás de bandeira na branch `feat-troca-ranking` (`docs/planos/troca-e-ranking.md`), migração e Edge Function `ut` NÃO aplicadas. Recomendação: ligar na Temporada 2 (01/06/2027).
 - **Cartas do draft legíveis (decisão 11 de 18/11):** 3 opções na galeria (branch `feat-cartas-legiveis`); em 25/11 o Miguel preferiu manter a carta atual ("o jeito atual tá ótimo já"). Branch não entra.
+
+## Ideias de playtester aprovadas (27/11)
+
+- **Itens ativos na partida** e **copa longa com eventos**: plano em [itens-ativos.md](itens-ativos.md) (9 decisões aprovadas). 0.10.1 reforço (se os números saírem até 02/12), 0.10.2 sabotagem + carrinho + eventos, janeiro Copinha Baby.
+- **0.10.1:** Ditto disfarçado até o toque (com os olhinhos), walkout de carta de edição na recompensa da Copa, metas avançando na partida do UT, loja (Mercado) nos intervalos do Duelo melhor de 3 (10 ₽, +3 pra quem perdeu, 45 s). Selo "nunca jogou": recusado.
+- **Duelo da bicuda:** regra mantida; o goleiro de quem chutou fica de frente na parada e a 1ª vez ganha faixa explicando.
