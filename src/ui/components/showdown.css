@@ -162,3 +162,29 @@
         opacity: 0;
     }
 }
+
+/* Aviso da 1ª vez do duelo (ShowdownOverlay `firstTime`): faixa no alto da quadra, entra e sai em 250 ms. */
+.sd-first {
+    position: absolute;
+    top: 8px;
+    left: 8px;
+    right: 8px;
+    z-index: 8;
+    margin: 0 auto;
+    width: fit-content;
+    max-width: min(580px, calc(100% - 16px));
+    padding: 6px 12px;
+    background: var(--bc-paper);
+    color: var(--bc-ink);
+    border: 3px solid var(--bc-edge);
+    border-radius: 8px;
+    box-shadow: 0 3px 0 var(--bc-edge);
+    font-size: 13px;
+    text-align: center;
+    pointer-events: none;
+    animation: sd-box-in 250ms var(--ease-out) both;
+    transition: opacity 250ms var(--ease-out);
+}
+.sd-first.sd-leaving {
+    opacity: 0;
+}

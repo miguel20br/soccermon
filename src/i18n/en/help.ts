@@ -358,6 +358,7 @@ export const help: typeof pt = {
             "You face another trainer's saved team. They don't need to be online.",
         ],
         golpe: ["Bar at L1: your captain's max move is unlocked.", 'Tap as the green circle closes.'],
+        bicuda: ['Bicuda duel: their keeper stopped your N3 and sends it back.'],
         utRepetida: ["A duplicate doesn't join the Club: sell it or swap it for the one you have."],
         replayLine: {
             intro: 'The home screen: pick a mode and play.',

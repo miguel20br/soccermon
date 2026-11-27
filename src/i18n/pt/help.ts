@@ -381,6 +381,7 @@ export const help = {
             'Você enfrenta o time salvo de outro treinador. Ele não precisa estar online.',
         ],
         golpe: ['Barra no N1: o golpe máximo do capitão liberou.', 'Toque quando o círculo verde fechar.'],
+        bicuda: ['Duelo da bicuda: o goleiro dele segurou o seu N3 e devolve.'],
         utRepetida: ['Repetida não entra no Clube: venda ou troque pela que você já tem.'],
         /** "Como funciona" na Ajuda: o que cada um é, numa linha (embaixo do nome). */
         replayLine: {

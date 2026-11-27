@@ -946,7 +946,7 @@ export function Match({ liga = false, ultimate = false }: { liga?: boolean; ulti
                         <MaxCueButton view={sideline} canAct={canAgency} onMax={sendMax} onWait={waitMax} />
                         <MatchHighlight teamNames={teamNames} colors={[hex(colors[0]), hex(colors[1])]} />
                         <EvolutionOverlay />
-                        <ShowdownOverlay />
+                        <ShowdownOverlay firstTime />
                         <LeaveConfirm />
                         <PlayerInspect
                             match={match}

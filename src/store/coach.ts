@@ -20,6 +20,7 @@ export const COACH_IDS = [
     'liga',
     'golpe',
     'utRepetida',
+    'bicuda',
 ] as const;
 export type CoachId = (typeof COACH_IDS)[number];
 
@@ -41,6 +42,7 @@ export const COACH_GROUPS: Record<CoachId, readonly CoachId[]> = {
     liga: ['liga'],
     golpe: ['golpe'],
     utRepetida: ['utRepetida'],
+    bicuda: ['bicuda'],
 };
 
 /** Botões da Ajuda ("Como funciona"): um por modo, na ordem. */

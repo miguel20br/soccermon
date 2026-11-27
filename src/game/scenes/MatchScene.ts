@@ -495,6 +495,8 @@ export interface MatchShowdown {
     ms: number;
     shooter: { speciesId: number; shiny: boolean; name: string; color: string };
     gk: { speciesId: number; shiny: boolean; name: string; color: string };
+    /** Quem chutou é o time da casa (o jogador): o aviso da 1ª vez. */
+    mine: boolean;
 }
 
 /** Faixa de gol/defesa que a tela React mostra no canto do time. */
@@ -815,6 +817,8 @@ export class MatchScene extends Phaser.Scene {
         cues: { at: number; run: () => void }[];
         streams: { stop: () => void; rate: (ms: number) => void }[];
         crack: { fade: (ms: number) => void } | null;
+        /** O goleiro de quem chutou, parado de pé durante o duelo. */
+        keeper?: PlayerView;
         /** O goleiro treme segurando a energia (o grito e a bicuda armada). */
         strain: boolean;
         /** O tempo já parou (o contato passou): a bola fica no pé dele. */
@@ -5347,6 +5351,7 @@ export class MatchScene extends Phaser.Scene {
             ms,
             shooter: who(shooter),
             gk: who(gk),
+            mine: shooter.team === 0,
         } satisfies MatchShowdown);
         this.stageShowdown(e, gk, shooter, ms, shotType);
     }
@@ -5569,6 +5574,13 @@ export class MatchScene extends Phaser.Scene {
             frozen: false,
         };
         this.sdStage = st;
+        // o goleiro de quem chutou fica de pé, de frente pro campo, e não no mergulho do chute que parou (o motor só o
+        // manda pular depois da bicuda, `showdownKick` devolve); a pose dele não passa pelo corte do impacto
+        const keeper = this.players[this.keeperAt(shooter.team, e.tick)];
+        if (keeper && keeper !== shooter) {
+            st.keeper = keeper;
+            this.sdAct(keeper, 'Idle', keeperRows(side > 0 ? -1 : 1).field);
+        }
         const ballBox = { x: spark.x - 7, y: spark.y - 7, w: 14, h: 14 };
         const impact = () => {
             st.frozen = true;
@@ -5783,6 +5795,7 @@ export class MatchScene extends Phaser.Scene {
         const reduce = !!this.md.reduceMotion;
         const st = this.sdStage;
         this.sdStage = null;
+        if (st?.keeper) this.sdAct(st.keeper, null);
         this.cine.duelEnd();
         playMax('bicuda');
         playMax(MAX_MOVE[3]);
@@ -5915,6 +5928,7 @@ export class MatchScene extends Phaser.Scene {
         st.crack?.fade(200);
         this.sdAct(st.gk, null);
         this.sdAct(st.shooter, null);
+        if (st.keeper) this.sdAct(st.keeper, null);
         st.shooter.shift.x = 0;
         st.shooter.shift.y = 0;
         this.cine.duelEnd();

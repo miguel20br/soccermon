@@ -55,6 +55,7 @@
 - Goleiro não usa mais Metronome, Mirror Move ou Mimic pra defender: o golpe sorteado podia deixá-lo carregando, sumido ou dormindo dentro do gol
 - Gol contra com os efeitos cinematográficos desligados mostra "GOL CONTRA!" em vez de "GOL!"
 - Golpedex e Professor Carvalho dizem quantos dos golpes que faltam só chegam por MT (recompensa de ginásio)
+- Duelo da bicuda: o goleiro de quem chutou fica de pé, em posição, em vez de congelado no meio do mergulho, e a 1ª vez que acontece com você um aviso explica
 
 ## 0.9.53.7 · Ajustes na partida do Time Ultimate e na Copa do Dia (2026-11-27)
 

@@ -55,6 +55,13 @@ describe('balões do tutorial: o que já foi jogado não aparece', () => {
         }
     });
 
+    it('aviso do duelo da bicuda: aparece até marcar como visto, e fica de fora do grupo dos outros', () => {
+        expect(coachSeen([], 'bicuda')).toBe(false);
+        expect(coachSeen(['intro'], 'bicuda')).toBe(false);
+        expect(coachSeen(['bicuda'], 'bicuda')).toBe(true);
+        expect(COACH_GROUPS.bicuda).toEqual(['bicuda']);
+    });
+
     it('quem nunca jogou vê tudo', () => {
         expect(withUnlocks(save()).profile.coach).toEqual([]);
     });

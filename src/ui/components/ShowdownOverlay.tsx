@@ -4,7 +4,9 @@ import { EventBus } from '../../game/EventBus';
 import type { MatchShowdown } from '../../game/scenes/MatchScene';
 import { dict } from '../../i18n';
 import { useT } from '../../i18n/react';
+import { coachSeen } from '../../store/coach';
 import { useGame } from '../../store/game-store';
+import { markSeen } from '../coach/Coach';
 import { portraitSrc } from '../portrait';
 import { reduceMotionOn } from '../reduce-motion';
 import { FACE, lineAt, SHOWDOWN_MS, type ShowdownLine, showdownScript, typeDelays } from '../showdown-lines';
@@ -16,12 +18,13 @@ import './showdown.css';
  * da vez, com o rosto de quem fala, no relógio da quadra (`match:showdown-t`, ms desde o lance). A caixa sai `SHOWDOWN_MS.exit` antes da bicuda, ou
  * na hora se a reprodução passar dela (`match:showdown-end`).
  */
-export function ShowdownOverlay() {
+export function ShowdownOverlay({ firstTime = false }: { firstTime?: boolean }) {
     const { d } = useT();
     const [sd, setSd] = useState<MatchShowdown | null>(null);
     const [lines, setLines] = useState<ShowdownLine[]>([]);
     const [at, setAt] = useState(-1);
     const [leaving, setLeaving] = useState(false);
+    const [note, setNote] = useState(false);
     const dock = useRef<HTMLElement>(null);
 
     useEffect(() => {
@@ -36,6 +39,7 @@ export function ShowdownOverlay() {
             clearTimeout(fade);
             fade = window.setTimeout(() => {
                 setSd(null);
+                setNote(false);
                 setAt(-1);
                 setLeaving(false);
             }, SHOWDOWN_MS.fade);
@@ -49,6 +53,12 @@ export function ShowdownOverlay() {
             setAt(-1);
             setLeaving(false);
             setSd(c);
+            // 1ª vez que o duelo acontece pro jogador: um aviso (as outras, nada)
+            const g = useGame.getState();
+            if (firstTime && c.mine && !coachSeen(g.profile.coach, 'bicuda')) {
+                setNote(true);
+                markSeen(['bicuda']);
+            }
         };
         const onTime = (t: number) => {
             const c = cue;
@@ -76,7 +86,7 @@ export function ShowdownOverlay() {
             EventBus.off('match:ended', close);
             clearTimeout(fade);
         };
-    }, []);
+    }, [firstTime]);
 
     // celular deitado: a quadra passa da tela embaixo e a caixa ficava fora dela; sobe até caber (a cena enquadra acima)
     // biome-ignore lint/correctness/useExhaustiveDependencies: a caixa só existe com uma fala na tela (`at`)
@@ -98,40 +108,49 @@ export function ShowdownOverlay() {
     }, [sd, at]);
 
     const line = sd && at >= 0 ? lines[at] : null;
-    if (!sd || !line) return null;
+    if (!sd) return null;
+    const first = note && (
+        <p className={`sd-first${leaving ? ' sd-leaving' : ''}`} role="status">
+            {d.help.coach.bicuda[0]}
+        </p>
+    );
+    if (!line) return first || null;
     const last = at === lines.length - 1;
     const who = line.who === 's' ? sd.shooter : sd.gk;
     const face = last ? FACE.shout : line.who === 'g' ? FACE.g : at > 0 ? FACE.s2 : FACE.s;
     // a digitação com a pausa curta na pontuação; Reduzir movimento: a fala vem inteira (a caixa só faz o fade)
     const delays = reduceMotionOn() ? null : typeDelays(line.text);
     return (
-        <section
-            ref={dock}
-            className={`sd-dock${leaving ? ' sd-leaving' : ''}`}
-            aria-label={d.showdown.tag}
-            aria-live="polite"
-        >
-            <div
-                key={at}
-                className={`sd-box sd-box-${line.who}${last ? ' sd-box-shout' : ''}`}
-                style={{ '--tc': who.color } as CSSProperties}
+        <>
+            {first}
+            <section
+                ref={dock}
+                className={`sd-dock${leaving ? ' sd-leaving' : ''}`}
+                aria-label={d.showdown.tag}
+                aria-live="polite"
             >
-                <img className="pixel sd-face" src={portraitSrc(who.speciesId, face)} alt="" />
-                <div className="sd-talk">
-                    <b className="sd-name">{who.name}</b>
-                    <p className="sd-text">
-                        <span className="sr-only">{line.text}</span>
-                        <span aria-hidden>
-                            {[...line.text].map((c, i) => (
-                                // biome-ignore lint/suspicious/noArrayIndexKey: as letras da fala não mudam de lugar
-                                <span key={i} className="sd-ch" style={{ animationDelay: `${delays?.[i] ?? 0}ms` }}>
-                                    {c}
-                                </span>
-                            ))}
-                        </span>
-                    </p>
+                <div
+                    key={at}
+                    className={`sd-box sd-box-${line.who}${last ? ' sd-box-shout' : ''}`}
+                    style={{ '--tc': who.color } as CSSProperties}
+                >
+                    <img className="pixel sd-face" src={portraitSrc(who.speciesId, face)} alt="" />
+                    <div className="sd-talk">
+                        <b className="sd-name">{who.name}</b>
+                        <p className="sd-text">
+                            <span className="sr-only">{line.text}</span>
+                            <span aria-hidden>
+                                {[...line.text].map((c, i) => (
+                                    // biome-ignore lint/suspicious/noArrayIndexKey: as letras da fala não mudam de lugar
+                                    <span key={i} className="sd-ch" style={{ animationDelay: `${delays?.[i] ?? 0}ms` }}>
+                                        {c}
+                                    </span>
+                                ))}
+                            </span>
+                        </p>
+                    </div>
                 </div>
-            </div>
-        </section>
+            </section>
+        </>
     );
 }
