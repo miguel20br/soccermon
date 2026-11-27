@@ -145,7 +145,7 @@ Aprovadas pelo Miguel ("1a a 9a"); **cada tarefa é avaliada por si**, não é a
 
 ## Estado atual (30/11/2026, v0.10.0)
 
-No ar: 0.10.0 (30/11). UT abriu em 27/11. Motor 34 (e a `liga`). Natal: 30/11 a 06/01 (`tema.ts`, `?natal=1`). Backlog: [backlog.md](docs/planos/backlog.md). Histórico: [historico.md](docs/planos/historico.md); índice: `node scripts/indice.mjs`.
+No ar: 0.10.0 (30/11). UT abriu em 27/11. Motor 35 (e a `liga`). Natal: 30/11 a 06/01 (`tema.ts`, `?natal=1`). Backlog: [backlog.md](docs/planos/backlog.md). Histórico: [historico.md](docs/planos/historico.md); índice: `node scripts/indice.mjs`.
 ## Armadilhas (o porquê de cada uma)
 
 - **Motor sem `Math.random()`/`Date`:** quebra o Duelo, a Liga e os replays (mesma seed tem que dar a mesma partida). Use o `Rng` do estado. Resultado mudou? Suba `ENGINE_VERSION`.

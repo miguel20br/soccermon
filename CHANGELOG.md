@@ -51,6 +51,11 @@
 - Tocar no nome de outro jogador (ranking, Liga, Desafio, histórico do Duelo) abre o perfil dele, mesmo sem ser amigo; a foto do Google continua só pra amigos
 - Entrar com a conta não volta mais o avatar, o nome e o clube pro padrão quando o aparelho ainda não tinha perfil
 
+### Consertos
+- Goleiro não usa mais Metronome, Mirror Move ou Mimic pra defender: o golpe sorteado podia deixá-lo carregando, sumido ou dormindo dentro do gol
+- Gol contra com os efeitos cinematográficos desligados mostra "GOL CONTRA!" em vez de "GOL!"
+- Golpedex e Professor Carvalho dizem quantos dos golpes que faltam só chegam por MT (recompensa de ginásio)
+
 ## 0.9.53.7 · Ajustes na partida do Time Ultimate e na Copa do Dia (2026-11-27)
 
 ### Consertos

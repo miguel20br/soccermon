@@ -80,6 +80,14 @@ export const PATCH_NOTES: PatchNotes[] = [
                     'Entrar com a conta não volta mais o avatar, o nome e o clube pro padrão quando o aparelho ainda não tinha perfil',
                 ],
             },
+            {
+                title: 'Consertos',
+                lines: [
+                    'Goleiro não usa mais Metronome, Mirror Move ou Mimic pra defender: o golpe sorteado podia deixá-lo carregando, sumido ou dormindo dentro do gol',
+                    'Gol contra com os efeitos cinematográficos desligados mostra "GOL CONTRA!" em vez de "GOL!"',
+                    'Golpedex e Professor Carvalho dizem quantos dos golpes que faltam só chegam por MT (recompensa de ginásio)',
+                ],
+            },
         ],
     },
     {
@@ -3300,6 +3308,14 @@ export const PATCH_NOTES_EN: PatchNotes[] = [
                     "Trainer path in the Club's Goals, with the reward for each mission",
                     "Tapping another player's name (ranking, League, Challenge, Duel history) opens their profile, even if you aren't friends; the Google photo stays friends-only",
                     'Signing in no longer resets your avatar, name and club to the default when the device had no profile yet',
+                ],
+            },
+            {
+                title: 'Fixes',
+                lines: [
+                    'Goalkeepers no longer use Metronome, Mirror Move or Mimic to defend: the random move could leave them charging, gone or asleep in goal',
+                    'Own goals with cinematic effects off now show "OWN GOAL!" instead of "GOAL!"',
+                    'The Movedex and Professor Oak now say how many of the missing moves only come from TMs (gym rewards)',
                 ],
             },
         ],
