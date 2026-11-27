@@ -530,5 +530,9 @@ export const ultimate = {
         gift: 'Você ganhou 2 pacotes pra começar de novo. A Copa, o Perfil e a Pokédex não mudaram.',
         ok: 'Entendi',
     },
-    match: { stage: 'Time Ultimate', stageShort: 'ULTIMATE' },
+    match: {
+        stage: 'Time Ultimate',
+        stageShort: 'ULTIMATE',
+        locked: 'Partida retomada: dá pra assistir ou pular, sem trocar tática nem time.',
+    },
 };
