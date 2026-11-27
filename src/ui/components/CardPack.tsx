@@ -9,7 +9,6 @@ import { metalOf } from '../rarity';
 import { reduceMotionOn } from '../settings-sync';
 import { TYPE_COLOR } from '../type-colors';
 import { uiZoom } from '../ui-zoom';
-import { DITTO_MELT_AT, DITTO_MELT_MS } from './DittoMask';
 import { Logo } from './LogoHits';
 
 /** Pista do melhor conteúdo no pacote fechado: edição especial brilha holográfico, carta ouro (75+) tem borda dourada. */
@@ -33,7 +32,7 @@ const TIMING = {
 };
 const WALKOUT_MS = 1200;
 /** Animações da carta que contam o `--rd` (a saída, o walkout, os raios e o brilho da carta grande). */
-const REVEAL_ANIMS = ['cpack-out', 'cpack-walk', 'cpack-rays', 'opt-glow', 'ditto-melt', 'ditto-in'];
+const REVEAL_ANIMS = ['cpack-out', 'cpack-walk', 'cpack-rays', 'opt-glow'];
 /** Tom sobe carta a carta (dó, mi, sol, dó), como a contagem do Balatro. */
 export const pitchOf = (i: number) => 2 ** (([0, 4, 7, 12][i] ?? 12) / 12);
 
@@ -91,9 +90,12 @@ export function CardPack({
     useEffect(() => {
         if (sealed && autoOpen) onOpen?.();
     }, []);
+    // pulou (toque no meio do leque ou "reduzir movimento"): sem `.is-played`, o Ditto já aparece sem disfarce (DittoMask)
+    const [skipped, setSkipped] = useState(false);
     const [lastKey, setLastKey] = useState(revealKey);
     if (lastKey !== revealKey) {
         setLastKey(revealKey);
+        setSkipped(false);
         setPhase(sealed ? (phase === 'closed' ? 'closed' : 'flip') : 'opening');
     }
     const stageRef = useRef<HTMLDivElement>(null);
@@ -138,6 +140,7 @@ export function CardPack({
                 (c) => c.dataset.cry && (c.classList.contains('big') || c.classList.contains('walk')),
             );
             if (big) cryOf(big);
+            setSkipped(true);
             setPhase('done');
             return;
         }
@@ -182,8 +185,6 @@ export function CardPack({
             else sounds.push({ src: sfx(), at: when });
             timers.push(window.setTimeout(() => cryOf(el), d));
             end = Math.max(end, d + (walk ? WALKOUT_MS : tm.card));
-            // Ditto disfarçado (DittoMask): o leque só acaba depois que ele vira o Ditto
-            if (el.querySelector('.ditto-mask')) end = Math.max(end, d + DITTO_MELT_AT + DITTO_MELT_MS);
             // o atraso conta de agora, não do quadro em que a animação nasceu (pode ter sido 100 ms antes, num quadro
             // pesado, ou quando o pacote entrou na tela): a carta cai na linha junto do som dela
             for (const a of el.getAnimations({ subtree: true }))
@@ -212,14 +213,17 @@ export function CardPack({
         if (phase === 'closed') {
             onOpen?.();
             setPhase('opening');
-        } else setPhase('done');
+        } else {
+            setSkipped(true);
+            setPhase('done');
+        }
     };
     const showPack = phase === 'closed' || phase === 'opening';
 
     return (
         <div
             ref={stageRef}
-            className={`cpack-stage is-${phase}${phase === 'opening' || phase === 'flip' ? ' is-revealing' : ''}${compact ? ' cpack-compact' : ''}`}
+            className={`cpack-stage is-${phase}${phase === 'opening' || phase === 'flip' ? ' is-revealing' : ''}${phase === 'done' && !skipped ? ' is-played' : ''}${compact ? ' cpack-compact' : ''}`}
             style={{ '--o': `${tm.open}ms` } as CSSProperties}
         >
             {children}

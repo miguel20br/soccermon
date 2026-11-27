@@ -7134,9 +7134,9 @@ p.muted.center a {
 .walk-held {
     visibility: hidden;
 }
-/* Ditto disfarçado (DittoMask.tsx): o disfarce fica por cima e, 0,95 s depois de a carta sair, derrete em roxo; o
-   Ditto sobe da gosma. Fora da abertura (pulou, reduzir movimento) o disfarce some e fica o Ditto. --ditto = o roxo do
-   Épico (rarity.ts) */
+/* Ditto disfarçado (DittoMask.tsx): o disfarce fica por cima, com os olhinhos do Ditto, enquanto o pacote abre e depois
+   de pousar (`.is-played`), até o toque (`.is-melt`): derrete em roxo e o Ditto sobe da gosma. Pulou a abertura ou
+   "reduzir movimento" = sem `.is-played`, o disfarce some e fica o Ditto. --ditto = o roxo do Épico (rarity.ts) */
 .ditto-swap {
     --ditto: #a45cff;
     display: grid;
@@ -7151,13 +7151,23 @@ p.muted.center a {
     pointer-events: none;
     transform-origin: 50% 100%;
 }
-.is-revealing .ditto-mask {
+:is(.is-revealing, .is-played) .ditto-swap .ditto-mask {
     visibility: visible;
-    animation: ditto-melt 0.5s calc(var(--rd, 0ms) + 0.95s) ease-in both;
 }
-.is-revealing .ditto-real {
+/* por baixo, o Ditto de verdade recebe o toque (opacidade 0 ainda é tocável; visibility não seria) */
+:is(.is-revealing, .is-played) .ditto-swap:not(.is-melt) .ditto-real {
+    opacity: 0;
+}
+.ditto-swap.is-melt .ditto-mask {
+    animation: ditto-melt 0.5s ease-in both;
+}
+.ditto-swap.is-melt .ditto-real {
     transform-origin: 50% 100%;
-    animation: ditto-in 0.45s calc(var(--rd, 0ms) + 1.15s) var(--ease-pop) both;
+    animation: ditto-in 0.45s 0.2s var(--ease-pop) both;
+}
+.ditto-eyes {
+    pointer-events: none;
+    fill: #101018;
 }
 @keyframes ditto-melt {
     0% {

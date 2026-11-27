@@ -5,7 +5,7 @@ import { useT } from '../../i18n/react';
 import { OPEN_FICHAS } from '../../store/ultimate/rules';
 import type { PackKind, PackOpen } from '../../store/ultimate/ultimate';
 import { CardPack, isBigCard, packLookOf } from '../components/CardPack';
-import { DittoMask } from '../components/DittoMask';
+import { DITTO_REVEAL_MS, DittoMask, meltDittos } from '../components/DittoMask';
 import { FutCard } from '../components/FutCard';
 import { HudIcon } from '../components/MatchHud';
 import { MomentStage } from '../kit/MomentStage';
@@ -117,6 +117,13 @@ export function UtPackMoment({
     // rasgou: a dica de rasgar apaga na hora (o leque ainda está abrindo, o revealed vem depois)
     const [torn, setTorn] = useState(false);
     const tear = useTear();
+    // Continuar/Guardar com um Ditto ainda disfarçado: ele derrete primeiro (um 2º toque não espera)
+    const wait = useRef(0);
+    const afterDitto = (go: () => void) => {
+        clearTimeout(wait.current);
+        if (meltDittos(tear.props.ref.current)) wait.current = window.setTimeout(go, DITTO_REVEAL_MS);
+        else go();
+    };
     const acts = packActs(at, packs.length, revealed, walkHere >= 0 && walk !== 'done');
     const face = (inst: PokemonInstance, repeat: boolean) => (
         <FutCard inst={inst} ribbon={repeat ? t('ultimate.packs.repeat') : t('ultimate.packs.fresh')} />
@@ -179,21 +186,27 @@ export function UtPackMoment({
                         <button
                             type="button"
                             className="btn confirm big ut-pack-keep"
-                            onClick={() => {
-                                setAt(at + 1);
-                                setRevealed(false);
-                            }}
+                            onClick={() =>
+                                afterDitto(() => {
+                                    setAt(at + 1);
+                                    setRevealed(false);
+                                })
+                            }
                         >
                             {t('ultimate.stack.goOn')}
                         </button>
                     ) : (
                         <>
                             {open.full && <p className="ut-sum-full">{t('ultimate.stack.full')}</p>}
-                            <button type="button" className="btn confirm big ut-pack-keep" onClick={onClose}>
+                            <button
+                                type="button"
+                                className="btn confirm big ut-pack-keep"
+                                onClick={() => afterDitto(onClose)}
+                            >
                                 {t('ultimate.packs.keep')}
                             </button>
                             {repeats > 0 && (
-                                <button type="button" className="btn ghost" onClick={onPending}>
+                                <button type="button" className="btn ghost" onClick={() => afterDitto(onPending)}>
                                     {t('ultimate.stack.toPending', { n: repeats })}
                                 </button>
                             )}

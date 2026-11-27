@@ -407,9 +407,10 @@ function CurrentCards({ onExit }: { onExit: () => void }) {
                 <section className="panel" id="ditto">
                     <h2>Ditto disfarçado no pacote</h2>
                     <p className="tactic-desc">
-                        O Ditto sai do pacote como outro Pokémon do mesmo metal e, logo depois de pousar, derrete em
-                        roxo e vira o Ditto. Vale no Time Ultimate, no draft, na recompensa e no Mercado. Toque no
-                        pacote pra abrir; Repetir fecha de novo.
+                        O Ditto sai do pacote como outro Pokémon do mesmo metal, com os olhinhos de ponto do Ditto, e
+                        fica disfarçado até você tocar na carta: aí derrete em roxo e vira o Ditto. Vale no Time
+                        Ultimate, no draft, na recompensa e no Mercado. Toque no pacote pra abrir; pular a abertura
+                        mostra o Ditto direto; Repetir fecha de novo.
                     </p>
                     <DittoReplay />
                 </section>
@@ -642,8 +643,8 @@ function FoulReplay() {
     );
 }
 
-/** O pacote do Ditto disfarçado: Bulbasaur, Ditto e Squirtle (o Ditto vira outro do mesmo metal até pousar). */
-const DITTO_PACK = [sample(1), sample(132), sample(7)];
+/** O pacote do Ditto disfarçado: seis Dittos, cada um com um disfarce (a semente do disfarce é o uid). */
+const DITTO_PACK = [0, 1, 2, 3, 4, 5].map((k) => ({ ...sample(132), uid: `galeria-ditto-${k}` }));
 function DittoReplay() {
     const [n, setN] = useState(0);
     return (
