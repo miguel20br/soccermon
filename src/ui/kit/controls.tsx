@@ -81,7 +81,7 @@ export function Stepper<T>({
     );
 }
 
-/** Bloco de escolha (k-option): ícone grande e 2–3 palavras; o escolhido ganha o anel azul. */
+/** Bloco de escolha (k-option): ícone grande e 2–3 palavras; o escolhido ganha o anel dourado (--pick-ring). */
 export function OptionTile({
     icon,
     label,
