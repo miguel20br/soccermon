@@ -1533,6 +1533,12 @@ export function evolveCard(
     };
 }
 
+/**
+ * Partida do Time Ultimate retomada no meio (recarregou, ou saiu e voltou): as ordens ficam travadas, só assistir ou
+ * Pular. Recarregar e mudar a tática fazia outra partida até ganhar (auditoria A2; Miguel, 27/11/2026).
+ */
+export const ordersLocked = (live: { tick: number } | null) => !!live && live.tick > 0;
+
 /** A partida do Time Ultimate no formato de copa de 1 fase: a tela da partida é a mesma da Copa (como a da Liga). */
 export function ultimateRun(s: { ultimate: UltimateSave }): RunState | null {
     const live = s.ultimate.live;

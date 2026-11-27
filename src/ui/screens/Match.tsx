@@ -32,7 +32,7 @@ import { coachSeen, relampagoJogoDue } from '../../store/coach';
 import { liveOf, type PlaybackSpeed, playerTeam, useGame } from '../../store/game-store';
 import { isFinalStage, isLong, titleCeremony } from '../../store/long-cup';
 import { rivalColor, tagFromName } from '../../store/profile';
-import { ultimateRun } from '../../store/ultimate/ultimate';
+import { ordersLocked, ultimateRun } from '../../store/ultimate/ultimate';
 import { Coach } from '../coach/Coach';
 import { Commentator, type CommentLine } from '../commentary';
 import { BattleText } from '../components/BattleText';
@@ -154,6 +154,8 @@ export function Match({ liga = false, ultimate = false }: { liga?: boolean; ulti
     const { t, d } = useT();
     // retomando uma partida que ficou no meio: mesmo ponto e mesmas ordens
     const resume = useRef(liveOf(run)).current;
+    // Time Ultimate retomado no meio: só assistir ou Pular (sem trocar tática nem escalação)
+    const locked = ultimate && ordersLocked(resume);
     const [fontsReady, setFontsReady] = useState(false);
     const [lines, setLines] = useState<(CommentLine & { id: number })[]>([]);
     const lineId = useRef(0);
@@ -184,7 +186,7 @@ export function Match({ liga = false, ultimate = false }: { liga?: boolean; ulti
     const introDoneRef = useRef(!!resume?.tick);
     const [sceneKey, setSceneKey] = useState(0);
     const [fulltime, setFulltime] = useState(false);
-    const [tacticError, setTacticError] = useState<string | null>(null);
+    const [tacticError, setTacticError] = useState<string | null>(locked ? t('ultimate.match.locked') : null);
     /** Tick do pedido de tempo em que a quadra está parada (null = jogando). */
     const [timeoutAt, setTimeoutAt] = useState<number | null>(null);
     /** Tick do apito final, parado pra escolher a ordem dos pênaltis. */
@@ -455,6 +457,7 @@ export function Match({ liga = false, ultimate = false }: { liga?: boolean; ulti
     // nunca entraria no motor (e gastaria uma troca à toa)
     const leadMinutes = (leadTicks / (FUTSAL_5.tickRate * FUTSAL_5.halfSeconds)) * FUTSAL_5.displayHalfMinutes;
     const canChangeTactic =
+        !locked &&
         sceneReady &&
         !pending &&
         !ended &&
@@ -472,6 +475,7 @@ export function Match({ liga = false, ultimate = false }: { liga?: boolean; ulti
      */
     const htTick = match.events.find((e) => e.type === 'halftime')?.tick;
     const sendOrder = async (make: (tick: number) => MatchOrder, at?: number) => {
+        if (locked) return;
         // sempre depois da ordem anterior, para a ordem do motor bater com a da tela; no intervalo (e no pedido de
         // tempo) a partida está parada, então vale já no tick seguinte. `at`: tick fixo (ordem dos pênaltis, que
         // entra antes do apito final e não muda nada do jogo)
