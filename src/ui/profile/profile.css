@@ -1902,7 +1902,3 @@ fieldset.pf-field,
 .pf-dex-text.on {
     opacity: 1;
 }
-/* visto, mas nunca jogou pelo seu time: a bola vazia no lugar da cheia */
-.pf-never {
-    color: var(--muted);
-}

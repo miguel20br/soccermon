@@ -6,7 +6,6 @@ import { useGame } from '../../store/game-store';
 import { newsKey } from '../../store/news';
 import { type AlbumEdition, albumSlots, type DexEntry, hasSticker, isPlayed, topSeal } from '../../store/profile';
 import { HudIcon } from '../components/MatchHud';
-import { NeverPlayedMark } from '../components/NovoSeal';
 import { Tip } from '../components/Tip';
 import { TypeIcon } from '../components/TypeIcon';
 import { Stepper } from '../kit/controls';
@@ -192,7 +191,7 @@ export function DexTab({ view, onView }: { view: DexView; onView: (v: DexView) =
                                     type="button"
                                     className={`pf-cell ${st}`}
                                     onClick={() => setOpen({ id: sp.id })}
-                                    aria-label={`${t('profile.dex.cellAria', { no: dexNo(sp.id), name: known ? sp.name : t('profile.dex.notSeenLower') })}${st === 'played' ? t('profile.dex.playedForYou') : st === 'seen' ? t('profile.dex.neverPlayed') : ''}${titles ? tn('profile.dex.ribbonAria', titles) : ''}${seal ? t('profile.dex.sealAria', { name: d.profile.sheet.sealNames[seal] }) : ''}`}
+                                    aria-label={`${t('profile.dex.cellAria', { no: dexNo(sp.id), name: known ? sp.name : t('profile.dex.notSeenLower') })}${st === 'played' ? t('profile.dex.playedForYou') : ''}${titles ? tn('profile.dex.ribbonAria', titles) : ''}${seal ? t('profile.dex.sealAria', { name: d.profile.sheet.sealNames[seal] }) : ''}`}
                                 >
                                     <span className="pf-cell-no">{dexNo(sp.id)}</span>
                                     <img
@@ -213,11 +212,8 @@ export function DexTab({ view, onView }: { view: DexView; onView: (v: DexView) =
                                         >
                                             <CareerSealIcon seal={seal} className={`pf-seal seal-${seal}`} />
                                         </Tip>
-                                    ) : st === 'played' ? (
-                                        <BallMark className="pf-ball pf-cell-mark" />
                                     ) : (
-                                        // visto, mas nunca jogou pelo seu time: a bola vazia
-                                        st === 'seen' && <NeverPlayedMark className="pf-ball pf-cell-mark pf-never" />
+                                        st === 'played' && <BallMark className="pf-ball pf-cell-mark" />
                                     )}
                                     {seal && <NewBadge k={newsKey.seal(sp.id, seal)} className="corner" />}
                                     {titles > 0 && <ChampionRibbon n={titles} className="pf-ribbon pf-cell-ribbon" />}

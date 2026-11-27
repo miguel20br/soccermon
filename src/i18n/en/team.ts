@@ -283,5 +283,4 @@ export const team: typeof pt = {
     synTitle: 'Type synergy: {n} {type} on court, +{pct}% to all their stats.',
     novo: 'NEW',
     novoTitle: 'Not in your Pokédex yet',
-    neverPlayed: 'Never played for you',
 };

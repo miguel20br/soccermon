@@ -136,7 +136,6 @@ export const profile = {
         cellAria: 'Nº {no} {name}',
         notSeenLower: 'não visto',
         playedForYou: ', jogou pelo seu time',
-        neverPlayed: ', nunca jogou pelo seu time',
         emptyUnseenType: 'O tipo de quem falta fica escondido até você ver o Pokémon.',
         emptyPlayed: 'Ninguém jogou pelo seu time ainda. Comece uma copa!',
         empty: 'Nenhum Pokémon por aqui ainda.',

@@ -8398,19 +8398,3 @@ body {
 :root[data-reduce-motion="true"] .rh-respect {
     animation: none;
 }
-
-/* "Nunca jogou por você" (NovoSeal.tsx): a bola vazia e tracejada num chip discreto, ao lado do NOVO */
-.never-seal {
-    display: inline-flex;
-    align-items: center;
-    padding: 1px 5px;
-    border: 1px dashed var(--muted);
-    border-radius: 999px;
-    background: var(--panel);
-    color: var(--text);
-    line-height: 0;
-}
-.never-mark {
-    width: 12px;
-    height: 12px;
-}

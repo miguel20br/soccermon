@@ -11,14 +11,14 @@ import { useT } from '../../i18n/react';
 import { type RunState, stoneToBag, useGame } from '../../store/game-store';
 import { currentNode, isLong } from '../../store/long-cup';
 import { ROTA_VALUES, rewardRerollable, skipEvoTarget, skipTagOf } from '../../store/long-events';
-import { isNovo, isPlayed } from '../../store/profile';
+import { isNovo } from '../../store/profile';
 import { useCardModal } from '../card-modal';
 import { CardPack, isBigCard, packLookOf } from '../components/CardPack';
 import { DittoMask } from '../components/DittoMask';
 import { FormationBoard } from '../components/FormationBoard';
 import { ExpandIcon, FutCard } from '../components/FutCard';
 import { HudIcon } from '../components/MatchHud';
-import { NeverPlayedSeal, NovoSeal } from '../components/NovoSeal';
+import { NovoSeal } from '../components/NovoSeal';
 import { SponsorCard, SponsorSlots } from '../components/SponsorCard';
 import { StoneMark } from '../components/StoneMark';
 import { TmCard, TmTeachPanel } from '../components/TmTeach';
@@ -183,18 +183,11 @@ export function Reward() {
                                           : ''
                                 }`}
                             >
-                                {r.kind === 'pokemon' &&
-                                    (isNovo(dex, r.inst.speciesId) ? (
-                                        <div className="option-links">
-                                            <NovoSeal />
-                                        </div>
-                                    ) : (
-                                        !isPlayed(dex[r.inst.speciesId]) && (
-                                            <div className="option-links">
-                                                <NeverPlayedSeal />
-                                            </div>
-                                        )
-                                    ))}
+                                {r.kind === 'pokemon' && isNovo(dex, r.inst.speciesId) && (
+                                    <div className="option-links">
+                                        <NovoSeal />
+                                    </div>
+                                )}
                                 {r.kind === 'pokemon' ? (
                                     <DittoMask
                                         inst={r.inst}
