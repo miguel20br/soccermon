@@ -81,13 +81,14 @@ export const GOLD_PRICE_STEP = 200;
  * minutos. O Miguel decidiu ir com calma e liberar aos poucos:
  * - sem lendários no Time Ultimate por enquanto (não saem em pacote, Pick, prêmio nem compra);
  * - Ditto só em pacote (não dá pra escolher com Fichas);
- * - Fichas de partida com teto por dia (Brasília); passou dele, cada partida paga FICHAS_OVER_CAP;
+ * - Fichas de partida com teto por dia (Brasília); passou dele, a partida não paga Fichas (FICHAS_OVER_CAP; era 10, e
+ *   8 h de Pular rendiam ~19.900 por dia: Miguel, 27/11/2026);
  * - o Time Ultimate de quem já tinha jogado recomeçou uma vez (UT_EPOCH), com RESET_PACKS pacotes e um aviso.
  */
 export const UT_NO_SPECIES: readonly number[] = [144, 145, 146, 150, 151];
 export const NOT_BUYABLE: readonly number[] = [132];
 export const MATCH_FICHAS_DAY_MAX = 400;
-export const FICHAS_OVER_CAP = 10;
+export const FICHAS_OVER_CAP = 0;
 export const UT_EPOCH = 1;
 export const RESET_PACKS = 2;
 /** Pacote Mini extra comprado com Fichas. */
