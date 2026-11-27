@@ -837,11 +837,10 @@
     gap: 6px;
 }
 .bag-btn small {
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
+    display: block;
+    overflow: visible;
     white-space: normal;
+    overflow-wrap: anywhere;
 }
 .bag-aim {
     min-width: 0;

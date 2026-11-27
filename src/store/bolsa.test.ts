@@ -2,9 +2,10 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 
 vi.mock('idb-keyval', () => ({ get: async () => undefined, set: async () => {}, del: async () => {} }));
 
+import { BAG_ITEMS } from '../engine/bag';
 import { FUTSAL_5 } from '../engine/config';
 import { runMatch } from '../engine/runners/batch-runner';
-import { bolsaAfter, bolsaOffer, setBolsaLab, withBolsa } from './bolsa';
+import { bolsaAfter, bolsaOffer, bolsaStart, setBolsaLab, withBolsa } from './bolsa';
 import { playerTeam, useGame } from './game-store';
 
 const g = () => useGame.getState();
@@ -71,5 +72,18 @@ describe('Bolsa do técnico na campanha (?lab=itens)', () => {
         }
         expect(swapped).toBeGreaterThan(0);
         expect(swapped).toBeLessThan(40);
+    });
+
+    it('Cura Total fica fora de início, vitrine e recompensa (até as Orbs), mas o efeito segue no motor', () => {
+        expect(BAG_ITEMS).toContain('fullheal');
+        setBolsaLab(true, true);
+        expect(bolsaStart()).not.toContain('fullheal');
+        const opts = [{ kind: 'item' as const, item: 'leftovers' }];
+        for (let k = 0; k < 200; k++) {
+            const o = bolsaOffer('s', `m${k}`, k);
+            expect(o.kind === 'bolsa' && o.item).not.toBe('fullheal');
+            const r = withBolsa(opts, `s${k}`, 'm', 0)[0];
+            expect(r.kind === 'bolsa' && r.item).not.toBe('fullheal');
+        }
     });
 });

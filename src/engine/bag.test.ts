@@ -24,13 +24,16 @@ function fresh(setup = A) {
 }
 
 describe('Bolsa do técnico (itens-ativos.md, A1)', () => {
-    it('Poção: o fôlego do alvo volta a 100% e só ele', () => {
+    it('Poção forte: o alvo volta a 100% e os outros ganham +15%', () => {
         const s = fresh();
         for (const p of s.players) p.energy = 0.4;
         const target = s.players[2];
         applyAgencyOrder(s, { tick: 0, team: 0, kind: 'bag', item: 'potion', target: target.inst.uid });
         expect(target.energy).toBe(1);
-        expect(s.players.filter((p) => p !== target).every((p) => p.energy === 0.4)).toBe(true);
+        expect(
+            s.players.filter((p) => p !== target && p.team === 0).every((p) => p.energy === 0.4 + BAG.potionTeam),
+        ).toBe(true);
+        expect(s.players.filter((p) => p.team === 1).every((p) => p.energy === 0.4)).toBe(true);
         expect(bagEvents(s.events)).toMatchObject([{ team: 0, item: 'potion', target: target.idx }]);
     });
 

@@ -6,17 +6,22 @@
 export type BagItem = 'potion' | 'xattack' | 'xdefense' | 'fullheal';
 export const BAG_ITEMS: readonly BagItem[] = ['potion', 'xattack', 'xdefense', 'fullheal'];
 export const isBagItem = (x: unknown): x is BagItem => BAG_ITEMS.includes(x as BagItem);
+/**
+ * O que a Bolsa oferece (início, Baú, Mercado). Cura Total fica fora até as Orbs (0.10.2, 14/12): o efeito continua
+ * no motor e em `BAG_ITEMS`.
+ */
+export const BAG_OFFERED: readonly BagItem[] = BAG_ITEMS.filter((i) => i !== 'fullheal');
 /** Só a Poção tem alvo (1 do seu time); os outros valem pro time em quadra. */
 export const bagNeedsTarget = (item: BagItem) => item === 'potion';
 
 /**
- * Números PADRÃO do plano (1' de relógio = 9 s de motor). A coluna "forte" do plano (`scripts/balance/coach.ts` com
- * FORTE=1) dobra as durações e põe +15% de fôlego nos outros 4 na Poção.
+ * Números do plano (1' de relógio = 9 s de motor). Miguel 27/11: Poção "forte" (+15% de fôlego nos outros 4), X Attack
+ * e X Defense no padrão.
  */
 export const BAG = {
     /** Poção: o fôlego do alvo volta a isto; os outros do time ganham `potionTeam`. */
     potionEnergy: 1,
-    potionTeam: 0,
+    potionTeam: 0.15,
     /** X Attack: chute e drible; X Defense: desarme e posicionamento (goleiro: defesa). Segundos de motor (5'). */
     xTime: 45,
     xAttack: 1.3,

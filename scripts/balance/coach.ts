@@ -15,7 +15,7 @@
 // Assinaturas (fase 2, motor 13: ligadas junto com o efeito do tipo; NOTYPE=1 desliga os dois); CAPID=<id da espécie>
 // põe essa espécie de capitão do robô (na vaga natural dela, senão de pivô; com CAP=gk, no gol).
 // Bolsa (itens-ativos.md, A1): mecânicas potion, xattack, xdefense, fullheal (1 do item na Bolsa) e bolsa (os 4, 1 por
-// tempo). good = a hora sensata (`bagPick`); random = minuto sorteado. FORTE=1: a coluna "forte" do plano.
+// tempo). good = a hora sensata (`bagPick`); random = minuto sorteado. FORTE=1: a coluna "forte" do plano (X e Cura Total; a Poção forte já é o padrão do BAG).
 import { writeFileSync } from 'node:fs';
 import { AGENCY, maxCharge } from '../../src/engine/agency';
 import { BAG, type BagItem, bagLeft, isBagItem } from '../../src/engine/bag';

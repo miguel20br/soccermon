@@ -162,6 +162,8 @@ Base (nunca usa): vitória 50,0%, gols 3,50 pró / 3,53 contra por jogo.
 | Bolsa (os 4) | sensata | 1,03 | +2,3 ±2,6 | 3,73 / 3,53 | 0,38 ⇒ 0,49 | 0,39 ⇒ 0,33 | +2,5 ±3,8 |
 | Bolsa (os 4) | minuto sorteado | 2,00 | +5,0 ±3,1 | 3,98 / 3,49 | 0,36 ⇒ 0,48 | 0,33 ⇒ 0,31 | +8,5 ±4,5 |
 
+**Poção forte (decidida 27/11, n=400, `coach.ts potion`, `potionTeam` 0,15):** sensata **+5,0 ±2,3 pp** (gols 3,77 / 3,35; janela de 5': pró 0,29 ⇒ 0,41, contra 0,38 ⇒ 0,28); minuto sorteado **+11,0 ±3,1 pp** (3,97 / 3,40). Contra +2,0 / +4,5 do padrão: o +15% nos outros 4 dobra o item. As linhas acima são do padrão (Poção sem os +15%).
+
 **Rota inteira** (`BOLSA=1 SIM=200 npx vitest run scripts/balance/long-cup.sim.test.ts`, 200 Rotas pareadas; o robô
 começa com 1 Poção, pega item da Bolsa no Baú, compra no Mercado depois do Patrocínio e usa na hora sensata): título
 **24,0% ⇒ 26,5% (+2,5 ±3,9 pp)**, partidas jogadas 6,30 ⇒ 6,54, ₽ no fim 35,2 ⇒ 33,6.
@@ -208,11 +210,13 @@ pesa na Poção (os +15% de fôlego nos outros 4).
 
 # Decisões pro Miguel (recomendação primeiro)
 
+**Miguel 27/11: Poção forte, resto padrão, Cura Total em 14/12.** Poção com os outros 4 do time ganhando +15% de fôlego (`BAG.potionTeam`); X Attack e X Defense no padrão (5'). Cura Total sai da Bolsa, da recompensa, do Mercado e do `?lab=itens-todos` até as Orbs (0.10.2, 14/12): o efeito continua no motor, só fora de `BAG_OFFERED` (`src/engine/bag.ts`), com teste em `bolsa.test.ts`.
+
 **Aprovadas em 27/11/2026:** as 9, todas na recomendação ("1 a 9 apoio"). Números de efeito ainda passam pelo robô e pelo ok dele antes do motor.
 
 1. **Opção da Parte A:** 3, híbrido (campanha com Bolsa, competitivo com kit igual)? Recomendo **sim**.
 2. **Limite:** 1 item por tempo por time? Recomendo **sim** (alternativa: 2 por tempo, mais caos).
-3. **Números:** padrão (cada item vale +1 a +2 pp) ou forte (dobra a duração)? Recomendo **padrão primeiro** e o forte só se no teste você não sentir o item. Os números só entram depois do robô e do seu ok.
+3. **Números (decidido 27/11: Poção forte, resto padrão):** padrão (cada item vale +1 a +2 pp) ou forte (dobra a duração)? Recomendo **padrão primeiro** e o forte só se no teste você não sentir o item. Os números só entram depois do robô e do seu ok.
 4. **Cura de paralisia vira Cura Total** (a paralisia dura 6 s, não dá tempo de curar)? Recomendo **sim**.
 5. **Red Card:** a regra é "sem faltas" e a Rota já chama a 2ª derrota de "cartão vermelho". Fica como item com o nome em inglês do Pokémon ("Red Card", que nem Leftovers) e a regra do futsal (2' com 4)? Ou troca por algo sem cartão (ex.: "Whirlwind": manda 1 rival pro banco por 2')? Recomendo **Red Card**, só na etapa A2, e mudar o texto da Rota pra "eliminado".
 6. **Líderes usam item** (Koga Toxic Orb, Blaine Flame Orb...)? Recomendo **sim**, 1 por partida, só ginásio e Final.
