@@ -1,5 +1,13 @@
 # Novidades
 
+## 0.9.53.6 · Ajustes na economia do Time Ultimate (2026-11-27)
+
+### Time Ultimate
+- Fichas por partida depois do teto de 400 do dia: 10 ⇒ 0
+- Carta Bronze ou Prata comprada com Fichas evolui e treina só até nota 74; carta de pacote e de prêmio evolui como antes
+- Uma de cada no Clube: a loja e o Pick não oferecem espécie de uma linha evolutiva que você já tem, e a Evolução não vira espécie que já está no Clube
+- Treino: +2 ⇒ +1 em todos os atributos por passo
+
 ## 0.9.53.5 · Conserto do Time Ultimate no iPhone (2026-11-27)
 
 ### Consertos

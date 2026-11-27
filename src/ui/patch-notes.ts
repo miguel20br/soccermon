@@ -9,6 +9,22 @@ export interface PatchNotes {
 
 export const PATCH_NOTES: PatchNotes[] = [
     {
+        version: '0.9.53.6',
+        date: '2026-11-27',
+        title: 'Ajustes na economia do Time Ultimate',
+        sections: [
+            {
+                title: 'Time Ultimate',
+                lines: [
+                    'Fichas por partida depois do teto de 400 do dia: 10 ⇒ 0',
+                    'Carta Bronze ou Prata comprada com Fichas evolui e treina só até nota 74; carta de pacote e de prêmio evolui como antes',
+                    'Uma de cada no Clube: a loja e o Pick não oferecem espécie de uma linha evolutiva que você já tem, e a Evolução não vira espécie que já está no Clube',
+                    'Treino: +2 ⇒ +1 em todos os atributos por passo',
+                ],
+            },
+        ],
+    },
+    {
         version: '0.9.53.5',
         date: '2026-11-27',
         title: 'Conserto do Time Ultimate no iPhone',
@@ -3125,6 +3141,22 @@ export const PATCH_NOTES: PatchNotes[] = [
 
 /** Notes in English (same versions; a version missing here falls back to Portuguese). */
 export const PATCH_NOTES_EN: PatchNotes[] = [
+    {
+        version: '0.9.53.6',
+        date: '2026-11-27',
+        title: 'Team Ultimate economy changes',
+        sections: [
+            {
+                title: 'Team Ultimate',
+                lines: [
+                    "Coins per match after the day's 400 cap: 10 ⇒ 0",
+                    'Bronze or Silver cards bought with Coins evolve and train only up to a 74 rating; pack and reward cards evolve as before',
+                    "One of each in the Club: the shop and the Pick no longer offer a species from an evolution line you already own, and Evolution won't turn into a species already in your Club",
+                    'Training: +2 ⇒ +1 to all stats per step',
+                ],
+            },
+        ],
+    },
     {
         version: '0.9.53.5',
         date: '2026-11-27',
