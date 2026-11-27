@@ -8,7 +8,7 @@ export const profile: typeof pt = {
         album: 'Album',
         sinergias: 'Synergies',
         golpedex: 'Movedex',
-        clube: 'Club',
+        clube: 'Kit',
         dex: 'Pokédex',
         hall: 'Hall of Fame',
         numeros: 'Numbers',
@@ -42,7 +42,7 @@ export const profile: typeof pt = {
         h2h: 'You two in Duels',
         h2hLine: 'You: {w} W · {d} D · {l} L',
         h2hNone: "You haven't played each other yet.",
-        notFriend: 'The full profile shows up once you are friends.',
+        noProfile: "Couldn't open the full profile right now.",
     },
     club: {
         saved: 'Saved',
@@ -215,6 +215,7 @@ export const profile: typeof pt = {
         open: 'See your numbers',
         pctShort: 'Win %',
         record: '{w} W · {l} L in {n} matches',
+        recordWins: '{w} W in {n} matches',
         perGame: '{n} per game',
         byMode: 'Titles by mode',
         relampago: 'Lightning Cup',
@@ -229,7 +230,8 @@ export const profile: typeof pt = {
         more: 'Records',
         bestStreak: 'Titles in a row',
         score: '{a}-{b}',
-        note: 'Matches and goals count the cups (Lightning, Road and Daily).',
+        note: 'Matches and wins add up the cups and Ultimate Team. Goals, only the cups.',
+        split: 'Cups: {c} · Ultimate Team: {u}',
     },
     numbers: {
         emptyTitle: 'Your story starts with your first cup',
@@ -362,10 +364,9 @@ export const profile: typeof pt = {
         diplomaKanto: 'Kanto Diploma',
     },
     missions: {
-        summary: '{done} of {total} missions done',
         done: 'Done',
         progressAria: '{n} of {goal}',
-        rewardTrainer: 'Trainer',
+        rewardTrainer: 'Character',
         rewardTitle: 'Title',
         groups: {
             ginasios: 'Gyms',
@@ -535,7 +536,7 @@ export const profile: typeof pt = {
         swipe: 'Swipe sideways or use the arrows to turn the page.',
     },
     medals: {
-        summary: '{n} of {total}',
+        summary: '{n}/{total}',
         tiers: { nenhum: 'No medal', bronze: 'Bronze', prata: 'Silver', ouro: 'Gold', platina: 'Platinum' },
         none: 'No medal',
         next: '{tier}: {n}/{goal}',
@@ -597,7 +598,7 @@ export const profile: typeof pt = {
     },
     picker: {
         legacy: 'Team Ultimate',
-        trainer: 'Your trainer',
+        trainer: 'Character',
         trainerCount: '{n} of {total} unlocked',
         trainerHelp: 'The others come from missions: each one shows its own below.',
         legendary: 'Legendary',
@@ -624,7 +625,7 @@ export const profile: typeof pt = {
         title: 'Trainer path',
         next: 'Next',
         done: 'Earned',
-        trainer: 'Trainer',
+        trainer: 'Character',
         titleKind: 'Title',
         belt: 'Belt',
         room: 'Room',
@@ -633,8 +634,29 @@ export const profile: typeof pt = {
         allDone: 'All prizes earned.',
         prize: 'Prize',
     },
+    edit: {
+        open: 'Edit card',
+        tabsAria: 'Card parts',
+        tabs: { nome: 'Name', personagem: 'Character', titulo: 'Title', uniforme: 'Kit', vitrine: 'Showcase' },
+        cardsPick: 'Pick cards in the Album',
+    },
+    level: {
+        missions: '{n}/{goal} missions',
+        next: 'Next prize',
+        aria: 'Level {n}: see the Trainer path',
+    },
+    shortcuts: {
+        aria: 'Shortcuts',
+        trophies: 'Trophies',
+        collection: 'Collection',
+        friends: 'Friends',
+    },
+    cloud: {
+        save: 'Save to the cloud',
+        hint: 'Sign in with Google and keep your progress',
+    },
     unlocked: {
-        trainer: 'New trainer unlocked: {name}',
+        trainer: 'New character unlocked: {name}',
         title: 'New title: {name}',
     },
 };

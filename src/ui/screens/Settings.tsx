@@ -183,6 +183,13 @@ export function Settings({ open = false }: { open?: boolean }) {
             {/* a placa do título, como a Coleção (o voltar fica na barra de cima, pelo useMenuBackOf) */}
             <MenuHead title={t('settings.screen.title')} icon="settings" />
             <div className="panel set-panel">
+                {/* a conta vem primeiro (revisão dos menus, C1): salvar na nuvem é o que mais importa pra não perder o
+                    save. Sem Supabase configurado, o bloco não aparece */}
+                {cloudEnabled && (
+                    <Group title={t('settings.account.title')} show>
+                        <AccountBar />
+                    </Group>
+                )}
                 <Group title={t('settings.screen.title')}>
                     <Row title={t('settings.screen.speed')}>
                         <Segmented
@@ -388,17 +395,19 @@ export function Settings({ open = false }: { open?: boolean }) {
                             </Row>
                         </Group>
 
-                        {/* entrar com o Google, instalar, backup e apagar */}
-                        <Group title={t('settings.data.title')} show>
-                            <AccountBar />
-                        </Group>
-                        <InstallGroup />
+                        {/* backup, instalar e apagar a conta (entrar com o Google subiu pro topo) */}
                         <DataSettings />
+                        <InstallGroup />
                         <AccountSettings />
                     </div>
                 )}
             </div>
-            {/* os Créditos (e o rodapé de site: Ajuda, Feedback, Privacidade, GitHub, direitos) ficam fora do painel */}
+            {/* a Ajuda (saiu da barra de cima, revisão dos menus T1) e os Créditos ficam fora do painel */}
+            <button type="button" className="k-sheetrow set-about" onClick={() => openPage('help')}>
+                <HudIcon kind="question" />
+                <b>{d.home.tiles.help}</b>
+                <HudIcon kind="next" />
+            </button>
             <button type="button" className="k-sheetrow set-about" onClick={() => openPage('credits')}>
                 <HudIcon kind="book" />
                 <b>{d.home.tiles.credits}</b>
@@ -559,7 +568,7 @@ function DataSettings() {
     const seen = summary ? seenCount(summary.dex) : 0;
 
     return (
-        <Group title={t('settings.data.title')}>
+        <Group title={t('settings.data.title')} show>
             <Row
                 title={t('settings.data.stats')}
                 hint={

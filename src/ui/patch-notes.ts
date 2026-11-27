@@ -56,6 +56,18 @@ export const PATCH_NOTES: PatchNotes[] = [
                 ],
             },
             {
+                title: 'Menus',
+                lines: [
+                    'Botão Modos no Estádio, pra trocar de modo sem voltar ao menu',
+                    'Editar cartão: nome, personagem, título, uniforme e vitrine numa folha só',
+                    'Perfil novo, com o nível, os números do Time Ultimate junto e atalhos pra Troféus, Coleção e Amigos',
+                    'Nomes novos: Personagem (era Seu treinador), Uniforme (era Clube, na Sede) e Objetivos (eram as Metas do Time Ultimate)',
+                    'Barra de cima com Amigos, Notícias e Configurações; a Ajuda foi pras Configurações, que agora começam pela conta',
+                    'Laboratório com o quadro dos 151 e Sede com o tapete do Caminho do treinador',
+                    'As telas ganharam o mesmo estilo de título, painel e botão, e o que está escolhido ganha o anel dourado',
+                ],
+            },
+            {
                 title: 'Perfil',
                 lines: [
                     'Seletor de título novo, com prévia do efeito',
@@ -63,6 +75,7 @@ export const PATCH_NOTES: PatchNotes[] = [
                     'Legado do Time Ultimate no Perfil: a melhor carta e cada temporada',
                     'Título no VERSUS e na imagem de Compartilhar',
                     'Caminho do treinador nas Metas da Sede, com o prêmio de cada missão',
+                    'Tocar no nome de outro jogador (ranking, Liga, Desafio, histórico do Duelo) abre o perfil dele, mesmo sem ser amigo; a foto do Google continua só pra amigos',
                     'Entrar com a conta não volta mais o avatar, o nome e o clube pro padrão quando o aparelho ainda não tinha perfil',
                 ],
             },
@@ -3220,6 +3233,18 @@ export const PATCH_NOTES_EN: PatchNotes[] = [
                 ],
             },
             {
+                title: 'Menus',
+                lines: [
+                    'Modes button in the Stadium, to switch modes without going back to the menu',
+                    'Edit card: name, character, title, kit and showcase in one sheet',
+                    'New Profile, with your level, Team Ultimate numbers included and shortcuts to Trophies, Collection and Friends',
+                    'New names: Character (was Your trainer), Kit (was Club, in the HQ) and Objectives (were the Team Ultimate Goals)',
+                    'Top bar with Friends, News and Settings; Help moved to Settings, which now start with your account',
+                    'Lab with the board of the 151 and HQ with the Trainer path rug',
+                    'Screens now share the same title, panel and button style, and whatever is selected gets the gold ring',
+                ],
+            },
+            {
                 title: 'Profile',
                 lines: [
                     'New title picker with a preview of the effect',
@@ -3227,6 +3252,7 @@ export const PATCH_NOTES_EN: PatchNotes[] = [
                     'Ultimate Team Legacy on the Profile: your best card and every season',
                     'Title on the VERSUS screen and on the Share image',
                     "Trainer path in the Club's Goals, with the reward for each mission",
+                    "Tapping another player's name (ranking, League, Challenge, Duel history) opens their profile, even if you aren't friends; the Google photo stays friends-only",
                     'Signing in no longer resets your avatar, name and club to the default when the device had no profile yet',
                 ],
             },

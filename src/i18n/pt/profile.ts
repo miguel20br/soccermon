@@ -7,7 +7,7 @@ export const profile = {
         album: 'Álbum',
         sinergias: 'Sinergias',
         golpedex: 'Golpedex',
-        clube: 'Clube',
+        clube: 'Uniforme',
         dex: 'Pokédex',
         hall: 'Hall da Fama',
         numeros: 'Números',
@@ -42,7 +42,7 @@ export const profile = {
         h2h: 'Vocês no Duelo',
         h2hLine: 'Você: {w} V · {d} E · {l} D',
         h2hNone: 'Vocês ainda não se enfrentaram.',
-        notFriend: 'O perfil completo aparece quando vocês forem amigos.',
+        noProfile: 'Não deu pra abrir o perfil completo agora.',
     },
     club: {
         saved: 'Salvo',
@@ -216,6 +216,7 @@ export const profile = {
         open: 'Ver seus números',
         pctShort: '% vitórias',
         record: '{w} V · {l} D em {n} partidas',
+        recordWins: '{w} V em {n} partidas',
         perGame: '{n} por jogo',
         byMode: 'Títulos por modo',
         relampago: 'Copa Relâmpago',
@@ -230,7 +231,8 @@ export const profile = {
         more: 'Recordes',
         bestStreak: 'Títulos seguidos',
         score: '{a}x{b}',
-        note: 'Partidas e gols contam as copas (Relâmpago, Rota e Dia).',
+        note: 'Partidas e vitórias somam as copas e o Time Ultimate. Gols, só as copas.',
+        split: 'Copas: {c} · Time Ultimate: {u}',
     },
     numbers: {
         emptyTitle: 'Sua história começa na primeira copa',
@@ -365,10 +367,9 @@ export const profile = {
         diplomaKanto: 'Diploma de Kanto',
     } as Record<string, string>,
     missions: {
-        summary: '{done} de {total} missões cumpridas',
         done: 'Cumprida',
         progressAria: '{n} de {goal}',
-        rewardTrainer: 'Treinador',
+        rewardTrainer: 'Personagem',
         rewardTitle: 'Título',
         groups: {
             ginasios: 'Ginásios',
@@ -540,7 +541,7 @@ export const profile = {
         swipe: 'Arraste pro lado ou use as setas pra virar a página.',
     },
     medals: {
-        summary: '{n} de {total}',
+        summary: '{n}/{total}',
         tiers: { nenhum: 'Sem medalha', bronze: 'Bronze', prata: 'Prata', ouro: 'Ouro', platina: 'Platina' },
         none: 'Sem medalha',
         next: '{tier}: {n}/{goal}',
@@ -602,7 +603,7 @@ export const profile = {
     },
     picker: {
         legacy: 'Time Ultimate',
-        trainer: 'Seu treinador',
+        trainer: 'Personagem',
         trainerCount: '{n} de {total} liberados',
         trainerHelp: 'Os outros saem das missões: cada um mostra a sua logo abaixo.',
         legendary: 'Lendária',
@@ -630,7 +631,7 @@ export const profile = {
         title: 'Caminho do treinador',
         next: 'Próximo',
         done: 'Ganho',
-        trainer: 'Treinador',
+        trainer: 'Personagem',
         titleKind: 'Título',
         belt: 'Cinturão',
         room: 'Sala',
@@ -639,8 +640,30 @@ export const profile = {
         allDone: 'Todos os prêmios ganhos.',
         prize: 'Prêmio',
     },
+    /** Perfil (revisão dos menus, 26/11): o cartão editado numa folha só, o nível, os atalhos e a nuvem. */
+    edit: {
+        open: 'Editar cartão',
+        tabsAria: 'Partes do cartão',
+        tabs: { nome: 'Nome', personagem: 'Personagem', titulo: 'Título', uniforme: 'Uniforme', vitrine: 'Vitrine' },
+        cardsPick: 'Escolher cartas no Álbum',
+    },
+    level: {
+        missions: '{n}/{goal} missões',
+        next: 'Próximo prêmio',
+        aria: 'Nível {n}: ver o Caminho do treinador',
+    },
+    shortcuts: {
+        aria: 'Atalhos',
+        trophies: 'Troféus',
+        collection: 'Coleção',
+        friends: 'Amigos',
+    },
+    cloud: {
+        save: 'Salvar na nuvem',
+        hint: 'Entre com o Google e não perca o progresso',
+    },
     unlocked: {
-        trainer: 'Treinador novo desbloqueado: {name}',
+        trainer: 'Personagem novo desbloqueado: {name}',
         title: 'Título novo: {name}',
     },
 };

@@ -6,8 +6,6 @@ export const home: typeof pt = {
     atMarket: 'At the Market',
     eventWeek: '{type}-type week',
     eventEspecial: 'Outlaw Week',
-    helpAria: 'Help: how each mode works and the rules',
-    helpTitle: 'How to play',
     live: 'LIVE',
     tagline: 'Build your team from the 151 of Kanto and win the Futsal Cup.',
     confirmYes: 'Yes, start a new one',
@@ -61,7 +59,7 @@ export const home: typeof pt = {
     /** Places navigation (?lab=ambientes). */
     amb: {
         tabsAria: 'Places',
-        tabs: { lab: 'Lab', rota: 'Road', estadio: 'Stadium', arena: 'Arena', sede: 'Club' },
+        tabs: { lab: 'Lab', rota: 'Road', estadio: 'Stadium', arena: 'Arena', sede: 'HQ' },
         skip: 'Tap to skip',
         ledDaily: 'NEW DAILY CUP',
         ledNatal: 'CHRISTMAS CUP {mm}/{dd}',
@@ -84,12 +82,19 @@ export const home: typeof pt = {
         labLeft: '{n} to go',
         labFull: 'Pokédex complete',
         labTalk: '{n} to go for the Pokédex. Drafts and rivals count.',
-        labTalkDone: 'All 151 of Kanto seen! Now go fill the Album.',
+        labTalkType: '{n} {type}-type left for the Pokédex.|{n} {type}-types left for the Pokédex.',
+        labTalkAlbum:
+            'All 151 of Kanto seen! {n} sticker left in the Album.|All 151 of Kanto seen! {n} stickers left in the Album.',
+        labTalkMoves: 'Album complete! {n} move left in the Movedex.|Album complete! {n} moves left in the Movedex.',
+        labTalkDone: 'Collection complete! Not even my lab has one like it.',
+        labBoard: 'Kanto',
+        labBoardSub: '{n} played',
         signDuel: 'With friends',
         /** The arrows on the Stadium mode pill. */
         modePrev: 'Previous mode',
         modeNext: 'Next mode',
         modesAria: 'Game modes',
+        modesSign: 'Modes',
         /** The goals always in view at the Stadium (Clash's "chests"). */
         /** The top bar: titles won and the Pokédex. */
         resLevel: 'Trainer level {n} ({x} of {y} missions to the next)',
@@ -104,6 +109,9 @@ export const home: typeof pt = {
         sedeTrophies: 'Trophies',
         sedeTitles: '{n} title|{n} titles',
         sedeKit: 'Crest and kit',
+        sedeLevel: 'Level {n}',
+        sedeNext: 'Next: {name}',
+        sedeAsked: '{n} request|{n} requests',
     },
     modes: {
         aria: 'Game modes',

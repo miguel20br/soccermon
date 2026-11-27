@@ -335,7 +335,10 @@ export const help: typeof pt = {
         done: 'Got it',
         count: '{n} of {total}',
         label: 'Tutorial tip',
-        intro: ['First time? Start with the Lightning Cup: 4 games, about 10 minutes.', 'The rules live here.'],
+        intro: [
+            'First time? Start with the Lightning Cup: 4 games, about 10 minutes.',
+            'Help and the rules live in Settings.',
+        ],
         rota: [
             'Tap a lit node, then Go.',
             'The first match gives no card. After that, a loss is a yellow and the second one is red.',

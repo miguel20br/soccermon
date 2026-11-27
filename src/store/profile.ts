@@ -4,6 +4,7 @@ import { defaultMoveset } from '../engine/moves';
 import type { MatchResult } from '../engine/runners/batch-runner';
 import { EVENT_TYPES, ICONS, type SpecialKind } from '../engine/specials';
 import type { TitleId, TrainerId } from './missions';
+import type { UltimateSave } from './ultimate/ultimate';
 
 /** Treinador e título de quem começa (aqui e não em missions.ts: missions lê o perfil, sem importação em ciclo). */
 export const DEFAULT_TRAINER: TrainerId = 'red';
@@ -347,6 +348,40 @@ export const EMPTY_CAREER: Career = {
     goalsFor: 0,
     goalsAgainst: 0,
 };
+
+/** O que o Perfil lê do Time Ultimate: a temporada de agora e o legado (as que acabaram). */
+type UtTally = Pick<UltimateSave, 'season' | 'played' | 'wins' | 'losses' | 'legacy'>;
+
+/**
+ * Partidas do Time Ultimate em todas as temporadas (a de agora mais o legado). A prévia (temporada 0) não conta: na
+ * virada ela não vai pro legado (`seasonRecord`) e os números cairiam. O legado guarda só partidas e vitórias, então
+ * com temporada passada as derrotas ficam desconhecidas (`null`): a tela mostra só partidas, vitórias e o %.
+ */
+export function ultimateTally(u: UtTally): { played: number; wins: number; losses: number | null } {
+    const now = u.season >= 1;
+    const old = u.legacy.seasons.filter((r) => r.season >= 1 && r.season < u.season);
+    return {
+        played: (now ? u.played : 0) + old.reduce((n, r) => n + r.played, 0),
+        wins: (now ? u.wins : 0) + old.reduce((n, r) => n + r.wins, 0),
+        losses: old.length ? null : now ? u.losses : 0,
+    };
+}
+
+/**
+ * Os números do Perfil (decisão 4a da revisão dos menus, 26/11): partidas e vitórias somam as copas e o Time Ultimate,
+ * pra quem só joga o UT não ver "0 partidas". Só exibição: missão, medalha e nível continuam lendo `career`. Gols e
+ * pênaltis ficam só das copas (o UT não guarda). Derrotas somam só enquanto se sabe todas (`lossesKnown`).
+ */
+export function careerWithUltimate(c: Career, u: UtTally): Career & { lossesKnown: boolean } {
+    const ut = ultimateTally(u);
+    return {
+        ...c,
+        matches: c.matches + ut.played,
+        wins: c.wins + ut.wins,
+        losses: c.losses + (ut.losses ?? 0),
+        lossesKnown: ut.losses !== null,
+    };
+}
 
 export function recordMatchInCareer(c: Career, score: [number, number], won: boolean, shootout: boolean): Career {
     return {

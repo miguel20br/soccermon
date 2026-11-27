@@ -94,6 +94,20 @@ Perfil do amigo (decisões 6–10, as recomendadas): ver o cartão, a vitrine de
 na sala do amigo depois que a sala existir; a foto do perfil só pros amigos (migração no Supabase de produção, com o
 ok do Miguel antes de aplicar). Ordem: perfil do amigo → sala → reações.
 
+**Mudou em 26/11/2026 (perfil público, [ADR 0009](../adr/0009-perfil-publico-foto-so-pra-amigo.md)):** qualquer
+jogador com sessão (inclusive a anônima do Duelo) vê o perfil de outro pelo código: personagem, título, escudo e
+uniforme, medalhas, vitrine de cartas e números. Só a foto do Google continua só pros amigos: pros outros o banco tira
+a foto e entra o avatar Pokémon (o Pikachu, quando ele usa a foto). Sem opção de perfil privado. Migração
+`supabase/migrations/20261126120000_perfil_publico.sql` (não aplicada), testada com
+`supabase/tests/perfil_publico.test.sql`. Aplicar em produção só com o ok do Miguel, no lançamento, da raiz do repo:
+
+```bash
+psql "$(grep '^POSTGRES_URL_NON_POOLING=' .env.local | cut -d= -f2- | tr -d '"')" -v ON_ERROR_STOP=1 \
+    -f supabase/migrations/20261126120000_perfil_publico.sql
+```
+
+Sem a migração, quem não é amigo abre o cartão só com nome e clube, como antes.
+
 ## Decisões pro Miguel
 
 1. **Escopo:** B, a sala **(recomendado)** / A só estante / C montável já.

@@ -33,7 +33,7 @@ export const trophies: typeof pt = {
         platina: 'Platinum',
         numeros: 'Numbers',
         colecao: 'Collection',
-        clube: 'Club',
+        clube: 'Kit',
     },
     legendAria: "What's in the room",
     tut: {
@@ -83,7 +83,7 @@ export const trophies: typeof pt = {
         medals: 'See medals',
         numbers: 'See numbers',
         album: 'Open the Album',
-        club: 'Change in Profile',
+        club: 'Change the kit',
     },
     level: { quarto: 'Pallet bedroom', clube: 'Club room', estadio: 'Stadium room' },
     levelLine: 'Level {n} · {name}',

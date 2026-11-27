@@ -7,6 +7,7 @@ import type { Mission } from '../../store/missions';
 import { titleClass } from '../../store/title-codes';
 import { HudIcon } from '../components/MatchHud';
 import { PixelTrophy } from '../components/PixelTrophy';
+import { openCardEditor } from '../doors';
 import { Sheet } from '../kit/Sheet';
 import { missionText, titleName, trainerName } from '../profile/club';
 import { MedalsTab } from '../profile/Medals';
@@ -138,14 +139,13 @@ function TrainerPath() {
  * as medalhas embaixo, numa folha só por cima da Sede. Vem num pedaço à parte (o CSS do Perfil só baixa quando abre).
  */
 export default function MetasSheet({ onClose, style }: { onClose: () => void; style?: CSSProperties }) {
-    const { t, d } = useT();
+    const { t } = useT();
     const view = useSaveView();
     const near = useMemo(() => closestMissions(view, 6), [view]);
     const updateProfile = useGame((s) => s.updateProfile);
     return (
         <Sheet open onClose={onClose} title={t('home.amb.sedeMetas')} className="pf pf-sheet sd-metas" style={style}>
             <TrainerPath />
-            <h3 className="bc-lbl">{d.profile.tabs.missoes}</h3>
             <MissionSummary />
             <ul className="pf-near">
                 {near.map((g) => (
@@ -177,8 +177,7 @@ export default function MetasSheet({ onClose, style }: { onClose: () => void; st
                     </li>
                 ))}
             </ul>
-            <h3 className="bc-lbl">{d.trophies.tabs.medalhas}</h3>
-            <MedalsTab save={updateProfile} />
+            <MedalsTab save={updateProfile} onEdit={() => openCardEditor('vitrine')} />
         </Sheet>
     );
 }

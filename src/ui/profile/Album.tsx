@@ -41,6 +41,7 @@ import { useCardModal } from '../card-modal';
 import { Logo } from '../components/LogoHits';
 import { HudIcon } from '../components/MatchHud';
 import { PokeCard2 } from '../components/PokeCard2';
+import { openCardEditor } from '../doors';
 import { reduceMotionOn } from '../reduce-motion';
 import { useSwapMotion } from '../swap-motion';
 import { uiZoom } from '../ui-zoom';
@@ -198,15 +199,8 @@ export function AlbumView({
     const shownIds = shown.map((s) => s.id);
     const full = shown.length >= CARD_SHOWCASE_MAX;
     const toggle = (id: string) => updateProfile({ cardShowcase: toggleShowcase(shownIds, id) });
-    // vitrine cheia: "Pôr na vitrine" traz a carta pra cá e um toque na que sai faz a troca
-    const [incoming, setIncoming] = useState<{ id: string; name: string } | null>(null);
-    const vitrine = useRef<HTMLElement>(null);
-    const startPick = (id: string, name: string) => {
-        setIncoming({ id, name });
-        requestAnimationFrame(() =>
-            vitrine.current?.scrollIntoView({ block: 'nearest', behavior: reduceMotionOn() ? 'auto' : 'smooth' }),
-        );
-    };
+    // vitrine cheia: "Pôr na vitrine" abre a Vitrine do Editar cartão com a carta nova; um toque na que sai faz a troca
+    const startPick = (id: string, name: string) => openCardEditor('vitrine', { id, name });
     const rows = useMemo(() => new Map(KANTO.map((sp) => [sp.id, speciesRows(sp, dex, bySlot)])), [dex, bySlot]);
 
     // 6 por página no celular (a carta fica legível no 320), 12 no tablet e no desktop; duas páginas abertas no desktop
@@ -512,21 +506,18 @@ export function AlbumView({
 
     return (
         <div className="al">
-            <section ref={vitrine} className={`panel pf-card bd-showcase${incoming ? ' picking' : ''}`}>
-                <h2>
+            {/* a vitrine se edita numa folha só, a do cartão (revisão dos menus, item 8): aqui fica o atalho */}
+            <button type="button" className="k-sheetrow al-vitrine" onClick={() => openCardEditor('vitrine')}>
+                <HudIcon kind="cards" />
+                <b>
                     {t('profile.binder.showcase')}{' '}
                     <span className="pf-count">
                         {shown.length}/{CARD_SHOWCASE_MAX}
                     </span>
-                </h2>
-                <ShowcaseEditor
-                    shown={shown}
-                    incoming={incoming}
-                    onOpen={(c) => openRow(species(c.inst.speciesId), c.id)}
-                    onSave={(ids) => updateProfile({ cardShowcase: ids })}
-                    onCancel={() => setIncoming(null)}
-                />
-            </section>
+                </b>
+                <span className="muted">{t('profile.edit.open')}</span>
+                <HudIcon kind="next" />
+            </button>
 
             {book !== 'open' ? (
                 <div className="al-shelf">
@@ -674,7 +665,7 @@ const OUT_MS = 200;
  * vitrine cheia, "Pôr na vitrine" chega aqui com a carta nova (`incoming`) e um toque na que sai faz a troca. A ordem
  * é a da lista salva no perfil: vale no Perfil, no perfil do amigo e no Duelo.
  */
-function ShowcaseEditor({
+export function ShowcaseEditor({
     shown,
     incoming,
     onOpen,

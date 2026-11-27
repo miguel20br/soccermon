@@ -380,23 +380,17 @@ export function PlatinumBlock({ p, view }: { p: Platinum; view: SaveView }) {
     );
 }
 
-/** Quantas missões já foram (cada treinador e título bloqueado mostra a dele logo abaixo). */
+/** O rótulo das Missões com a conta (o mesmo das Medalhas e da Vitrine: nome e "x/y"). */
 export function MissionSummary() {
     const view = useSaveView();
-    const { t } = useT();
+    const { d } = useT();
     const done = MISSIONS.filter((m) => view.done.has(m.id)).length;
     return (
-        <div
-            className="pf-mission-summary"
-            role="progressbar"
-            aria-valuemin={0}
-            aria-valuemax={MISSIONS.length}
-            aria-valuenow={done}
-        >
-            <b>{t('profile.missions.summary', { done, total: MISSIONS.length })}</b>
-            <span className={`k-bar${done >= MISSIONS.length ? ' full' : ''}`}>
-                <i style={{ width: `${(done / MISSIONS.length) * 100}%` }} />
+        <h3 className="bc-lbl">
+            {d.profile.tabs.missoes}
+            <span className="pf-count">
+                {done}/{MISSIONS.length}
             </span>
-        </div>
+        </h3>
     );
 }
