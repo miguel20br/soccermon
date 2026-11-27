@@ -263,6 +263,8 @@ export interface UltimateSave {
     epoch: number;
     /** O aviso do recomeço ainda não foi visto. */
     resetNotice: boolean;
+    /** O maior relógio que este save já viu (`clock.ts`): voltar o relógio do aparelho não volta o modo. */
+    seen: number;
 }
 
 export const newUltimate = (salt = Math.floor(Math.random() * 1e9).toString(36), now = Date.now()): UltimateSave => ({
@@ -313,6 +315,7 @@ export const newUltimate = (salt = Math.floor(Math.random() * 1e9).toString(36),
     matchFichas: { day: '', n: 0 },
     epoch: UT_EPOCH,
     resetNotice: false,
+    seen: 0,
 });
 
 const num = (v: unknown, max = Number.MAX_SAFE_INTEGER) =>
@@ -346,6 +349,9 @@ export function ultimateOf(raw: unknown): UltimateSave {
             legacy: legacyOf(raw.legacy),
             extraPacks: RESET_PACKS,
             resetNotice: true,
+            // presente dado (Natal, degraus do Desafio) não abre de novo, e o relógio não volta, nem num recomeço
+            gifts: [...new Set(strs(raw.gifts))],
+            seen: num(raw.seen),
         };
     const cards = Array.isArray(raw.cards) ? raw.cards.filter(cardOk) : [];
     const uids = new Set(cards.map((c) => c.uid));
@@ -457,6 +463,7 @@ export function ultimateOf(raw: unknown): UltimateSave {
                 : base.matchFichas,
         epoch: UT_EPOCH,
         resetNotice: raw.resetNotice === true,
+        seen: num(raw.seen),
     };
 }
 
@@ -583,6 +590,8 @@ export function mergeUltimate(keep: unknown, other: unknown): UltimateSave {
         legacy: mergeLegacy(win.legacy, { ...lose.legacy, seasons: [...lose.legacy.seasons, ...(lost ? [lost] : [])] }),
         // presente aberto em qualquer lado não abre de novo, ganhe o lado que ganhar
         gifts: [...new Set([...win.gifts, ...lose.gifts])],
+        // o relógio mais adiantado dos dois: juntar com o aparelho de relógio atrasado não volta o tempo
+        seen: Math.max(win.seen, lose.seen),
     };
 }
 
@@ -725,11 +734,13 @@ function drawCard(
     event: UtEvent | null,
     uid: (id: number) => string,
     forceEvent = false,
+    /** Quem escolhe a espécie de `from` (o Pick: a primeira da fila fixa dele); sem, sorteia. */
+    choose?: (from: number[]) => number,
 ): PokemonInstance {
     const icon = rng.chance(ICON_ODDS);
     const iconPool = icon ? ICON_IDS.filter((id) => pool.includes(id)) : [];
     const from = iconPool.length ? iconPool : pool.length ? pool : fallback;
-    const id = rng.pick(from);
+    const id = choose ? choose(from) : rng.pick(from);
     const inst = createInstance(id, rng);
     const shiny = rng.chance(SHINY_ODDS);
     // o sorteio do Evento só existe no evento (fora dele, o pacote é o mesmo de antes)
@@ -755,12 +766,11 @@ function drawCard(
 /**
  * As opções do Pick (ultimate-fc.md): `n` espécies diferentes que você ainda não tem, cada uma no metal sorteado pela
  * chance de sempre com o piso `min` (ou só `min`, se `exact`), do tipo `type` se tiver; edições com as chances de sempre
- * (o do evento sai sempre Evento). Semente `ut-pick-${uid}`: fechar e voltar mostra as mesmas opções (sem rerrolar
+ * (o do evento sai sempre Evento). Semente `ut-pick-${uid}-${i}` por opção: fechar e voltar mostra as mesmas opções (sem rerrolar
  * recarregando). Sem espécie nova que caiba, abre pros outros metais acima do piso e, no fim, pra repetida. O `exact`
  * (comprado e Ouro do passe) nunca sobe de metal: sem espécie nova nele, sai repetida dele mesmo (Miguel, 10/11).
  */
 export function pickOptions(u: Pick<UltimateSave, 'salt' | 'cards'>, p: UtPick, now?: number): PokemonInstance[] {
-    const rng = new Rng(u.salt, `ut-pick-${p.uid}`);
     const forced = p.event ? (EVENTS.find((e) => e.id === p.event) ?? null) : null;
     const event = forced ?? (now === undefined ? null : eventAt(now));
     const owned = new Set(u.cards.map((c) => c.speciesId));
@@ -768,9 +778,14 @@ export function pickOptions(u: Pick<UltimateSave, 'salt' | 'cards'>, p: UtPick, 
     const above = p.exact ? [p.min] : METALS.filter((m) => rank(m) >= rank(p.min));
     const typed = (id: number) => !p.type || species(id).types.includes(p.type as never);
     return Array.from({ length: p.n }, (_, i) => {
+        // cada opção tem a semente dela e uma fila fixa de espécies (cada metal embaralhado), e fica com a 1ª da fila que
+        // cabe: as cartas que você tem só pulam a vez delas. Com o sorteio direto do que sobrava, vender uma carta e
+        // desfazer a venda sorteava o Pick de novo de graça (auditoria de 27/11/2026)
+        const rng = new Rng(u.salt, `ut-pick-${p.uid}-${i}`);
         const rolled = rollMetal(rng);
         const metal = p.exact || rank(rolled) < rank(p.min) ? p.min : rolled;
         const order = [metal, ...above.filter((m) => m !== metal)];
+        const queue = order.flatMap((m) => rng.shuffle([...metalPools()[m]]));
         const first = (ok: (id: number) => boolean) =>
             order.map((m) => metalPools()[m].filter(ok)).find((x) => x.length) ?? [];
         const fresh = (id: number) => !taken.has(id) && typed(id);
@@ -782,6 +797,7 @@ export function pickOptions(u: Pick<UltimateSave, 'salt' | 'cards'>, p: UtPick, 
             event,
             (id) => `utk-${p.uid}-${i}-${id}`,
             !!forced,
+            (from) => queue.find((id) => from.includes(id)) ?? from[0],
         );
         taken.add(card.speciesId);
         return card;

@@ -55,7 +55,9 @@ describe('save do Time Ultimate (v10)', () => {
         // a Pokédex marca quem jogou, como no Duelo
         expect(g().dex[home.lineup[0].speciesId]?.matches ?? 0).toBeGreaterThan(0);
         const saved = migrateSave(JSON.parse(JSON.stringify(savePart(g()))), SAVE_VERSION);
-        expect(saved.ultimate).toEqual(g().ultimate);
+        // o save leva junto o relógio do modo (o maior já visto: clock.ts), o resto volta igual
+        expect(saved.ultimate.seen).toBeGreaterThanOrEqual(g().ultimate.seen);
+        expect(saved.ultimate).toEqual({ ...g().ultimate, seen: saved.ultimate.seen });
         // aparelho sem o Time Ultimate x conta com ele: o que andou fica
         const empty = migrateSave({}, SAVE_VERSION);
         expect(mergeSaves(empty, saved, 'device').ultimate.fichas).toBe(saved.ultimate.fichas);
