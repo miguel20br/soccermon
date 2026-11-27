@@ -214,7 +214,9 @@ function Evolutions() {
     const u = useGame((s) => s.ultimate);
     const [picking, setPicking] = useState(false);
     const byUid = new Map(u.cards.map((c) => [c.uid, c]));
-    const free = u.cards.filter((c) => !u.evoDone.includes(c.uid) && !u.evos.some((e) => e.uid === c.uid));
+    const free = u.cards.filter(
+        (c) => !u.evoDone.includes(c.uid) && !u.evos.some((e) => e.uid === c.uid) && evoPaths(c, u.cards).length,
+    );
     const full = u.evos.length >= EVO_ACTIVE_MAX;
     return (
         <section className="panel ut-evos bc-surface">
@@ -226,7 +228,7 @@ function Evolutions() {
             {u.evos.length === 0 && !picking && <p className="muted ut-evo-none">{t('ultimate.evo.none')}</p>}
             {u.evos.map((e) => byUid.get(e.uid) && <EvoRow key={e.uid} e={e} card={byUid.get(e.uid)!} />)}
             {picking ? (
-                <EvoStart cards={free} onClose={() => setPicking(false)} />
+                <EvoStart cards={free} club={u.cards} onClose={() => setPicking(false)} />
             ) : (
                 <button
                     type="button"
@@ -312,13 +314,21 @@ function EvoRow({ e, card }: { e: UtEvo; card: PokemonInstance }) {
 }
 
 /** Começar: escolhe a carta, o caminho (Eevee) e vê a forma final antes de confirmar. */
-function EvoStart({ cards, onClose }: { cards: PokemonInstance[]; onClose: () => void }) {
+function EvoStart({
+    cards,
+    club,
+    onClose,
+}: {
+    cards: PokemonInstance[];
+    club: PokemonInstance[];
+    onClose: () => void;
+}) {
     const { t } = useT();
     const start = useGame((s) => s.ultimateStartEvo);
     const [uid, setUid] = useState<string | null>(null);
     const [path, setPath] = useState(0);
     const card = cards.find((c) => c.uid === uid);
-    const paths = card ? evoPaths(card) : [];
+    const paths = card ? evoPaths(card, club) : [];
     const chosen = paths[path] ?? paths[0];
     const preview = card && chosen ? evoPreview(card, newEvo(card, chosen)) : null;
     return (

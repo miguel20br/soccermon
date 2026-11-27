@@ -33,6 +33,7 @@ import {
     newUltimate,
     openPack,
     packsReady,
+    pickable,
     redeem,
     startEvo,
     type UltimateSave,
@@ -184,7 +185,8 @@ function live(u: UltimateSave): UltimateSave {
 describe('loja: tudo com Fichas', () => {
     it('Fichas compram a carta Normal escolhida, pelo preço do metal; sem Fichas ou repetida, não', () => {
         const u = ready();
-        const id = metalPools().ouro.find((x) => !u.cards.some((c) => c.speciesId === x))!;
+        // uma de cada no Clube: a 1ª ouro de linha que você ainda não tem
+        const id = pickable(u, 'ouro')[0];
         expect(buyCard({ ...u, fichas: cardPrice(id) - 1 }, id)).toBeNull();
         const r = buyCard({ ...u, fichas: cardPrice(id) + 3 }, id)!;
         expect(r.u.fichas).toBe(3);
@@ -338,7 +340,7 @@ describe('Evoluções com prévia', () => {
         expect(evoPaths(c)).toEqual([[]]);
         let u = startEvo(withCard(c), c.uid, [])!;
         const preview = evoPreview(c, u.evos[0]);
-        expect(preview.evolved).toBe(TRAIN_STEPS);
+        expect(preview.trained).toBe(TRAIN_STEPS);
         u = runEvo(u, c.uid);
         const done = u.cards.find((x) => x.uid === 'tauros')!;
         expect(done).toEqual(preview);

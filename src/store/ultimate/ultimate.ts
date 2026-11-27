@@ -2,7 +2,7 @@ import { computeAttributes, eligiblePositions } from '../../engine/attributes';
 import { ENGINE_VERSION } from '../../engine/config';
 import { CLUBS } from '../../engine/cup';
 import { SPECIES, species } from '../../engine/data';
-import { aiDraftTeam } from '../../engine/draft';
+import { aiDraftTeam, rootOf } from '../../engine/draft';
 import { DEFAULT_FORMATION, FORMATIONS, type FormationId } from '../../engine/formations';
 import { createInstance, DEFAULT_LEVEL, type PokemonInstance, slotRating, viewInstance } from '../../engine/instance';
 import { mvpScore } from '../../engine/mvp';
@@ -712,7 +712,7 @@ export function pickOptions(u: Pick<UltimateSave, 'salt' | 'cards'>, p: UtPick, 
     const rng = new Rng(u.salt, `ut-pick-${p.uid}`);
     const forced = p.event ? (EVENTS.find((e) => e.id === p.event) ?? null) : null;
     const event = forced ?? (now === undefined ? null : eventAt(now));
-    const owned = new Set(u.cards.map((c) => c.speciesId));
+    const owned = linesOf(u.cards);
     const taken = new Set<number>();
     const above = p.exact ? [p.min] : METALS.filter((m) => rank(m) >= rank(p.min));
     const typed = (id: number) => !p.type || species(id).types.includes(p.type as never);
@@ -723,7 +723,7 @@ export function pickOptions(u: Pick<UltimateSave, 'salt' | 'cards'>, p: UtPick, 
         const first = (ok: (id: number) => boolean) =>
             order.map((m) => metalPools()[m].filter(ok)).find((x) => x.length) ?? [];
         const fresh = (id: number) => !taken.has(id) && typed(id);
-        const pool = first((id) => fresh(id) && !owned.has(id));
+        const pool = first((id) => fresh(id) && !owned.has(rootOf(id)));
         const card = drawCard(
             rng,
             pool,
@@ -733,7 +733,8 @@ export function pickOptions(u: Pick<UltimateSave, 'salt' | 'cards'>, p: UtPick, 
             !!forced,
         );
         taken.add(card.speciesId);
-        return card;
+        // Pick pago (Comprar): a carta sai marcada como comprada com Fichas (PAID_EVO_MAX)
+        return p.uid.startsWith('shop-') ? { ...card, paid: true } : card;
     });
 }
 
@@ -908,11 +909,17 @@ export function fillTeam(team: UltimateTeam, fresh: readonly PokemonInstance[]):
 
 // --------------------------------------------------------------------------------------------- loja
 
-/** As espécies que dá pra escolher com Fichas naquele metal (a Normal que você ainda não tem). */
-export const pickable = (u: Pick<UltimateSave, 'cards'>, metal: Metal) =>
-    metalPools()[metal].filter(
-        (id) => !NOT_BUYABLE.includes(id) && !u.cards.some((c) => c.speciesId === id && editionOf(c) === null),
-    );
+/** As linhas evolutivas (forma-base) das cartas: o Clube guarda uma de cada (Miguel, 27/11/2026). */
+const linesOf = (cards: readonly PokemonInstance[]) => new Set(cards.map((c) => rootOf(c.speciesId)));
+
+/**
+ * As espécies que dá pra escolher com Fichas naquele metal: só de linha evolutiva que você ainda não tem (com o Machamp
+ * no Clube, o Machop não volta pra loja).
+ */
+export const pickable = (u: Pick<UltimateSave, 'cards'>, metal: Metal) => {
+    const owned = linesOf(u.cards);
+    return metalPools()[metal].filter((id) => !NOT_BUYABLE.includes(id) && !owned.has(rootOf(id)));
+};
 
 /** Preço pra escolher a espécie: o do metal; a ouro sobe GOLD_PRICE_STEP por ponto acima de 75. */
 export function cardPrice(speciesId: number): number {
@@ -930,7 +937,7 @@ export function buyCard(u: UltimateSave, speciesId: number): { u: UltimateSave; 
     const price = cardPrice(speciesId);
     if (!metal || u.fichas < price || !pickable(u, metal).includes(speciesId)) return null;
     const inst = createInstance(speciesId, new Rng(u.salt, `ut-buy-${u.bought}`));
-    const card: PokemonInstance = { ...inst, uid: `utb${u.bought}-${speciesId}`, shiny: false };
+    const card: PokemonInstance = { ...inst, uid: `utb${u.bought}-${speciesId}`, shiny: false, paid: true };
     return {
         u: { ...addCards(u, [card]), fichas: u.fichas - price, bought: u.bought + 1 },
         card,
@@ -1488,7 +1495,7 @@ export function rollSeason(u: UltimateSave, now: number): { u: UltimateSave; rec
 export function startEvo(u: UltimateSave, uid: string, path: readonly number[]): UltimateSave | null {
     const card = u.cards.find((c) => c.uid === uid);
     if (!card || u.live || u.evos.length >= EVO_ACTIVE_MAX || u.evos.some((e) => e.uid === uid)) return null;
-    if (u.evoDone.includes(uid) || !evoPaths(card).some((p) => p.join() === path.join())) return null;
+    if (u.evoDone.includes(uid) || !evoPaths(card, u.cards).some((p) => p.join() === path.join())) return null;
     return firstStep({ ...u, evos: [...u.evos, newEvo(card, [...path])] }, 'evo');
 }
 
@@ -1509,6 +1516,8 @@ export function evolveCard(
     const e = u.evos.find((x) => x.uid === uid);
     const from = u.cards.find((c) => c.uid === uid);
     if (!e || !from || u.live || !evoReady(e)) return null;
+    // uma de cada no Clube: a espécie do passo chegou por outro caminho (pacote) no meio da Evolução
+    if (u.cards.some((c) => c.uid !== uid && c.speciesId === e.path[e.step])) return null;
     const card = evoStep(from, e);
     const next: UtEvo = { ...e, step: e.step + 1, prog: { played: 0, goals: 0, mvp: 0 } };
     const end = next.step >= evoSteps(next);
