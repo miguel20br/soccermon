@@ -138,6 +138,8 @@ export const match = {
             title: 'Bolsa',
             perHalf: '1 por tempo',
             used: 'Já usou neste tempo',
+            /** No botão da barra (celular). */
+            usedShort: 'Já usou',
             pending: 'Usando…',
             empty: 'Bolsa vazia',
             hint: '1 item por tempo. O item usado sai da Bolsa.',

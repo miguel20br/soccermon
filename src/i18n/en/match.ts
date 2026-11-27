@@ -123,6 +123,7 @@ export const match: typeof pt = {
             title: 'Bag',
             perHalf: '1 per half',
             used: 'Already used this half',
+            usedShort: 'Used',
             pending: 'Using…',
             empty: 'Bag empty',
             hint: '1 item per half. The item leaves the Bag when used.',

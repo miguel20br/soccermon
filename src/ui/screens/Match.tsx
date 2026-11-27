@@ -1089,7 +1089,7 @@ export function Match({ liga = false, ultimate = false }: { liga?: boolean; ulti
                                                   'bag',
                                                   d.match.agency.bag.title,
                                                   bagState.usedHalf
-                                                      ? d.match.agency.bag.used
+                                                      ? d.match.agency.bag.usedShort
                                                       : `${bagState.left.length}`,
                                               ],
                                           ] as const)
