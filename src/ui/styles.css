@@ -1197,12 +1197,13 @@ button,
     color: #ff9b7a;
 }
 /* `img.` pra vencer o `.formation-board .slot img { height }` do sprite, que esticava o item (11/2026) */
+/* o item fica no pé do sprite, saindo pro lado: embaixo ele cobria o número da pílula ("77 · fora") */
 .slot img.slot-item {
     position: absolute;
-    left: 4px;
-    bottom: 4px;
-    width: 20px;
-    height: 20px;
+    left: -6px;
+    bottom: 34px;
+    width: 16px;
+    height: 16px;
     object-fit: contain;
     image-rendering: auto;
 }
@@ -3107,6 +3108,10 @@ button,
 }
 .slot.sc .slot-rating {
     padding: 0 6px;
+    max-width: 100%;
+    box-sizing: border-box;
+    overflow: hidden;
+    text-overflow: ellipsis;
     white-space: nowrap;
     border-radius: 999px;
     background: rgb(14 20 48 / 85%);
@@ -3117,6 +3122,12 @@ button,
 }
 .slot.sc .slot-rating.off {
     color: #ff9b7a;
+}
+/* 320: a vaga tem 62 px e a pílula "61 · fora" encostava nas bordas dela */
+@media (max-width: 359px) and (orientation: portrait) {
+    .slot.sc .slot-rating {
+        padding-inline: 3px;
+    }
 }
 .slot.sc.proj-good,
 .slot.sc.proj-bad {
@@ -7514,6 +7525,7 @@ body {
 .prancheta .slot .slot-rating {
     font-size: 11px;
     line-height: 1.1;
+    padding-inline: 3px;
 }
 .prancheta .slot .pos-badge,
 .prancheta .slot .slot-item,
