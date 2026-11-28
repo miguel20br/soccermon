@@ -25,6 +25,7 @@ import { isDraftComplete, playerTeam, type SlotRef, useGame } from '../../store/
 import { clubColorHex, type HallEntry } from '../../store/profile';
 import { canPlay, homeTeam } from '../../store/ultimate/ultimate';
 import { useCardModal } from '../card-modal';
+import { CaptainMax } from '../components/CaptainMax';
 import { CardPack, isBigCard, packLookOf } from '../components/CardPack';
 import { FormationBoard } from '../components/FormationBoard';
 import { FutCard } from '../components/FutCard';
@@ -378,6 +379,7 @@ export function DuelDraft({ s, role }: { s: Shared; role: Role }) {
                                                     : undefined
                                             }
                                         />
+                                        {round === 0 && <CaptainMax inst={o} />}
                                     </div>
                                 ))}
                             </div>

@@ -6,13 +6,14 @@ import { formationOf } from '../../engine/formations';
 import { type PokemonInstance, viewInstance } from '../../engine/instance';
 import { computeLinks } from '../../engine/links';
 import { computeSynergies } from '../../engine/synergy';
-import { formationText, moveName } from '../../i18n';
+import { formationText } from '../../i18n';
 import { rich, useT } from '../../i18n/react';
 import { type SlotRef, slotRole, useGame } from '../../store/game-store';
 import { isLong } from '../../store/long-cup';
 import { isNovo } from '../../store/profile';
 import { useCardModal } from '../card-modal';
 import { Coach } from '../coach/Coach';
+import { CaptainMax } from '../components/CaptainMax';
 import { CardPack, isBigCard, packLookOf } from '../components/CardPack';
 import { CountUp } from '../components/CountUp';
 import { FormationBoard } from '../components/FormationBoard';
@@ -24,10 +25,8 @@ import { NovoSeal } from '../components/NovoSeal';
 import { TypeBadge } from '../components/PokeCard';
 import { EvoBadge } from '../components/PokeCard2';
 import { useMedia } from '../components/Prancheta';
-import { TypeIcon } from '../components/TypeIcon';
 import { Sheet } from '../kit/Sheet';
 import { Stage } from '../kit/Stage';
-import { maxFxText, maxPlan } from '../max-levels';
 import { lineupAverage, ratingAt } from '../rating';
 import { flyCard } from '../view-transition';
 import '../draft.css';
@@ -530,22 +529,5 @@ export function Draft() {
                 <AutoDraft />
             )}
         </>
-    );
-}
-
-/** Escolha do capitão: o golpe máximo dele (tipo + nome) abaixo da carta; o título traz o N3. */
-function CaptainMax({ inst }: { inst: PokemonInstance }) {
-    const { d, lang } = useT();
-    const plan = maxPlan(inst.moves, inst.speciesId, false);
-    if (!plan.move) return null;
-    const fx = maxFxText(plan.fx, lang);
-    return (
-        <div className="option-max" title={`${d.match.agency.levels.title}: ${fx.name}. ${fx.desc}`}>
-            <TypeIcon type={plan.type} />
-            <span>
-                <small>{d.match.agency.levels.title}</small>
-                <b>{moveName(plan.move)}</b>
-            </span>
-        </div>
     );
 }
