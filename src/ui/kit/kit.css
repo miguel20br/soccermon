@@ -133,6 +133,11 @@
         box-shadow var(--dur-solta) var(--ease-pop),
         filter 150ms var(--ease-out);
 }
+/* dourado sem o .big (pronto do Duelo, Começar o 2º tempo do Duelo, Desafios, Draft do UT): branco chapado no amarelo
+   dava 1,6:1; o contorno fino de 1 px segura a leitura (o .big e a barra do polegar, abaixo, levam o de 2 px) */
+.btn.primary:not(.big) {
+    text-shadow: var(--k-out-1);
+}
 /* o botão gordo da tela: o .big, o .cb dos ambientes e o dourado ou verde da barra do polegar */
 .bc-thumbbar > .btn:is(.primary, .confirm) {
     --base: 6px;
