@@ -4979,7 +4979,7 @@ button,
 }
 .rh-star {
     position: absolute;
-    top: -18px;
+    top: -22px;
     padding: 1px 8px;
     border-radius: 999px;
     background: #ffd447;
@@ -4987,6 +4987,13 @@ button,
     font-size: 11px;
     font-weight: 700;
     white-space: nowrap;
+}
+/* o selo é mais largo que o sprite: na ponta da fileira ele cola na borda do sprite em vez de vazar pro lado */
+.rh-mon:first-child .rh-star {
+    left: 0;
+}
+.rh-mon:last-child .rh-star {
+    right: 0;
 }
 .rh-next {
     display: grid;
