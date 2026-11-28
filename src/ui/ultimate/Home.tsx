@@ -534,6 +534,10 @@ function PostGame({ last, onGoals, onPacks }: { last: UltimateLast; onGoals: () 
                         format={(x) => t('ultimate.result.gain', { n: x })}
                     />
                 </Beat>
+                {/* partida mais barata paga 10: 0 é o teto do dia (MATCH_FICHAS_DAY_MAX), senão "+0 Fichas" parece bug */}
+                {last.fichas === 0 && (
+                    <small className="ut-extra ut-fichas-cap">{t('ultimate.result.fichasCap')}</small>
+                )}
                 {last.pass !== undefined && (
                     <Beat on={c.step > n++}>
                         <small className="ut-extra">

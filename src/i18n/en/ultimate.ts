@@ -424,6 +424,7 @@ export const ultimate: typeof pt = {
         evoReady: 'Evolution ready in Objectives',
         pass: '+{n} season pass points',
         passCap: 'Daily pass cap reached',
+        fichasCap: 'Daily Coins cap reached: matches pay again tomorrow',
         marks: 'Pass milestone {n}|Pass milestones {n}',
         badge: '{badge} + Leader Pick',
         ornament: 'Event ornament: {name} + Event Pick',

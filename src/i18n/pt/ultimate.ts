@@ -427,6 +427,7 @@ export const ultimate = {
         evoReady: 'Evolução pronta em Objetivos',
         pass: '+{n} pontos no passe',
         passCap: 'Teto do dia no passe',
+        fichasCap: 'Teto de Fichas do dia: amanhã as partidas voltam a pagar',
         marks: 'Marco {n} do passe|Marcos {n} do passe',
         badge: '{badge} + Pick do líder',
         ornament: 'Enfeite do evento: {name} + Pick de Evento',
