@@ -1463,6 +1463,7 @@ body:has(.bc-hud) {
 
 /* caixa de texto da batalha (BattleText.tsx, partida nova): o papel do FireRed, 2 linhas de altura fixa */
 .bt-box {
+    flex-shrink: 0;
     position: relative;
     height: 52px;
     margin: 6px 8px 0;
