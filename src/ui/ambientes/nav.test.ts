@@ -1,7 +1,11 @@
 import { describe, expect, it } from 'vitest';
-import { dragPos, START, skyOf, snapTab, TABS } from './nav';
+import { dragPos, START, semNeve, skyOf, snapTab, TABS } from './nav';
 
 describe('navegação por ambientes', () => {
+    it('neve de Natal: não cai na Sede nem no Lab (internos), cai nos de fora', () => {
+        expect(TABS.filter(semNeve).sort()).toEqual(['lab', 'sede']);
+    });
+
     it('abre no Estádio, a aba do meio', () => {
         expect(TABS[START]).toBe('estadio');
         expect(START).toBe(Math.floor(TABS.length / 2));

@@ -71,7 +71,7 @@
     height: auto;
 }
 /* Natal: o gorro (assets/ui/gorro.png, 17x12) com a aba na quina de cima da carta do "O", meio torto como a carta */
-.logo-c > .logo-gorro {
+.logo-blink > .logo-gorro {
     position: absolute;
     left: 10.2%;
     top: -27%;

@@ -15,7 +15,7 @@ import { Estadio } from './Estadio';
 import { SpriteNearCtx } from './FieldSprite';
 import { Lab } from './Lab';
 import { Neve } from './Neve';
-import { dragPos, onGoTab, START, skyOf, snapTab, TABS, type Tab, tabMemory } from './nav';
+import { dragPos, onGoTab, START, semNeve, skyOf, snapTab, TABS, type Tab, tabMemory } from './nav';
 import { Rota } from './Rota';
 import { Sede } from './Sede';
 import { TopBar } from './TopBar';
@@ -276,8 +276,13 @@ export function Ambientes({ onModes }: { onModes?: () => void }) {
                         </section>
                     ),
                 )}
-                {/* Natal (30/11 a 06/01, ui/tema.ts): a neve por cima dos 5 lugares (no palco: não desliza com a aba) */}
-                {natalOn && <Neve />}
+                {/* Natal (30/11 a 06/01, ui/tema.ts): a neve por cima dos lugares de fora (no palco: não desliza com a
+                    aba); na Sede e no Lab, que são ambientes internos, ela apaga */}
+                {natalOn && (
+                    <div className={`neve-fora${semNeve(TABS[tab]) ? ' off' : ''}`}>
+                        <Neve />
+                    </div>
+                )}
             </div>
             <nav className="amb-bar" aria-label={t('home.amb.tabsAria')}>
                 <div className="amb-tabs" role="tablist" aria-orientation="horizontal" onKeyDown={onKey}>

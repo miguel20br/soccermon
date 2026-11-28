@@ -384,6 +384,9 @@ export default function App() {
                             <span className="brand-logo logo-blink">
                                 <img src="assets/ui/logo.svg" alt="" width="1441" height="300" />
                                 <LogoHits />
+                                {natalOn && (
+                                    <img className="logo-gorro" src="assets/ui/gorro.png" alt="" draggable={false} />
+                                )}
                             </span>
                             {/* na partida o logo inteiro ficava ilegível (~40 px): lá vai o símbolo, no mínimo de 24 px do guia */}
                             <img className="brand-symbol" src="assets/ui/simbolo.svg" alt="" width="28" height="28" />

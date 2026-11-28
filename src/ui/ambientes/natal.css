@@ -3,6 +3,16 @@
    acesas (a regra geral dos ambientes já tira as animações). */
 
 /* ---------- a neve: flocos de pixel por cima do cenário, embaixo das placas de toque ---------- */
+.neve-fora {
+    position: absolute;
+    inset: 0;
+    z-index: 15;
+    pointer-events: none;
+    transition: opacity var(--dur-ui) var(--ease-out);
+}
+.neve-fora.off {
+    opacity: 0;
+}
 .neve {
     position: absolute;
     inset: 0;

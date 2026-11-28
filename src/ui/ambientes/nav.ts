@@ -6,6 +6,8 @@ import { AMB_TABS, type AmbTab } from '../../store/coach';
  */
 export const TABS = AMB_TABS;
 export type Tab = AmbTab;
+/** Ambientes internos: no Natal a neve não cai neles (só nos de fora). */
+export const semNeve = (tab: Tab) => tab === 'sede' || tab === 'lab';
 export const START = TABS.indexOf('estadio');
 const LAST = TABS.length - 1;
 /** A aba em que a pessoa estava (voltar de uma tela pra Home cai nela de novo; recarregar volta pro Estádio). */
