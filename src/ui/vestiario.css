@@ -485,6 +485,17 @@
     }
 }
 
+/* 320x568: com a dica (41 px) a quadra ficava com 232 px e as vagas de 67 px se sobrepunham (Fixo por cima do Goleiro).
+   A dica some e a quadra ganha a altura dela: 4 intervalos de (280 - 8) / 4 = 68 px, mais que a vaga */
+@media (max-width: 400px) and (max-height: 600px) and (orientation: portrait) {
+    .vt-swaphint {
+        display: none;
+    }
+    .vt .formation-board .court {
+        height: calc(100 * var(--svh) - 288px);
+    }
+}
+
 /* chip "Carta" da escalação: flutua no canto da quadra, não empurra nada */
 .vt-board {
     position: relative;

@@ -54,4 +54,11 @@ describe('ajustes do QA da 0.10.0', () => {
             /max-height: 400px\) and \(min-width: 800px\)[\s\S]{0,200}\.es-rail:not\(\.many\) \.es-tile/,
         );
     });
+
+    it('escalação em 320x568: a dica some e a quadra ganha a altura dela (vagas não se sobrepõem; scripts/prancheta-vagas.mjs mede)', () => {
+        const css = src('./vestiario.css');
+        expect(css).toMatch(
+            /max-width: 400px\) and \(max-height: 600px\) and \(orientation: portrait\) \{\s+\.vt-swaphint \{\s+display: none;[\s\S]{0,120}height: calc\(100 \* var\(--svh\) - 288px\)/,
+        );
+    });
 });
