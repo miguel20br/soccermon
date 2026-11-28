@@ -993,6 +993,8 @@ export class Cinematics {
             stroke: string;
             at?: { x: number; y: number };
             sub?: string;
+            /** A linha `sub` vai em cima do texto (não embaixo): embaixo ela cai sobre os nomes de quem está em quadra. */
+            subAbove?: boolean;
             /** Curto: sai mais cedo (a defesa que vira escanteio dá a vez pra faixa do escanteio). */
             short?: boolean;
             /**
@@ -1053,6 +1055,7 @@ export class Cinematics {
             .setResolution(2);
         const children: Phaser.GameObjects.GameObject[] = [t];
         let below = t.height / 2;
+        let above = below;
         if (opts.sub) {
             const sub = this.scene.add
                 .text(0, 40 * s, opts.sub, {
@@ -1067,7 +1070,10 @@ export class Cinematics {
                 .setResolution(2);
             this.scene.tweens.add({ targets: sub, alpha: 1, delay: 180, duration: 200 });
             children.push(sub);
-            below = 40 * s + sub.height / 2;
+            if (opts.subAbove) {
+                sub.setY(-(t.height / 2 + sub.height / 2 + 2 * s));
+                above = t.height / 2 + sub.height + 2 * s;
+            } else below = 40 * s + sub.height / 2;
         }
         // um texto de drama por vez: o novo substitui o anterior
         if (this.dramaHolder) {
@@ -1094,7 +1100,7 @@ export class Cinematics {
         });
         // o alto do nome e a base da linha de baixo, em px da tela (o cut-in de dupla encosta nelas)
         const k = fit * (this.crop ? CROP_TEXT_SCALE : 1);
-        return { top: GAME_H * 0.17 - (t.height / 2) * k, bottom: GAME_H * 0.17 + below * k };
+        return { top: GAME_H * 0.17 - above * k, bottom: GAME_H * 0.17 + below * k };
     }
 }
 

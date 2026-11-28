@@ -3943,6 +3943,7 @@ export class MatchScene extends Phaser.Scene {
                 const box = this.cine.drama(text.name.toUpperCase(), {
                     ...style,
                     sub: tr(hit.team ? 'battle.secretSubTeam' : 'battle.secretSub', { a: a.name, b: b.name }),
+                    subAbove: true,
                     top: true,
                     hold: 1600,
                 });
