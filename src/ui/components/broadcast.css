@@ -1496,10 +1496,14 @@ body:has(.bc-hud) {
     font-weight: 700;
 }
 .bt-line.goal .bt-min {
+    --ol: #283044;
     padding: 0 4px;
     border-radius: 3px;
     background: var(--team-color, #283044);
+    /* time de cor clara (Pewter, uniforme branco): branco chapado sumia no fundo; o contorno escuro segura em qualquer cor */
+    box-shadow: inset 0 0 0 1px #283044;
     color: #fff;
+    text-shadow: var(--k-out-1);
 }
 /* a setinha vermelha piscando do canto, como no jogo */
 .bt-next {
