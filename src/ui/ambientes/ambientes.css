@@ -4165,6 +4165,25 @@
         clip-path: inset(50%);
     }
 }
+/* deitado em tela larga (844x390) as 2 placas têm lugar pro nome do lado do ícone, sem aumentar a altura */
+@media (orientation: landscape) and (max-height: 400px) and (min-width: 800px) {
+    .es-rail:not(.many) .es-tile {
+        grid-auto-flow: column;
+        align-content: center;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+    }
+    .es-rail:not(.many) .es-tile b {
+        position: static;
+        width: auto;
+        height: auto;
+        overflow: hidden;
+        clip-path: none;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+}
 [data-reduce-motion="true"] .es-tile.on {
     transform: none;
 }
